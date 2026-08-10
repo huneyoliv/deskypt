@@ -1,19 +1,380 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../data/models/rank_entry_model.dart';
+import '../../data/repositories/rank_repository.dart';
+import '../../shared/widgets/studicon_avatar.dart';
 
-class RanksScreen extends StatelessWidget {
+final rankRepositoryProvider = Provider<RankRepository>((ref) {
+  return RankRepository();
+});
+
+class RanksScreen extends ConsumerStatefulWidget {
   const RanksScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(
-        child: Text(
-          'Rankings & Estatísticas (Fase 6)',
-          style: AppTextStyles.titleLarge,
+  ConsumerState<RanksScreen> createState() => _RanksScreenState();
+}
+
+class _RanksScreenState extends ConsumerState<RanksScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  List<RankEntryModel> _ranks = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _loadRanks();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadRanks() async {
+    setState(() => _isLoading = true);
+    final repo = ref.read(rankRepositoryProvider);
+    final list = await repo.fetchGlobalRanks('Geral');
+    if (mounted) {
+      setState(() {
+        _ranks = list;
+        _isLoading = false;
+      });
+    }
+  }
+
+  String _formatMs(int ms) {
+    final mins = ms ~/ 60000;
+    final h = mins ~/ 60;
+    final m = mins % 60;
+    return '${h}h ${m}m';
+  }
+
+  Widget _buildPodiumItem({
+    required RankEntryModel member,
+    required String badgeImage,
+    required double height,
+    required Color color,
+  }) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Stack(
+          alignment: Alignment.topRight,
+          children: [
+            StudiconAvatar(studiconId: member.studiconId, size: 70),
+            Image.asset(badgeImage, width: 28, height: 28,
+                errorBuilder: (_, __, ___) => const Icon(Icons.emoji_events,
+                    color: Colors.amber, size: 24)),
+          ],
         ),
+        const SizedBox(height: 8),
+        Text(
+          member.userName,
+          style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          _formatMs(member.studyMs),
+          style: TextStyle(
+              color: color, fontWeight: FontWeight.w800, fontSize: 13),
+        ),
+        const SizedBox(height: 10),
+        Container(
+          width: 100,
+          height: height,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.2),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            border: Border.all(color: color),
+          ),
+          child: Center(
+            child: Text(
+              '#${member.rank}',
+              style: TextStyle(
+                  color: color, fontSize: 24, fontWeight: FontWeight.w900),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Rankings & Estatísticas', style: AppTextStyles.titleLarge),
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: AppColors.primary,
+          labelColor: Colors.white,
+          unselectedLabelColor: AppColors.textSecondary,
+          tabs: const [
+            Tab(text: 'Rankings Globais'),
+            Tab(text: 'Minhas Estatísticas'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          // Tab 1: Global Rankings & Podium
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
+                  padding: const EdgeInsets.all(32),
+                  children: [
+                    // Podium Header (Top 1, Top 2, Top 3)
+                    if (_ranks.length >= 3)
+                      SizedBox(
+                        height: 260,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            // 2nd Place (Silver)
+                            _buildPodiumItem(
+                              member: _ranks[1],
+                              badgeImage: 'assets/images/ic_silver.png',
+                              height: 110,
+                              color: const Color(0xFFC0C0C0),
+                            ),
+                            const SizedBox(width: 24),
+
+                            // 1st Place (Gold)
+                            _buildPodiumItem(
+                              member: _ranks[0],
+                              badgeImage: 'assets/images/ic_gold.png',
+                              height: 140,
+                              color: const Color(0xFFFFD700),
+                            ),
+                            const SizedBox(width: 24),
+
+                            // 3rd Place (Bronze)
+                            _buildPodiumItem(
+                              member: _ranks[2],
+                              badgeImage: 'assets/images/ic_bronze.png',
+                              height: 90,
+                              color: const Color(0xFFCD7F32),
+                            ),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(height: 32),
+
+                    const Text('Top Estudantes', style: AppTextStyles.titleMedium),
+                    const SizedBox(height: 12),
+
+                    // Ranks List 4+
+                    ..._ranks.skip(3).map((rank) {
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        color: AppColors.card,
+                        child: ListTile(
+                          leading: SizedBox(
+                            width: 32,
+                            child: Text(
+                              '#${rank.rank}',
+                              style: const TextStyle(
+                                color: AppColors.textMuted,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          title: Text(rank.userName,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600)),
+                          subtitle: Text(rank.categoryName,
+                              style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12)),
+                          trailing: Text(
+                            _formatMs(rank.studyMs),
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+
+          // Tab 2: Statistics & fl_chart Graphs
+          Padding(
+            padding: const EdgeInsets.all(32),
+            child: Row(
+              children: [
+                // Weekly Bar Chart
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Horas Estudadas na Semana',
+                          style: AppTextStyles.titleMedium,
+                        ),
+                        const SizedBox(height: 24),
+                        Expanded(
+                          child: BarChart(
+                            BarChartData(
+                              alignment: BarChartAlignment.spaceAround,
+                              maxY: 12,
+                              barTouchData: BarTouchData(enabled: false),
+                              titlesData: FlTitlesData(
+                                show: true,
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    getTitlesWidget: (value, meta) {
+                                      const days = [
+                                        'Seg',
+                                        'Ter',
+                                        'Qua',
+                                        'Qui',
+                                        'Sex',
+                                        'Sáb',
+                                        'Dom'
+                                      ];
+                                      if (value.toInt() < days.length) {
+                                        return Text(
+                                          days[value.toInt()],
+                                          style: const TextStyle(
+                                              color: AppColors.textSecondary,
+                                              fontSize: 12),
+                                        );
+                                      }
+                                      return const Text('');
+                                    },
+                                  ),
+                                ),
+                                leftTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false)),
+                                topTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false)),
+                                rightTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false)),
+                              ),
+                              borderData: FlBorderData(show: false),
+                              barGroups: [
+                                BarChartGroupData(x: 0, barRods: [
+                                  BarChartRodData(
+                                      toY: 6.5, color: AppColors.primary)
+                                ]),
+                                BarChartGroupData(x: 1, barRods: [
+                                  BarChartRodData(
+                                      toY: 8.0, color: AppColors.primary)
+                                ]),
+                                BarChartGroupData(x: 2, barRods: [
+                                  BarChartRodData(
+                                      toY: 9.5, color: AppColors.primary)
+                                ]),
+                                BarChartGroupData(x: 3, barRods: [
+                                  BarChartRodData(
+                                      toY: 7.0, color: AppColors.primary)
+                                ]),
+                                BarChartGroupData(x: 4, barRods: [
+                                  BarChartRodData(
+                                      toY: 10.0, color: AppColors.primary)
+                                ]),
+                                BarChartGroupData(x: 5, barRods: [
+                                  BarChartRodData(
+                                      toY: 4.0, color: AppColors.flame)
+                                ]),
+                                BarChartGroupData(x: 6, barRods: [
+                                  BarChartRodData(
+                                      toY: 5.5, color: AppColors.flame)
+                                ]),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 24),
+
+                // Subject Distribution Pie Chart
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Distribuição por Matéria',
+                          style: AppTextStyles.titleMedium,
+                        ),
+                        const SizedBox(height: 24),
+                        Expanded(
+                          child: PieChart(
+                            PieChartData(
+                              sectionsSpace: 4,
+                              centerSpaceRadius: 50,
+                              sections: [
+                                PieChartSectionData(
+                                  color: const Color(0xFF5B6AF0),
+                                  value: 40,
+                                  title: '40%',
+                                  radius: 60,
+                                  titleStyle: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                PieChartSectionData(
+                                  color: const Color(0xFFFF5247),
+                                  value: 30,
+                                  title: '30%',
+                                  radius: 60,
+                                  titleStyle: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                PieChartSectionData(
+                                  color: const Color(0xFF00E676),
+                                  value: 30,
+                                  title: '30%',
+                                  radius: 60,
+                                  titleStyle: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
