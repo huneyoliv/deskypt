@@ -1,3 +1,5 @@
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/user_model.dart';
 import '../../data/repositories/auth_repository.dart';
@@ -59,18 +61,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> signInWithGoogle() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      // Mock / Social login provider payload call
+      final googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+      final account = await googleSignIn.signIn();
+      if (account == null) {
+        state = state.copyWith(isLoading: false);
+        return;
+      }
+
       final user = await _repository.signInWithSocial(
         provider: 'Google',
-        socialId: 'google_user_123',
-        email: 'user@gmail.com',
-        name: 'Usuário Google',
+        socialId: account.id,
+        email: account.email,
+        name: account.displayName ?? account.email.split('@').first,
       );
       state = AuthState(user: user, isLoading: false);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: 'Não foi possível autenticar via Google: ${e.toString().replaceAll('Exception: ', '')}',
       );
     }
   }
@@ -78,17 +86,28 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> signInWithApple() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      final socialId = credential.userIdentifier ?? '';
+      final email = credential.email ?? '';
+      final name = '${credential.givenName ?? ''} ${credential.familyName ?? ''}'.trim();
+
       final user = await _repository.signInWithSocial(
         provider: 'Apple',
-        socialId: 'apple_user_123',
-        email: 'user@apple.com',
-        name: 'Usuário Apple',
+        socialId: socialId,
+        email: email.isEmpty ? 'apple_user@apple.com' : email,
+        name: name.isEmpty ? 'Usuário Apple' : name,
       );
       state = AuthState(user: user, isLoading: false);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: 'Não foi possível autenticar via Apple: ${e.toString().replaceAll('Exception: ', '')}',
       );
     }
   }
