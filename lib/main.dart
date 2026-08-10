@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import 'core/theme/app_theme.dart';
-import 'core/theme/app_colors.dart';
-import 'core/theme/app_text_styles.dart';
+import 'core/router/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,37 +31,18 @@ void main() async {
   );
 }
 
-class DeskYptApp extends StatelessWidget {
+class DeskYptApp extends ConsumerWidget {
   const DeskYptApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+
+    return MaterialApp.router(
       title: 'DeskYPT',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'DeskYPT',
-                style: AppTextStyles.displayLarge,
-              ),
-              SizedBox(height: 12),
-              Text(
-                'YPT for Desktop Client - Phase 0 Setup OK',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 16,
-                  fontFamily: AppTextStyles.fontPretendard,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      routerConfig: router,
     );
   }
 }
