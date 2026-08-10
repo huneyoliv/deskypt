@@ -3,6 +3,13 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/auth_notifier.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/timer/timer_screen.dart';
+import '../../features/groups/groups_screen.dart';
+import '../../features/planner/planner_screen.dart';
+import '../../features/ranks/ranks_screen.dart';
+import '../../features/store/store_screen.dart';
+import '../../features/music/music_screen.dart';
+import '../../features/profile/profile_screen.dart';
+import '../../shared/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -26,9 +33,43 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/login',
         builder: (context, state) => const LoginScreen(),
       ),
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const TimerScreen(),
+      ShellRoute(
+        builder: (context, state, child) {
+          return AppShell(
+            currentRoute: state.matchedLocation,
+            child: child,
+          );
+        },
+        routes: [
+          GoRoute(
+            path: '/home',
+            builder: (context, state) => const TimerScreen(),
+          ),
+          GoRoute(
+            path: '/groups',
+            builder: (context, state) => const GroupsScreen(),
+          ),
+          GoRoute(
+            path: '/planner',
+            builder: (context, state) => const PlannerScreen(),
+          ),
+          GoRoute(
+            path: '/ranks',
+            builder: (context, state) => const RanksScreen(),
+          ),
+          GoRoute(
+            path: '/store',
+            builder: (context, state) => const StoreScreen(),
+          ),
+          GoRoute(
+            path: '/music',
+            builder: (context, state) => const MusicScreen(),
+          ),
+          GoRoute(
+            path: '/profile',
+            builder: (context, state) => const ProfileScreen(),
+          ),
+        ],
       ),
     ],
   );
