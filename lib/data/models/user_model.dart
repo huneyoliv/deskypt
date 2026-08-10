@@ -1,3 +1,5 @@
+import '../../core/utils/json_utils.dart';
+
 class UserModel {
   final int id;
   final String name;
@@ -16,13 +18,17 @@ class UserModel {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json, String token) {
+    final userId = safeInt(json['id'] ?? json['ud'] ?? json['userId']);
+    final studiconId = safeInt(json['pv'] ?? json['st'] ?? json['studiconId'], -1);
+    final hasCustomAvatar = safeBool(json['hasCustomAvatar']);
+
     return UserModel(
-      id: json['id'] as int? ?? 0,
-      name: json['n'] as String? ?? '',
-      email: json['e'] as String? ?? '',
-      studiconId: json['pv'] as int? ?? -1,
-      profilePhotoUrl: json['hasCustomAvatar'] == true
-          ? 'https://alicdn.tgclab.com/user/profile/${json['id']}.jpg'
+      id: userId,
+      name: safeString(json['n'] ?? json['name']),
+      email: safeString(json['e'] ?? json['email']),
+      studiconId: studiconId,
+      profilePhotoUrl: hasCustomAvatar
+          ? 'https://alicdn.tgclab.com/user/profile/$userId.jpg'
           : null,
       jwtToken: token,
     );

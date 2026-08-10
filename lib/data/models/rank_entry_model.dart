@@ -1,4 +1,5 @@
 import '../../core/cdn/cdn_resolver.dart';
+import '../../core/utils/json_utils.dart';
 
 class RankEntryModel {
   final int rank;
@@ -29,13 +30,13 @@ class RankEntryModel {
 
   factory RankEntryModel.fromJson(Map<String, dynamic> json, int rankIndex) {
     return RankEntryModel(
-      rank: json['rank'] as int? ?? rankIndex,
-      userId: json['ud'] as int? ?? json['userId'] as int? ?? 0,
-      userName: json['n'] as String? ?? json['userName'] as String? ?? 'Usuário',
-      studiconId: json['st'] as int? ?? json['pv'] as int? ?? 377,
-      studyMs: json['sm'] as int? ?? 0,
-      categoryName: json['c'] as String? ?? 'Geral',
-      hasCustomAvatar: json['hasCustomAvatar'] as bool? ?? false,
+      rank: safeInt(json['rank'], rankIndex),
+      userId: safeInt(json['ud'] ?? json['userId']),
+      userName: safeString(json['n'] ?? json['userName'], 'Usuário'),
+      studiconId: safeInt(json['st'] ?? json['pv'], 377),
+      studyMs: safeInt(json['sm']),
+      categoryName: safeString(json['c'], 'Geral'),
+      hasCustomAvatar: safeBool(json['hasCustomAvatar']),
     );
   }
 }

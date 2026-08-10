@@ -43,6 +43,34 @@ class DeskYptApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       routerConfig: router,
+      builder: (context, child) {
+        return Column(
+          children: [
+            Container(
+              height: 32,
+              color: const Color(0xFF141418),
+              child: const WindowCaption(
+                brightness: Brightness.dark,
+                backgroundColor: Colors.transparent,
+                title: Row(
+                  children: [
+                    SizedBox(width: 8),
+                    Text(
+                      'DeskYPT',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(child: child ?? const SizedBox.shrink()),
+          ],
+        );
+      },
     );
   }
 }

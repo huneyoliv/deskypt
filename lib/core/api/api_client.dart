@@ -13,6 +13,7 @@ class ApiClient {
                 baseUrl: ApiConstants.baseUrl,
                 connectTimeout: const Duration(seconds: 15),
                 receiveTimeout: const Duration(seconds: 15),
+                validateStatus: (status) => status != null && status < 500,
               ),
             ) {
     if (customDio == null) {

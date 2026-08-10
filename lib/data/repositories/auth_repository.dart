@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/api/api_client.dart';
+import '../../core/api/api_exception.dart';
 import '../../core/api/auth_interceptor.dart';
 import '../../core/constants/api_constants.dart';
 import '../models/user_model.dart';
@@ -30,20 +31,24 @@ class AuthRepository {
       },
     );
 
-    final data = response.data as Map<String, dynamic>;
-    if (data['s'] != true) {
-      throw Exception(data['m'] ?? 'Falha ao autenticar');
+    final data = response.data;
+    if (data is! Map<String, dynamic> || data['s'] != true) {
+      final msg = (data is Map && (data['m'] != null || data['message'] != null))
+          ? (data['m'] ?? data['message']).toString()
+          : 'E-mail ou senha incorretos';
+      throw ApiException(msg, statusCode: response.statusCode);
     }
 
-    final token = data['jwt'] as String;
+    final token = (data['jwt'] ?? '').toString();
+    if (token.isEmpty) {
+      throw const ApiException('Token JWT não foi retornado pelo servidor');
+    }
+
     await _storage.write(key: AuthInterceptor.keyJwtToken, value: token);
 
-    // Call splash-login after authentication
     try {
       await splashLogin();
-    } catch (_) {
-      // Ignorar erros secundários de splash login se autenticou com sucesso
-    }
+    } catch (_) {}
 
     return UserModel.fromJson(data, token);
   }
@@ -67,12 +72,19 @@ class AuthRepository {
       },
     );
 
-    final data = response.data as Map<String, dynamic>;
-    if (data['s'] != true) {
-      throw Exception(data['m'] ?? 'Falha ao autenticar via $provider');
+    final data = response.data;
+    if (data is! Map<String, dynamic> || data['s'] != true) {
+      final msg = (data is Map && (data['m'] != null || data['message'] != null))
+          ? (data['m'] ?? data['message']).toString()
+          : 'Falha ao autenticar via $provider';
+      throw ApiException(msg, statusCode: response.statusCode);
     }
 
-    final token = data['jwt'] as String;
+    final token = (data['jwt'] ?? '').toString();
+    if (token.isEmpty) {
+      throw ApiException('Token JWT via $provider não retornado pelo servidor');
+    }
+
     await _storage.write(key: AuthInterceptor.keyJwtToken, value: token);
 
     try {
