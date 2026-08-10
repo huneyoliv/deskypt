@@ -1,0 +1,37 @@
+class GroupModel {
+  final int id;
+  final String name;
+  final String category;
+  final int dailyGoalHours;
+  final int membersCount;
+  final int maxCapacity;
+  final bool isPrivate;
+  final String leaderName;
+  final String? notice;
+
+  const GroupModel({
+    required this.id,
+    required this.name,
+    required this.category,
+    required this.dailyGoalHours,
+    required this.membersCount,
+    required this.maxCapacity,
+    required this.isPrivate,
+    required this.leaderName,
+    this.notice,
+  });
+
+  factory GroupModel.fromJson(Map<String, dynamic> json) {
+    return GroupModel(
+      id: json['id'] as int? ?? json['groupID'] as int? ?? 0,
+      name: json['n'] as String? ?? json['name'] as String? ?? 'Grupo',
+      category: json['c'] as String? ?? 'Geral',
+      dailyGoalHours: json['g'] as int? ?? 8,
+      membersCount: json['mc'] as int? ?? json['personnel'] as int? ?? 1,
+      maxCapacity: json['mp'] as int? ?? json['maxPersonnel'] as int? ?? 50,
+      isPrivate: json['p'] as bool? ?? false,
+      leaderName: json['ln'] as String? ?? json['leader'] as String? ?? '',
+      notice: json['nt'] as String? ?? json['notice'] as String?,
+    );
+  }
+}
