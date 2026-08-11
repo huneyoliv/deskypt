@@ -8,6 +8,7 @@ class GroupModel {
   final bool isPrivate;
   final String leaderName;
   final String? notice;
+  final bool isCamStudy;
 
   const GroupModel({
     required this.id,
@@ -19,6 +20,7 @@ class GroupModel {
     required this.isPrivate,
     required this.leaderName,
     this.notice,
+    this.isCamStudy = false,
   });
 
   factory GroupModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +34,7 @@ class GroupModel {
       isPrivate: json['ip'] as bool? ?? json['p'] as bool? ?? false,
       leaderName: json['on'] as String? ?? json['ln'] as String? ?? json['leader'] as String? ?? '',
       notice: json['sn'] as String? ?? json['nt'] as String? ?? json['notice'] as String?,
+      isCamStudy: json['cam'] as bool? ?? json['isCam'] as bool? ?? json['isCamStudy'] as bool? ?? false,
     );
   }
 }

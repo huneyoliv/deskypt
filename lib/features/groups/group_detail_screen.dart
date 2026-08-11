@@ -8,6 +8,7 @@ import '../../data/models/group_member_model.dart';
 import '../../data/models/chat_message_model.dart';
 import '../../data/repositories/group_repository.dart';
 import 'group_leader_panel.dart';
+import 'widgets/cam_study_member_tile.dart';
 
 final groupRepositoryProvider = Provider<GroupRepository>((ref) {
   return GroupRepository();
@@ -251,6 +252,13 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                     itemCount: _members.length,
                     itemBuilder: (context, index) {
                       final member = _members[index];
+
+                      if (widget.group.isCamStudy) {
+                        return CamStudyMemberTile(
+                          member: member,
+                          onShake: () => _shakeUser(member),
+                        );
+                      }
 
                       return Container(
                         padding: const EdgeInsets.all(16),
