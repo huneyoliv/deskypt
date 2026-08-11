@@ -49,12 +49,10 @@ class StoreRepository {
       }
     } catch (_) {}
 
-    // 3. If public catalog returned items, return catalog
     if (catalog.isNotEmpty) {
       return catalog;
     }
 
-    // Fallback: If public catalog endpoint fails or returns empty, show user owned IDs
     if (ownedIds.isNotEmpty) {
       return ownedIds.map((id) {
         return StudiconItemModel(
@@ -67,7 +65,6 @@ class StoreRepository {
       }).toList();
     }
 
-    // Default basic catalog items if completely offline
     return [
       const StudiconItemModel(
         id: 377,
@@ -94,11 +91,19 @@ class StoreRepository {
     ];
   }
 
+  Future<List<StudiconItemModel>> fetchMyStudicons(int currentEquippedId) async {
+    final catalog = await fetchCatalog();
+    return catalog
+        .where((item) => item.isOwned || item.id == currentEquippedId)
+        .map((item) => item.copyWith(isEquipped: item.id == currentEquippedId))
+        .toList();
+  }
+
   Future<bool> equipStudicon(int studiconId) async {
     try {
       final response = await _apiClient.post(
-        '/studicon/equip',
-        data: {'id': studiconId},
+        '/user/v2/reload/info',
+        data: {'pv': studiconId},
       );
       final data = response.data;
       return data is Map<String, dynamic> && data['s'] == true;
