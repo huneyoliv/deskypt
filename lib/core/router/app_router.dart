@@ -9,6 +9,7 @@ import '../../features/ranks/ranks_screen.dart';
 import '../../features/store/store_screen.dart';
 import '../../features/music/music_screen.dart';
 import '../../features/profile/profile_screen.dart';
+import '../../features/challenges/challenges_screen.dart';
 import '../../shared/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -68,6 +69,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/profile',
             builder: (context, state) => const ProfileScreen(),
+          ),
+          GoRoute(
+            path: '/challenges',
+            builder: (context, state) => const ChallengesScreen(),
           ),
         ],
       ),

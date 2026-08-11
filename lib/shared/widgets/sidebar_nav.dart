@@ -66,6 +66,11 @@ class SidebarNav extends ConsumerWidget {
       fallbackIcon: Icons.graphic_eq,
     ),
     SidebarNavItemData(
+      title: 'Desafios',
+      route: '/challenges',
+      fallbackIcon: Icons.emoji_events_outlined,
+    ),
+    SidebarNavItemData(
       title: 'Perfil',
       route: '/profile',
       fallbackIcon: Icons.person_outline,
