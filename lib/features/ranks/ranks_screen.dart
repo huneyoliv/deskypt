@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../data/models/rank_entry_model.dart';
@@ -56,6 +57,8 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
     }
   }
 
+  Map<String, int> _monthlyStudyMs = {};
+
   Future<void> _loadUserStats() async {
     setState(() => _isLoadingStats = true);
     final user = ref.read(authStateProvider).user;
@@ -66,10 +69,11 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
 
     final repo = ref.read(rankRepositoryProvider);
     final now = DateTime.now();
-    final startDate = now.subtract(const Duration(days: 6));
-    
-    final startStr = '${startDate.year}-${startDate.month}-${startDate.day}';
-    final endStr = '${now.year}-${now.month}-${now.day}';
+    final firstDayMonth = DateTime(now.year, now.month, 1);
+    final lastDayMonth = DateTime(now.year, now.month + 1, 0);
+
+    final startStr = DateFormat('yyyy-MM-dd').format(firstDayMonth);
+    final endStr = DateFormat('yyyy-MM-dd').format(lastDayMonth);
 
     final data = await repo.fetchUserStats(
       userId: user.id,
@@ -80,6 +84,7 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
     final rawLogs = data['ls'];
     final weekly = List.filled(7, 0.0);
     final subjectMap = <String, double>{};
+    final monthlyMs = <String, int>{};
 
     if (rawLogs is List) {
       for (final log in rawLogs) {
@@ -90,6 +95,7 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
           final subject = log['sb'] as String? ?? 'Geral';
 
           if (dtStr.isNotEmpty) {
+            monthlyMs[dtStr] = (monthlyMs[dtStr] ?? 0) + ms;
             try {
               final parsedDate = DateTime.parse(dtStr);
               final dayIndex = (parsedDate.weekday - 1) % 7;
@@ -106,6 +112,7 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
       setState(() {
         _weeklyHours = weekly;
         _subjectDistribution = subjectMap;
+        _monthlyStudyMs = monthlyMs;
         _isLoadingStats = false;
       });
     }
@@ -481,19 +488,7 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
                 border: Border.all(color: AppColors.border),
               ),
               child: StudyCalendar(
-                dailyStudyTimeMs: {
-                  '2026-08-01': 7200000,
-                  '2026-08-02': 14400000,
-                  '2026-08-03': 18000000,
-                  '2026-08-04': 21600000,
-                  '2026-08-05': 25200000,
-                  '2026-08-06': 14400000,
-                  '2026-08-07': 28800000,
-                  '2026-08-08': 10800000,
-                  '2026-08-09': 14400000,
-                  '2026-08-10': 18000000,
-                  '2026-08-11': 21600000,
-                },
+                dailyStudyTimeMs: _monthlyStudyMs,
               ),
             ),
           ),
