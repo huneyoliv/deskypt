@@ -24,7 +24,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _loadNotifications();
+    _loadAndAutoReadNotifications();
   }
 
   @override
@@ -33,22 +33,72 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
     super.dispose();
   }
 
-  Future<void> _loadNotifications() async {
+  Future<void> _loadAndAutoReadNotifications() async {
     setState(() => _isLoading = true);
     final repo = ref.read(notificationRepositoryProvider);
     final list = await repo.fetchNotifications(isNew: false);
+
+    // Auto mark unread notifications as read when opening notifications screen
+    final unread = list.where((n) => !n.isRead).toList();
+    if (unread.isNotEmpty) {
+      await repo.markAllAsRead();
+      for (final notice in unread) {
+        repo.markAsRead(notice.id);
+      }
+    }
+
     if (mounted) {
       setState(() {
-        _allNotifications = list;
+        // Mark all as read locally for immediate UI response
+        _allNotifications = list.map((n) => NotificationModel(
+          id: n.id,
+          title: n.title,
+          message: n.message,
+          type: n.type,
+          createdAt: n.createdAt,
+          isRead: true,
+        )).toList();
         _isLoading = false;
       });
     }
   }
 
-  Future<void> _markRead(NotificationModel notice) async {
+  Future<void> _deleteNotification(NotificationModel notice) async {
+    if (!notice.isRead) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Só é possível excluir notificações lidas.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _allNotifications = _allNotifications.where((n) => n.id != notice.id).toList();
+    });
+
     final repo = ref.read(notificationRepositoryProvider);
-    await repo.markAsRead(notice.id);
-    _loadNotifications();
+    await repo.deleteNotification(notice.id);
+  }
+
+  Future<void> _deleteAllRead() async {
+    setState(() {
+      _allNotifications = _allNotifications.where((n) => !n.isRead).toList();
+    });
+
+    final repo = ref.read(notificationRepositoryProvider);
+    await repo.deleteAllRead();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Notificações lidas removidas.'),
+          backgroundColor: AppColors.primary,
+        ),
+      );
+    }
   }
 
   Widget _buildList(List<NotificationModel> list) {
@@ -117,13 +167,20 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
                 Text(df.format(notice.createdAt), style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
               ],
             ),
-            trailing: notice.isRead
-                ? null
-                : IconButton(
-                    icon: const Icon(Icons.check_circle_outline, color: AppColors.primary),
-                    tooltip: 'Marcar como lida',
-                    onPressed: () => _markRead(notice),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Delete button is enabled ONLY if notice isRead == true
+                IconButton(
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: notice.isRead ? AppColors.error : AppColors.textMuted.withValues(alpha: 0.3),
                   ),
+                  tooltip: notice.isRead ? 'Excluir notificação' : 'Só é possível excluir após ler',
+                  onPressed: notice.isRead ? () => _deleteNotification(notice) : null,
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -141,8 +198,13 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
         title: const Text('Central de Notificações', style: AppTextStyles.titleLarge),
         actions: [
           IconButton(
+            icon: const Icon(Icons.delete_sweep_outlined, color: AppColors.error),
+            tooltip: 'Limpar Notificações Lidas',
+            onPressed: _deleteAllRead,
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _loadNotifications,
+            onPressed: _loadAndAutoReadNotifications,
           ),
         ],
         bottom: TabBar(

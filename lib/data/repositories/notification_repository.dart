@@ -1,5 +1,15 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/api/api_client.dart';
 import '../models/notification_model.dart';
+
+final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
+  return NotificationRepository();
+});
+
+final unreadNotificationCountProvider = FutureProvider<int>((ref) async {
+  final repo = ref.watch(notificationRepositoryProvider);
+  return repo.fetchUnreadCount();
+});
 
 class NotificationRepository {
   final ApiClient _apiClient;
@@ -45,8 +55,56 @@ class NotificationRepository {
     try {
       final response = await _apiClient.post(
         '/notice/read',
-        data: {'noticeID': notificationId},
+        data: {'noticeID': notificationId, 'id': notificationId},
       );
+      final data = response.data;
+      return data is Map<String, dynamic> && data['s'] == true;
+    } catch (_) {}
+    return false;
+  }
+
+  Future<bool> markAllAsRead() async {
+    try {
+      final response = await _apiClient.post(
+        '/user/notifications/read-all',
+        data: {'all': true},
+      );
+      final data = response.data;
+      return data is Map<String, dynamic> && data['s'] == true;
+    } catch (_) {}
+
+    try {
+      final response = await _apiClient.post('/notice/read-all');
+      final data = response.data;
+      return data is Map<String, dynamic> && data['s'] == true;
+    } catch (_) {}
+    return false;
+  }
+
+  Future<bool> deleteNotification(int notificationId) async {
+    try {
+      final response = await _apiClient.post(
+        '/user/notifications/delete',
+        data: {'id': notificationId, 'noticeID': notificationId},
+      );
+      final data = response.data;
+      return data is Map<String, dynamic> && data['s'] == true;
+    } catch (_) {}
+
+    try {
+      final response = await _apiClient.post(
+        '/notice/delete',
+        data: {'id': notificationId},
+      );
+      final data = response.data;
+      return data is Map<String, dynamic> && data['s'] == true;
+    } catch (_) {}
+    return false;
+  }
+
+  Future<bool> deleteAllRead() async {
+    try {
+      final response = await _apiClient.post('/user/notifications/delete-read');
       final data = response.data;
       return data is Map<String, dynamic> && data['s'] == true;
     } catch (_) {}

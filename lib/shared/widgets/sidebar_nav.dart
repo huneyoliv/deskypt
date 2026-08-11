@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/cdn/cdn_resolver.dart';
 import '../../features/auth/auth_notifier.dart';
+import '../../data/repositories/notification_repository.dart';
 import 'studicon_avatar.dart';
 import 'flames_badge.dart';
 
@@ -85,6 +86,8 @@ class SidebarNav extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authStateProvider).user;
+    final unreadAsync = ref.watch(unreadNotificationCountProvider);
+    final hasUnread = unreadAsync.maybeWhen(data: (cnt) => cnt > 0, orElse: () => true);
 
     return Container(
       width: 240,
@@ -227,6 +230,17 @@ class SidebarNav extends ConsumerWidget {
                                 fontSize: 14,
                               ),
                             ),
+                            if (item.route == '/notifications' && hasUnread && currentRoute != '/notifications') ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.error,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),

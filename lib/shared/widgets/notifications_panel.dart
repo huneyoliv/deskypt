@@ -6,10 +6,6 @@ import '../../core/theme/app_text_styles.dart';
 import '../../data/models/notification_model.dart';
 import '../../data/repositories/notification_repository.dart';
 
-final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
-  return NotificationRepository();
-});
-
 class NotificationsPanel extends ConsumerStatefulWidget {
   const NotificationsPanel({super.key});
 
