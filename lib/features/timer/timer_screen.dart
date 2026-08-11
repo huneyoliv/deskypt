@@ -8,6 +8,7 @@ import 'timer_notifier.dart';
 import 'widgets/progress_ring_painter.dart';
 import 'widgets/timer_display.dart';
 import 'widgets/subject_selector.dart';
+import 'widgets/subject_management_dialog.dart';
 
 class TimerScreen extends ConsumerWidget {
   const TimerScreen({super.key});
@@ -72,10 +73,21 @@ class TimerScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  if (timerState.currentSubject != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                  InkWell(
+                    onTap: () {
+                      SubjectManagementDialog.show(
+                        context,
+                        subjects: timerState.subjects,
+                        selectedSubject: timerState.currentSubject,
+                        onSelectSubject: (subject) => notifier.selectSubject(subject),
+                        onCreateSubject: (title, colorInt) => notifier.createSubject(title, colorInt),
+                        onUpdateSubject: (subject) => notifier.updateSubject(subject),
+                        onDeleteSubject: (id) => notifier.deleteSubject(id),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
                         color: currentSubjectColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
@@ -93,53 +105,18 @@ class TimerScreen extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            timerState.currentSubject!.title,
+                            timerState.currentSubject?.title ?? 'Selecionar Matéria',
                             style: TextStyle(
                               color: currentSubjectColor,
                               fontWeight: FontWeight.w700,
                               fontSize: 14,
                             ),
                           ),
+                          const SizedBox(width: 6),
+                          Icon(Icons.keyboard_arrow_down_rounded, color: currentSubjectColor, size: 18),
                         ],
                       ),
                     ),
-                ],
-              ),
-            ),
-
-            // Prominent Subject Selection Bar (Top Placement)
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              color: AppColors.card,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-                    child: Text(
-                      'SELECIONE A MATÉRIA:',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ),
-                  SubjectSelector(
-                    subjects: timerState.subjects,
-                    selectedSubject: timerState.currentSubject,
-                    onSelectSubject: (subject) =>
-                        notifier.selectSubject(subject),
-                    onCreateSubject: (title, colorInt) =>
-                        notifier.createSubject(title, colorInt),
-                    onUpdateSubject: (subject) =>
-                        notifier.updateSubject(subject),
-                    onArchiveSubject: (id) {
-                      final subject = timerState.subjects.firstWhere((s) => s.id == id);
-                      notifier.archiveSubject(id, !subject.isArchived);
-                    },
-                    onDeleteSubject: (id) => notifier.deleteSubject(id),
                   ),
                 ],
               ),
