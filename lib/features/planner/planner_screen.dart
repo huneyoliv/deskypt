@@ -578,10 +578,41 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                             style: AppTextStyles.displayMedium,
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            DateFormat('EEEE, d MMMM yyyy')
-                                .format(_selectedDate),
-                            style: AppTextStyles.bodyMedium,
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.arrow_back_ios_rounded, size: 16, color: AppColors.textMuted),
+                                onPressed: () {
+                                  setState(() => _selectedDate = _selectedDate.subtract(const Duration(days: 1)));
+                                  _loadData();
+                                },
+                              ),
+                              InkWell(
+                                onTap: () async {
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: _selectedDate,
+                                    firstDate: DateTime(2020),
+                                    lastDate: DateTime(2030),
+                                  );
+                                  if (picked != null) {
+                                    setState(() => _selectedDate = picked);
+                                    _loadData();
+                                  }
+                                },
+                                child: Text(
+                                  DateFormat('EEEE, d MMMM yyyy').format(_selectedDate),
+                                  style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.textMuted),
+                                onPressed: () {
+                                  setState(() => _selectedDate = _selectedDate.add(const Duration(days: 1)));
+                                  _loadData();
+                                },
+                              ),
+                            ],
                           ),
                         ],
                       ),
