@@ -8,30 +8,52 @@ class RankRepository {
   RankRepository({ApiClient? apiClient})
       : _apiClient = apiClient ?? ApiClient();
 
-  Future<List<RankEntryModel>> fetchGlobalRanks(String category) async {
+  Future<List<RankEntryModel>> fetchGlobalRanks({
+    String period = 'day',
+    int categoryId = 0,
+    int countryId = 23,
+    int page = 1,
+  }) async {
     try {
       final now = DateTime.now();
       final dateStr = '${now.year}-${now.month}-${now.day}';
-      
+
       final response = await _apiClient.get(
-        '${ApiConstants.metadataCdnUrl}/logs/category/member/ranks?date=$dateStr&categoryID=0&countryID=23&page=1&type=day',
+        '${ApiConstants.metadataCdnUrl}/logs/category/member/ranks?date=$dateStr&categoryID=$categoryId&countryID=$countryId&page=$page&type=$period',
       );
-      
+
       final data = response.data;
       if (data is Map<String, dynamic> && data['s'] == true) {
         final list = data['ms'] ?? data['ranks'];
         if (list is List) {
+          final startRank = (page - 1) * 20 + 1;
           return list
               .asMap()
               .entries
               .map((entry) => RankEntryModel.fromJson(
-                  entry.value as Map<String, dynamic>, entry.key + 1))
+                  entry.value as Map<String, dynamic>, startRank + entry.key))
               .toList();
         }
       }
     } catch (_) {}
 
     return [];
+  }
+
+  Future<int?> fetchMyCategoryRank({
+    int categoryId = 0,
+    int countryId = 23,
+  }) async {
+    try {
+      final response = await _apiClient.get(
+        '/logs/my-category-rank?category_id=$categoryId&country_id=$countryId',
+      );
+      final data = response.data as Map<String, dynamic>;
+      if (data['s'] == true) {
+        return data['mr'] as int?;
+      }
+    } catch (_) {}
+    return null;
   }
 
   Future<Map<String, dynamic>> fetchUserStats({

@@ -25,6 +25,8 @@ class RanksScreen extends ConsumerStatefulWidget {
 class _RanksScreenState extends ConsumerState<RanksScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  String _selectedPeriod = 'day';
+  int? _myRank;
   List<RankEntryModel> _ranks = [];
   List<double> _weeklyHours = List.filled(7, 0.0);
   Map<String, double> _subjectDistribution = {};
@@ -48,10 +50,17 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
   Future<void> _loadRanks() async {
     setState(() => _isLoadingRanks = true);
     final repo = ref.read(rankRepositoryProvider);
-    final list = await repo.fetchGlobalRanks('Geral');
+    final user = ref.read(authStateProvider).user;
+
+    final results = await Future.wait([
+      repo.fetchGlobalRanks(period: _selectedPeriod, categoryId: user?.categoryId ?? 0),
+      repo.fetchMyCategoryRank(categoryId: user?.categoryId ?? 0),
+    ]);
+
     if (mounted) {
       setState(() {
-        _ranks = list;
+        _ranks = results[0] as List<RankEntryModel>;
+        _myRank = results[1] as int?;
         _isLoadingRanks = false;
       });
     }
@@ -229,17 +238,82 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
         controller: _tabController,
         children: [
           // Tab 1: Global Rankings & Podium
-          _isLoadingRanks
-              ? const Center(child: CircularProgressIndicator())
-              : _ranks.isEmpty
-                  ? const Center(
-                      child: Text('Nenhum ranking disponível no momento.',
-                          style: TextStyle(color: AppColors.textSecondary)),
-                    )
-                  : ListView(
-                      padding: const EdgeInsets.all(32),
-                      children: [
-                        // Podium Header (Top 1, Top 2, Top 3)
+          Column(
+            children: [
+              // Period Selector Bar & My Rank Banner
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                color: AppColors.surface,
+                child: Row(
+                  children: [
+                    ChoiceChip(
+                      label: const Text('Hoje'),
+                      selected: _selectedPeriod == 'day',
+                      selectedColor: AppColors.primary,
+                      backgroundColor: AppColors.card,
+                      labelStyle: TextStyle(color: _selectedPeriod == 'day' ? Colors.white : AppColors.textMuted),
+                      onSelected: (_) {
+                        setState(() => _selectedPeriod = 'day');
+                        _loadRanks();
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: const Text('Esta Semana'),
+                      selected: _selectedPeriod == 'week',
+                      selectedColor: AppColors.primary,
+                      backgroundColor: AppColors.card,
+                      labelStyle: TextStyle(color: _selectedPeriod == 'week' ? Colors.white : AppColors.textMuted),
+                      onSelected: (_) {
+                        setState(() => _selectedPeriod = 'week');
+                        _loadRanks();
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: const Text('Este Mês'),
+                      selected: _selectedPeriod == 'month',
+                      selectedColor: AppColors.primary,
+                      backgroundColor: AppColors.card,
+                      labelStyle: TextStyle(color: _selectedPeriod == 'month' ? Colors.white : AppColors.textMuted),
+                      onSelected: (_) {
+                        setState(() => _selectedPeriod = 'month');
+                        _loadRanks();
+                      },
+                    ),
+                    const Spacer(),
+                    if (_myRank != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppColors.primary),
+                        ),
+                        child: Text(
+                          'Seu Ranking: #$_myRank',
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: _isLoadingRanks
+                    ? const Center(child: CircularProgressIndicator())
+                    : _ranks.isEmpty
+                        ? const Center(
+                            child: Text('Nenhum ranking disponível no momento.',
+                                style: TextStyle(color: AppColors.textSecondary)),
+                          )
+                        : ListView(
+                            padding: const EdgeInsets.all(32),
+                            children: [
+                              // Podium Header (Top 1, Top 2, Top 3)
                         if (_ranks.length >= 3)
                           SizedBox(
                             height: 260,
@@ -326,6 +400,9 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
                         }),
                       ],
                     ),
+              ),
+            ],
+          ),
 
           // Tab 2: Statistics & fl_chart Graphs (Real Data)
           _isLoadingStats
