@@ -25,7 +25,7 @@ class StudiconItemModel {
       id: json['id'] as int? ?? json['studiconID'] as int? ?? 0,
       name: title,
       category: json['category'] as String? ?? 'Meus Studicons',
-      priceFlames: json['price'] as int? ?? 0,
+      priceFlames: (json['fc'] ?? json['flame_cost'] ?? json['price'] as num?)?.toInt() ?? 300,
       isOwned: json['isOwned'] as bool? ?? true,
       isEquipped: json['isEquipped'] as bool? ?? false,
     );
