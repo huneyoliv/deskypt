@@ -7,6 +7,7 @@ class GroupModel {
   final int maxCapacity;
   final bool isPrivate;
   final String leaderName;
+  final int leaderUserId;
   final String? notice;
   final bool isCamStudy;
 
@@ -19,6 +20,7 @@ class GroupModel {
     required this.maxCapacity,
     required this.isPrivate,
     required this.leaderName,
+    this.leaderUserId = 0,
     this.notice,
     this.isCamStudy = false,
   });
@@ -33,6 +35,7 @@ class GroupModel {
       maxCapacity: json['mc'] as int? ?? json['mp'] as int? ?? json['maxPersonnel'] as int? ?? 50,
       isPrivate: json['ip'] as bool? ?? json['p'] as bool? ?? false,
       leaderName: json['on'] as String? ?? json['ln'] as String? ?? json['leader'] as String? ?? '',
+      leaderUserId: json['ou'] as int? ?? json['oid'] as int? ?? json['leaderID'] as int? ?? json['uid'] as int? ?? 0,
       notice: json['sn'] as String? ?? json['nt'] as String? ?? json['notice'] as String?,
       isCamStudy: json['cam'] as bool? ?? json['isCam'] as bool? ?? json['isCamStudy'] as bool? ?? false,
     );

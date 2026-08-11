@@ -39,6 +39,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
   List<ChatMessageModel> _chatMessages = [];
   bool _isLoadingMembers = true;
   bool _showStickerPicker = false;
+  String _selectedGroupRankPeriod = 'week';
 
   final _chatInputController = TextEditingController();
 
@@ -97,9 +98,20 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
     setState(() => _isLoadingMembers = true);
     await Future.wait([
       _loadMembersSilently(),
+      _loadGroupRanksSilently(),
       _loadChatSilently(),
     ]);
     if (mounted) setState(() => _isLoadingMembers = false);
+  }
+
+  Future<void> _loadGroupRanksSilently() async {
+    try {
+      final repo = ref.read(groupRepositoryProvider);
+      final ranks = await repo.fetchGroupRanks(widget.group.id, period: _selectedGroupRankPeriod);
+      if (mounted) {
+        setState(() => _weeklyRanks = ranks);
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadMembersSilently() async {
@@ -234,6 +246,10 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
   @override
   Widget build(BuildContext context) {
     final studyingMembers = _members.where((m) => m.isStudying).toList();
+    final activeUser = ref.watch(authStateProvider).user;
+    final isLeader = activeUser != null &&
+        (widget.group.leaderUserId == activeUser.id ||
+            (widget.group.leaderName.isNotEmpty && widget.group.leaderName == activeUser.name));
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -249,20 +265,21 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.admin_panel_settings, color: AppColors.primary),
-            tooltip: 'Menu do Líder',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => GroupLeaderPanel(
-                    group: widget.group,
-                    members: _members,
+          if (isLeader)
+            IconButton(
+              icon: const Icon(Icons.admin_panel_settings, color: AppColors.primary),
+              tooltip: 'Menu do Líder',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => GroupLeaderPanel(
+                      group: widget.group,
+                      members: _members,
+                    ),
                   ),
-                ),
-              );
-            },
-          ),
+                );
+              },
+            ),
           const SizedBox(width: 8),
         ],
         bottom: TabBar(
@@ -519,71 +536,120 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
             ],
           ),
 
-          // Tab 3: Weekly Rankings
+          // Tab 3: Group Rankings
           (() {
             final displayList = _weeklyRanks.isNotEmpty ? _weeklyRanks : _members;
-            return ListView.builder(
-              padding: const EdgeInsets.all(24),
-              itemCount: displayList.length,
-              itemBuilder: (context, index) {
-                final member = displayList[index];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
+            return Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  color: AppColors.surface,
+                  child: Row(
+                    children: [
+                      ChoiceChip(
+                        label: const Text('Hoje'),
+                        selected: _selectedGroupRankPeriod == 'day',
+                        selectedColor: AppColors.primary,
+                        backgroundColor: AppColors.card,
+                        labelStyle: TextStyle(color: _selectedGroupRankPeriod == 'day' ? Colors.white : AppColors.textMuted),
+                        onSelected: (_) {
+                          setState(() => _selectedGroupRankPeriod = 'day');
+                          _loadGroupRanksSilently();
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      ChoiceChip(
+                        label: const Text('Esta Semana'),
+                        selected: _selectedGroupRankPeriod == 'week',
+                        selectedColor: AppColors.primary,
+                        backgroundColor: AppColors.card,
+                        labelStyle: TextStyle(color: _selectedGroupRankPeriod == 'week' ? Colors.white : AppColors.textMuted),
+                        onSelected: (_) {
+                          setState(() => _selectedGroupRankPeriod = 'week');
+                          _loadGroupRanksSilently();
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      ChoiceChip(
+                        label: const Text('Este Mês'),
+                        selected: _selectedGroupRankPeriod == 'month',
+                        selectedColor: AppColors.primary,
+                        backgroundColor: AppColors.card,
+                        labelStyle: TextStyle(color: _selectedGroupRankPeriod == 'month' ? Colors.white : AppColors.textMuted),
+                        onSelected: (_) {
+                          setState(() => _selectedGroupRankPeriod = 'month');
+                          _loadGroupRanksSilently();
+                        },
+                      ),
+                    ],
                   ),
-                  child: ListTile(
-                    leading: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 28,
-                          height: 28,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: index == 0
-                                ? const Color(0xFFFFD700)
-                                : index == 1
-                                    ? const Color(0xFFC0C0C0)
-                                    : index == 2
-                                        ? const Color(0xFFCD7F32)
-                                        : AppColors.surface,
-                            shape: BoxShape.circle,
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(24),
+                    itemCount: displayList.length,
+                    itemBuilder: (context, index) {
+                      final member = displayList[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.card,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: ListTile(
+                          leading: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 28,
+                                height: 28,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: index == 0
+                                      ? const Color(0xFFFFD700)
+                                      : index == 1
+                                          ? const Color(0xFFC0C0C0)
+                                          : index == 2
+                                              ? const Color(0xFFCD7F32)
+                                              : AppColors.surface,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  '${index + 1}',
+                                  style: TextStyle(
+                                    color: index < 3 ? Colors.black : Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              CircleAvatar(
+                                radius: 20,
+                                backgroundColor: AppColors.surface,
+                                backgroundImage: NetworkImage(member.avatarUrl),
+                              ),
+                            ],
                           ),
-                          child: Text(
-                            '${index + 1}',
-                            style: TextStyle(
-                              color: index < 3 ? Colors.black : Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                          title: Text(
+                            member.name,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                          ),
+                          trailing: Text(
+                            _formatMs(member.studyMs),
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundColor: AppColors.surface,
-                          backgroundImage: NetworkImage(member.avatarUrl),
-                        ),
-                      ],
-                    ),
-                    title: Text(
-                      member.name,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                    ),
-                    trailing: Text(
-                      _formatMs(member.studyMs),
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+              ],
             );
           })(),
         ],

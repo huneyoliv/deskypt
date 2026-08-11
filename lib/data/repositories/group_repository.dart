@@ -41,24 +41,28 @@ class GroupRepository {
     return [];
   }
 
-  Future<List<GroupMemberModel>> fetchWeeklyRanks(int groupId) async {
+  Future<List<GroupMemberModel>> fetchGroupRanks(int groupId, {String period = 'week'}) async {
     try {
       final now = DateTime.now();
       final dateStr = '${now.year}-${now.month}-${now.day}';
       final response = await _apiClient.get(
-        '/logs/group/member/ranks?type=week&countryID=23&categoryID=0&groupID=$groupId&date=$dateStr&page=1',
+        '/logs/group/member/ranks?type=$period&countryID=23&categoryID=0&groupID=$groupId&date=$dateStr&page=1',
       );
 
       final data = response.data as Map<String, dynamic>;
       final list = data['ms'] ?? data['ranks'];
       if (list != null && list is List) {
-        return list
+        final members = list
             .map((m) => GroupMemberModel.fromJson(m as Map<String, dynamic>))
             .toList();
+        members.sort((a, b) => b.studyMs.compareTo(a.studyMs));
+        return members;
       }
     } catch (_) {}
     return [];
   }
+
+  Future<List<GroupMemberModel>> fetchWeeklyRanks(int groupId) => fetchGroupRanks(groupId, period: 'week');
 
   Future<bool> shakeMember({required int groupId, required int targetUserId}) async {
     try {
