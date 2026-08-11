@@ -21,6 +21,8 @@ class _MusicScreenState extends ConsumerState<MusicScreen> {
   final Map<int, AudioPlayer> _players = {};
   List<FocusMusicTrack> _tracks = [];
   bool _isLoading = true;
+  double _masterVolume = 0.8;
+  bool _isMasterPlaying = true;
 
   @override
   void initState() {
@@ -62,10 +64,10 @@ class _MusicScreenState extends ConsumerState<MusicScreen> {
 
     AudioPlayer player = _players[track.id] ??= AudioPlayer();
 
-    if (isPlaying) {
+    if (isPlaying && _isMasterPlaying) {
       try {
         await player.setLoopMode(LoopMode.one);
-        await player.setVolume(track.volume);
+        await player.setVolume(track.volume * _masterVolume);
         await player.setUrl(track.audioUrl);
         await player.play();
       } catch (_) {}
@@ -74,7 +76,7 @@ class _MusicScreenState extends ConsumerState<MusicScreen> {
     }
   }
 
-  void _changeVolume(FocusMusicTrack track, double newVolume) {
+  void _changeTrackVolume(FocusMusicTrack track, double newVolume) {
     setState(() {
       _tracks = _tracks.map((t) {
         if (t.id == track.id) {
@@ -85,195 +87,210 @@ class _MusicScreenState extends ConsumerState<MusicScreen> {
     });
 
     final player = _players[track.id];
-    if (player != null) {
-      player.setVolume(newVolume);
+    if (player != null && track.isPlaying && _isMasterPlaying) {
+      player.setVolume(newVolume * _masterVolume);
     }
   }
 
-  String _formatDuration(int seconds) {
-    final m = seconds ~/ 60;
-    final s = seconds % 60;
-    return '$m:${s.toString().padLeft(2, '0')}';
+  void _changeMasterVolume(double val) {
+    setState(() => _masterVolume = val);
+    for (final t in _tracks) {
+      if (t.isPlaying) {
+        final player = _players[t.id];
+        if (player != null) {
+          player.setVolume(t.volume * _masterVolume);
+        }
+      }
+    }
+  }
+
+  void _toggleMasterPlay() {
+    setState(() => _isMasterPlaying = !_isMasterPlaying);
+    for (final t in _tracks) {
+      final player = _players[t.id];
+      if (player != null && t.isPlaying) {
+        if (_isMasterPlaying) {
+          player.play();
+        } else {
+          player.pause();
+        }
+      }
+    }
+  }
+
+  IconData _getTrackIcon(String title) {
+    final lower = title.toLowerCase();
+    if (lower.contains('chuva') || lower.contains('rain')) return Icons.water_drop_outlined;
+    if (lower.contains('biblioteca') || lower.contains('library')) return Icons.menu_book_rounded;
+    if (lower.contains('café') || lower.contains('cafe')) return Icons.local_cafe_outlined;
+    if (lower.contains('floresta') || lower.contains('forest')) return Icons.forest_outlined;
+    if (lower.contains('fogo') || lower.contains('fire')) return Icons.local_fire_department_outlined;
+    if (lower.contains('onda') || lower.contains('sea')) return Icons.waves_rounded;
+    if (lower.contains('vento') || lower.contains('wind')) return Icons.air_rounded;
+    return Icons.graphic_eq_rounded;
   }
 
   @override
   Widget build(BuildContext context) {
+    final activeCount = _tracks.where((t) => t.isPlaying).length;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Ruído Branco & Foco', style: AppTextStyles.titleLarge),
+        title: const Text('Ruído Branco & Sons de Foco', style: AppTextStyles.titleLarge),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
+            icon: const Icon(Icons.refresh),
             onPressed: _loadTracks,
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Músicas de Foco & Ruído Branco YPT',
-              style: AppTextStyles.displayMedium,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Faixas originais do ecossistema YPT para estimular o estado de flow durante o estudo.',
-              style: AppTextStyles.bodyMedium,
-            ),
-            const SizedBox(height: 24),
+      body: Column(
+        children: [
+          // Ambient Equalizer Circle Grid
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : GridView.builder(
+                    padding: const EdgeInsets.all(32),
+                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 220,
+                      childAspectRatio: 0.85,
+                      crossAxisSpacing: 24,
+                      mainAxisSpacing: 24,
+                    ),
+                    itemCount: _tracks.length,
+                    itemBuilder: (context, index) {
+                      final track = _tracks[index];
 
-            // Tracks Grid
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: 320,
-                        childAspectRatio: 0.85,
-                        crossAxisSpacing: 20,
-                        mainAxisSpacing: 20,
-                      ),
-                      itemCount: _tracks.length,
-                      itemBuilder: (context, index) {
-                        final track = _tracks[index];
-                        final hasCover = track.coverUrl != null && track.coverUrl!.isNotEmpty;
-
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.card,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: track.isPlaying
-                                  ? AppColors.primary
-                                  : AppColors.border,
-                              width: track.isPlaying ? 2 : 1,
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GestureDetector(
+                            onTap: () => _toggleTrack(track),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              width: 110,
+                              height: 110,
+                              decoration: BoxDecoration(
+                                color: track.isPlaying
+                                    ? AppColors.primary.withValues(alpha: 0.2)
+                                    : AppColors.card,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: track.isPlaying ? AppColors.primary : AppColors.border,
+                                  width: track.isPlaying ? 3 : 1.5,
+                                ),
+                                boxShadow: track.isPlaying
+                                    ? [
+                                        BoxShadow(
+                                          color: AppColors.primary.withValues(alpha: 0.4),
+                                          blurRadius: 16,
+                                          spreadRadius: 2,
+                                        )
+                                      ]
+                                    : null,
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  _getTrackIcon(track.title),
+                                  size: 44,
+                                  color: track.isPlaying ? AppColors.primary : AppColors.textMuted,
+                                ),
+                              ),
                             ),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Cover Art Header
-                              Expanded(
-                                child: Stack(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-                                      child: hasCover
-                                          ? Image.network(
-                                              track.coverUrl!,
-                                              width: double.infinity,
-                                              height: double.infinity,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) => Container(
-                                                color: AppColors.surface,
-                                                child: const Icon(Icons.music_note,
-                                                    color: AppColors.primary, size: 48),
-                                              ),
-                                            )
-                                          : Container(
-                                              color: AppColors.surface,
-                                              child: const Center(
-                                                child: Icon(Icons.graphic_eq_rounded,
-                                                    color: AppColors.primary, size: 48),
-                                              ),
-                                            ),
-                                    ),
-
-                                    // Play Overlay Button
-                                    Positioned(
-                                      right: 12,
-                                      bottom: 12,
-                                      child: FloatingActionButton.small(
-                                        heroTag: 'play_music_${track.id}',
-                                        backgroundColor: track.isPlaying
-                                            ? AppColors.primary
-                                            : Colors.black.withValues(alpha: 0.7),
-                                        onPressed: () => _toggleTrack(track),
-                                        child: Icon(
-                                          track.isPlaying
-                                              ? Icons.pause_rounded
-                                              : Icons.play_arrow_rounded,
-                                          color: Colors.white,
-                                          size: 24,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              // Info & Volume Control
-                              Padding(
-                                padding: const EdgeInsets.all(14),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      track.title,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      track.description.isNotEmpty
-                                          ? track.description
-                                          : '${track.artist} • ${_formatDuration(track.durationSeconds)}',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: AppColors.textSecondary,
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.volume_down,
-                                            size: 16, color: AppColors.textMuted),
-                                        Expanded(
-                                          child: SliderTheme(
-                                            data: SliderThemeData(
-                                              activeTrackColor: AppColors.primary,
-                                              inactiveTrackColor: AppColors.surface,
-                                              thumbColor: AppColors.primary,
-                                              thumbShape: const RoundSliderThumbShape(
-                                                  enabledThumbRadius: 6),
-                                              trackHeight: 3,
-                                            ),
-                                            child: Slider(
-                                              value: track.volume,
-                                              onChanged: (val) =>
-                                                  _changeVolume(track, val),
-                                            ),
-                                          ),
-                                        ),
-                                        Text(
-                                          '${(track.volume * 100).toInt()}%',
-                                          style: const TextStyle(
-                                              color: AppColors.textMuted,
-                                              fontSize: 11),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                          const SizedBox(height: 12),
+                          Text(
+                            track.title,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: track.isPlaying ? Colors.white : AppColors.textSecondary,
+                              fontWeight: track.isPlaying ? FontWeight.bold : FontWeight.w500,
+                              fontSize: 14,
+                            ),
                           ),
-                        );
-                      },
-                    ),
+                          const SizedBox(height: 6),
+                          if (track.isPlaying)
+                            SizedBox(
+                              width: 140,
+                              child: SliderTheme(
+                                data: SliderThemeData(
+                                  activeTrackColor: AppColors.primary,
+                                  inactiveTrackColor: AppColors.surface,
+                                  thumbColor: AppColors.primary,
+                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
+                                  trackHeight: 3,
+                                ),
+                                child: Slider(
+                                  value: track.volume,
+                                  onChanged: (val) => _changeTrackVolume(track, val),
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+          ),
+
+          // Bottom Bar - Master Volume & Controls
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            decoration: const BoxDecoration(
+              color: AppColors.card,
+              border: Border(top: BorderSide(color: AppColors.border)),
             ),
-          ],
-        ),
+            child: Row(
+              children: [
+                IconButton(
+                  iconSize: 36,
+                  icon: Icon(
+                    _isMasterPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill,
+                    color: AppColors.primary,
+                  ),
+                  onPressed: _toggleMasterPlay,
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _isMasterPlaying ? 'Mix Ativo ($activeCount sons)' : 'Pausado',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    const Text('Sons ambiente simultâneos', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                  ],
+                ),
+                const Spacer(),
+                const Icon(Icons.volume_down, color: AppColors.textMuted, size: 20),
+                SizedBox(
+                  width: 180,
+                  child: SliderTheme(
+                    data: SliderThemeData(
+                      activeTrackColor: AppColors.primary,
+                      inactiveTrackColor: AppColors.surface,
+                      thumbColor: AppColors.primary,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                      trackHeight: 4,
+                    ),
+                    child: Slider(
+                      value: _masterVolume,
+                      onChanged: _changeMasterVolume,
+                    ),
+                  ),
+                ),
+                Text(
+                  '${(_masterVolume * 100).toInt()}%',
+                  style: const TextStyle(color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
