@@ -279,15 +279,25 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
                             margin: const EdgeInsets.only(bottom: 8),
                             color: AppColors.card,
                             child: ListTile(
-                              leading: SizedBox(
-                                width: 32,
-                                child: Text(
-                                  '#${rank.rank}',
-                                  style: const TextStyle(
-                                    color: AppColors.textMuted,
-                                    fontWeight: FontWeight.w700,
+                              leading: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 32,
+                                    child: Text(
+                                      '#${rank.rank}',
+                                      style: const TextStyle(
+                                        color: AppColors.textMuted,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 8),
+                                  StudiconAvatar(
+                                    studiconId: rank.studiconId,
+                                    size: 36,
+                                  ),
+                                ],
                               ),
                               title: Text(rank.userName,
                                   style: const TextStyle(
