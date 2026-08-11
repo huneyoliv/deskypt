@@ -8,14 +8,17 @@ class TimerRepository {
       : _apiClient = apiClient ?? ApiClient();
 
   Future<bool> startStudy({
+    required String subjectTitle,
     required int subjectId,
     required DateTime startAt,
   }) async {
     final response = await _apiClient.post(
       ApiConstants.studyStart,
       data: {
+        'subject': subjectTitle,
         'subject_id': subjectId,
-        'start_at': startAt.toUtc().toIso8601String(),
+        'deviceModel': 'Desktop',
+        'taskId': null,
       },
     );
 
@@ -23,22 +26,41 @@ class TimerRepository {
     return data['s'] == true;
   }
 
-  Future<bool> stopStudy({
+  Future<Map<String, dynamic>?> stopStudy({
+    required String subjectTitle,
     required int subjectId,
     required DateTime stopAt,
     required int studyMs,
+    required DateTime startAt,
   }) async {
     final response = await _apiClient.post(
       ApiConstants.studyStop,
       data: {
+        'subject': subjectTitle,
         'subject_id': subjectId,
-        'stop_at': stopAt.toUtc().toIso8601String(),
+        'startedAt': startAt.millisecondsSinceEpoch,
         'study_ms': studyMs,
+        'deviceModel': 'Desktop',
       },
     );
 
-    final data = response.data as Map<String, dynamic>;
-    return data['s'] == true;
+    final data = response.data;
+    if (data is Map<String, dynamic> && data['s'] == true) {
+      return data;
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> fetchDailyLog(DateTime date) async {
+    try {
+      final dateStr = '${date.year}-${date.month}-${date.day}';
+      final response = await _apiClient.get('/logs/day?date=$dateStr');
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['s'] == true) {
+        return data;
+      }
+    } catch (_) {}
+    return null;
   }
 
   Future<DateTime> syncTime() async {

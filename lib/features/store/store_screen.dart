@@ -41,7 +41,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
     }
   }
 
-  void _equipItem(StudiconItemModel item) {
+  Future<void> _equipItem(StudiconItemModel item) async {
     setState(() {
       _items = _items.map((i) {
         if (i.id == item.id) {
@@ -51,12 +51,17 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
       }).toList();
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Studicon "${item.name}" equipado com sucesso! 🎉'),
-        backgroundColor: AppColors.primary,
-      ),
-    );
+    final repo = ref.read(storeRepositoryProvider);
+    await repo.equipStudicon(item.id);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Studicon "${item.name}" equipado com sucesso! 🎉'),
+          backgroundColor: AppColors.primary,
+        ),
+      );
+    }
   }
 
   @override

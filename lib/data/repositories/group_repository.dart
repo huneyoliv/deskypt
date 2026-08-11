@@ -87,4 +87,28 @@ class GroupRepository {
     }
     return [];
   }
+
+  Future<bool> joinGroup(int groupId) async {
+    try {
+      final response = await _apiClient.post(
+        '/logs/group/v2/join',
+        data: {'id': groupId},
+      );
+      final data = response.data;
+      return data is Map<String, dynamic> && data['s'] == true;
+    } catch (_) {}
+    return false;
+  }
+
+  Future<bool> leaveGroup(int groupId) async {
+    try {
+      final response = await _apiClient.post(
+        '/logs/group/v2/leave',
+        data: {'id': groupId},
+      );
+      final data = response.data;
+      return data is Map<String, dynamic> && data['s'] == true;
+    } catch (_) {}
+    return false;
+  }
 }

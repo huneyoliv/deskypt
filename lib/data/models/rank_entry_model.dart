@@ -29,13 +29,18 @@ class RankEntryModel {
       );
 
   factory RankEntryModel.fromJson(Map<String, dynamic> json, int rankIndex) {
+    final dl = json['dl'] is Map<String, dynamic> ? json['dl'] as Map<String, dynamic> : null;
+    final studyMs = safeInt(dl?['sm'] ?? json['sm']);
+    final studiconId = safeInt(json['sd'] ?? json['st'] ?? json['pv'] ?? json['si'], -1);
+    final category = safeString(json['ct'] ?? json['c'], 'Geral');
+
     return RankEntryModel(
       rank: safeInt(json['rank'], rankIndex),
       userId: safeInt(json['ud'] ?? json['userId']),
       userName: safeString(json['n'] ?? json['userName'], 'Usuário'),
-      studiconId: safeInt(json['st'] ?? json['pv'], 377),
-      studyMs: safeInt(json['sm']),
-      categoryName: safeString(json['c'], 'Geral'),
+      studiconId: studiconId,
+      studyMs: studyMs,
+      categoryName: category,
       hasCustomAvatar: safeBool(json['hasCustomAvatar']),
     );
   }

@@ -8,6 +8,7 @@ class SubjectModel {
   final int order;
   final int colorInt;
   final bool isDeleted;
+  final bool isArchived;
 
   const SubjectModel({
     required this.id,
@@ -16,6 +17,7 @@ class SubjectModel {
     this.order = 100,
     required this.colorInt,
     this.isDeleted = false,
+    this.isArchived = false,
   });
 
   Color get color => ColorUtils.fromArgbInt(colorInt);
@@ -28,6 +30,7 @@ class SubjectModel {
       order: json['or'] as int? ?? 100,
       colorInt: json['co'] as int? ?? 4292557552,
       isDeleted: json['dl'] as bool? ?? false,
+      isArchived: json['ia'] as bool? ?? false,
     );
   }
 
@@ -39,6 +42,7 @@ class SubjectModel {
       'or': order,
       'co': colorInt,
       'dl': isDeleted,
+      'ia': isArchived,
     };
   }
 
@@ -49,6 +53,7 @@ class SubjectModel {
     int? order,
     int? colorInt,
     bool? isDeleted,
+    bool? isArchived,
   }) {
     return SubjectModel(
       id: id ?? this.id,
@@ -57,6 +62,7 @@ class SubjectModel {
       order: order ?? this.order,
       colorInt: colorInt ?? this.colorInt,
       isDeleted: isDeleted ?? this.isDeleted,
+      isArchived: isArchived ?? this.isArchived,
     );
   }
 }

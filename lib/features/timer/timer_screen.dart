@@ -23,7 +23,14 @@ class TimerScreen extends ConsumerWidget {
     final totalSecs = ms ~/ 1000;
     final h = totalSecs ~/ 3600;
     final m = (totalSecs % 3600) ~/ 60;
-    return '${h}h ${m}m';
+    final s = totalSecs % 60;
+    if (h > 0) {
+      return '${h}h ${m}m';
+    }
+    if (m > 0) {
+      return '${m}m ${s}s';
+    }
+    return '${s}s';
   }
 
   @override
@@ -33,7 +40,7 @@ class TimerScreen extends ConsumerWidget {
 
     final currentSubjectColor =
         timerState.currentSubject?.color ?? AppColors.primary;
-    const targetMs = 28800000; // Meta diária de 8 horas em milissegundos
+    const targetMs = 28800000; // 8 hours goal
     final progress = timerState.todayTotalMs / targetMs;
 
     return Scaffold(
@@ -41,25 +48,24 @@ class TimerScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Top Header Bar - Total Study Time
+            // Top Header - Total Today & Currently Selected Subject Badge
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              color: AppColors.surface,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Total de Hoje',
-                        style: AppTextStyles.labelSmall,
-                      ),
-                      const SizedBox(height: 4),
+                      const Text('Total Estudado Hoje',
+                          style: AppTextStyles.labelSmall),
+                      const SizedBox(height: 2),
                       Text(
                         _formatTotalTime(timerState.todayTotalMs),
                         style: const TextStyle(
                           fontFamily: AppTextStyles.fontPretendard,
-                          fontSize: 28,
+                          fontSize: 26,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                         ),
@@ -73,17 +79,68 @@ class TimerScreen extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: currentSubjectColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: currentSubjectColor),
+                        border: Border.all(color: currentSubjectColor, width: 1.5),
                       ),
-                      child: Text(
-                        timerState.currentSubject!.title,
-                        style: TextStyle(
-                          color: currentSubjectColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: currentSubjectColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            timerState.currentSubject!.title,
+                            style: TextStyle(
+                              color: currentSubjectColor,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                ],
+              ),
+            ),
+
+            // Prominent Subject Selection Bar (Top Placement)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              color: AppColors.card,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                    child: Text(
+                      'SELECIONE A MATÉRIA:',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                  SubjectSelector(
+                    subjects: timerState.subjects,
+                    selectedSubject: timerState.currentSubject,
+                    onSelectSubject: (subject) =>
+                        notifier.selectSubject(subject),
+                    onCreateSubject: (title, colorInt) =>
+                        notifier.createSubject(title, colorInt),
+                    onUpdateSubject: (subject) =>
+                        notifier.updateSubject(subject),
+                    onArchiveSubject: (id) {
+                      final subject = timerState.subjects.firstWhere((s) => s.id == id);
+                      notifier.archiveSubject(id, !subject.isArchived);
+                    },
+                    onDeleteSubject: (id) => notifier.deleteSubject(id),
+                  ),
                 ],
               ),
             ),
@@ -94,41 +151,13 @@ class TimerScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    SizedBox(
-                      width: 320,
-                      height: 320,
-                      child: CustomPaint(
-                        painter: ProgressRingPainter(
-                          progress: progress,
-                          activeColor: currentSubjectColor,
-                          backgroundColor: AppColors.surface,
-                          strokeWidth: 16,
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // Studicon Character
-                              StudiconAvatar(
-                                studiconId: timerState.studiconId,
-                                pose: _getStudiconPose(timerState),
-                                size: 100,
-                              ),
-                              const SizedBox(height: 12),
-
-                              // Timer Digits
-                              TimerDisplay(
-                                elapsedMs: timerState.sessionElapsedMs,
-                                fontSize: 44,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                    TimerDisplay(
+                      elapsedMs: timerState.sessionElapsedMs,
+                      fontSize: 64,
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 40),
 
-                    // Controls: Play / Pause / Stop Buttons
+                    // Timer Action Buttons
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -138,20 +167,19 @@ class TimerScreen extends ConsumerWidget {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: currentSubjectColor,
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 36, vertical: 16),
+                                  horizontal: 40, vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
                               ),
                             ),
                             icon: const Icon(Icons.play_arrow_rounded,
                                 color: Colors.white, size: 28),
-                            label: const Text(
-                              'INICIAR',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
+                            label: Text(
+                              'INICIAR (${timerState.currentSubject?.title ?? "Selecione"})',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
                                 color: Colors.white,
-                                letterSpacing: 1.0,
                               ),
                             ),
                           ),
@@ -235,22 +263,6 @@ class TimerScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-              ),
-            ),
-
-            // Bottom Subject Selector Bar
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: const BoxDecoration(
-                color: AppColors.surface,
-                border: Border(top: BorderSide(color: AppColors.border)),
-              ),
-              child: SubjectSelector(
-                subjects: timerState.subjects,
-                selectedSubject: timerState.currentSubject,
-                onSelectSubject: (subject) => notifier.selectSubject(subject),
-                onCreateSubject: (title, colorInt) =>
-                    notifier.createSubject(title, colorInt),
               ),
             ),
           ],

@@ -35,6 +35,203 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  void _showForgotPasswordDialog(BuildContext context) {
+    int step = 1; // 1: Send Code, 2: Verify Code, 3: Reset Password
+    final emailController = TextEditingController(text: _emailController.text);
+    final codeController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    bool isLoading = false;
+    String? errorText;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            backgroundColor: AppColors.card,
+            title: Text(
+              step == 1
+                  ? 'Esqueci minha Senha'
+                  : step == 2
+                      ? 'Digite o Código'
+                      : 'Nova Senha',
+              style: const TextStyle(color: Colors.white),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (errorText != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.error),
+                      ),
+                      child: Text(
+                        errorText!,
+                        style: const TextStyle(color: AppColors.error, fontSize: 13),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  if (step == 1) ...[
+                    const Text(
+                      'Insira seu e-mail para receber um código de 6 dígitos de redefinição de senha:',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: emailController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Seu e-mail cadastrado',
+                        hintStyle: const TextStyle(color: AppColors.textMuted),
+                        filled: true,
+                        fillColor: AppColors.surface,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: AppColors.border),
+                        ),
+                      ),
+                    ),
+                  ] else if (step == 2) ...[
+                    Text(
+                      'Enviamos um código de verificação para ${emailController.text}. Digite abaixo:',
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: codeController,
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 22, letterSpacing: 6),
+                      textAlign: TextAlign.center,
+                      decoration: InputDecoration(
+                        hintText: '123456',
+                        hintStyle: const TextStyle(color: AppColors.textMuted),
+                        filled: true,
+                        fillColor: AppColors.surface,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: AppColors.border),
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    const Text(
+                      'Crie uma nova senha segura para sua conta:',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: newPasswordController,
+                      obscureText: true,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Nova senha',
+                        hintStyle: const TextStyle(color: AppColors.textMuted),
+                        filled: true,
+                        fillColor: AppColors.surface,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: AppColors.border),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: isLoading ? null : () => Navigator.of(context).pop(),
+                child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+              ),
+              ElevatedButton(
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        final authRepo = ref.read(authRepositoryProvider);
+                        setState(() {
+                          isLoading = true;
+                          errorText = null;
+                        });
+
+                        try {
+                          if (step == 1) {
+                            final email = emailController.text.trim();
+                            if (email.isEmpty) throw Exception('Digite um e-mail válido');
+                            await authRepo.sendPasswordResetCode(email);
+                            setState(() {
+                              step = 2;
+                              isLoading = false;
+                            });
+                          } else if (step == 2) {
+                            final code = codeController.text.trim();
+                            if (code.length < 6) throw Exception('Digite o código de 6 dígitos');
+                            await authRepo.verifyPasswordResetCode(
+                              emailController.text.trim(),
+                              code,
+                            );
+                            setState(() {
+                              step = 3;
+                              isLoading = false;
+                            });
+                          } else {
+                            final pass = newPasswordController.text.trim();
+                            if (pass.length < 6) {
+                              throw Exception('A senha deve ter pelo menos 6 caracteres');
+                            }
+                            await authRepo.resetPassword(
+                              email: emailController.text.trim(),
+                              password: pass,
+                              code: codeController.text.trim(),
+                            );
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Senha redefinida com sucesso!'),
+                                  backgroundColor: AppColors.success,
+                                ),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          setState(() {
+                            isLoading = false;
+                            errorText = e.toString().replaceAll('Exception: ', '');
+                          });
+                        }
+                      },
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                child: isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : Text(
+                        step == 1
+                            ? 'Enviar Código'
+                            : step == 2
+                                ? 'Verificar'
+                                : 'Redefinir Senha',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
@@ -97,7 +294,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
 
-          // Right Panel - Login Form (Scrollable for smaller heights)
+          // Right Panel - Login Form
           Expanded(
             flex: 6,
             child: Container(
@@ -243,7 +440,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 8),
+
+                          // Forgot Password Link
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () => _showForgotPasswordDialog(context),
+                              child: const Text(
+                                'Esqueci minha senha',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
 
                           // Login Submit Button
                           SizedBox(

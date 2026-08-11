@@ -110,11 +110,106 @@ class AuthRepository {
     );
   }
 
+  Future<bool> changeNickname(String nickname) async {
+    try {
+      final response = await _apiClient.post(
+        '/user/nickname/change',
+        data: {'nickname': nickname},
+      );
+      final data = response.data;
+      return data is Map<String, dynamic> && data['s'] == true;
+    } catch (_) {}
+    return false;
+  }
+
+  Future<bool> changeStatusMessage(String statusMsg) async {
+    try {
+      final response = await _apiClient.post(
+        '/user/status_msg/change',
+        data: {'statusMsg': statusMsg},
+      );
+      final data = response.data;
+      return data is Map<String, dynamic> && data['s'] == true;
+    } catch (_) {}
+    return false;
+  }
+
+  Future<Map<String, dynamic>?> changeCategory(int categoryId) async {
+    try {
+      final response = await _apiClient.post(
+        '/category/category-by-country',
+        data: {'category_id': categoryId},
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['s'] == true) {
+        return data;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<bool> sendPasswordResetCode(String email) async {
+    final response = await _apiClient.post(
+      '/user/v2/send-password-reset-code',
+      data: {
+        'email': email,
+        'language': 'pt',
+      },
+    );
+    final data = response.data;
+    return data is Map<String, dynamic> && data['s'] == true;
+  }
+
+  Future<bool> verifyPasswordResetCode(String email, String code) async {
+    final response = await _apiClient.post(
+      '/user/v2/verify-code',
+      data: {
+        'email': email,
+        'code': code,
+      },
+    );
+    final data = response.data;
+    if (data is Map<String, dynamic> && data['s'] == false) {
+      final msg = data['c'] == 'invalid_auth_code_msg'
+          ? 'Código de validação inválido'
+          : 'Código incorreto';
+      throw ApiException(msg);
+    }
+    return data is Map<String, dynamic> && data['s'] == true;
+  }
+
+  Future<UserModel> resetPassword({
+    required String email,
+    required String password,
+    required String code,
+  }) async {
+    final response = await _apiClient.post(
+      '/user/v2/reset-password',
+      data: {
+        'email': email,
+        'password': password,
+        'code': code,
+      },
+    );
+    final data = response.data;
+    if (data is! Map<String, dynamic> || data['s'] != true) {
+      throw const ApiException('Falha ao redefinir senha');
+    }
+    final token = (data['jwt'] ?? '').toString();
+    if (token.isNotEmpty) {
+      await _storage.write(key: AuthInterceptor.keyJwtToken, value: token);
+    }
+    return UserModel.fromJson(data, token);
+  }
+
   Future<String?> getStoredToken() async {
     return _storage.read(key: AuthInterceptor.keyJwtToken);
   }
 
   Future<void> logout() async {
+    try {
+      await _apiClient.post('/user/logout', data: {'pushToken': ''});
+    } catch (_) {}
     await _storage.delete(key: AuthInterceptor.keyJwtToken);
   }
 }

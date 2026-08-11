@@ -18,7 +18,7 @@ class CdnResolver {
   CdnResolver._();
 
   static String studiconUrl(int studiconId, StudiconPose pose) {
-    final safeId = studiconId <= 0 ? -1 : studiconId;
+    final safeId = studiconId < 0 ? 0 : studiconId;
     return '${ApiConstants.mediaCdnUrl}/sc.v2/$safeId/${pose.fileName}';
   }
 

@@ -23,15 +23,15 @@ class GroupModel {
 
   factory GroupModel.fromJson(Map<String, dynamic> json) {
     return GroupModel(
-      id: json['id'] as int? ?? json['groupID'] as int? ?? 0,
-      name: json['n'] as String? ?? json['name'] as String? ?? 'Grupo',
-      category: json['c'] as String? ?? 'Geral',
-      dailyGoalHours: json['g'] as int? ?? 8,
-      membersCount: json['mc'] as int? ?? json['personnel'] as int? ?? 1,
-      maxCapacity: json['mp'] as int? ?? json['maxPersonnel'] as int? ?? 50,
-      isPrivate: json['p'] as bool? ?? false,
-      leaderName: json['ln'] as String? ?? json['leader'] as String? ?? '',
-      notice: json['nt'] as String? ?? json['notice'] as String?,
+      id: json['id'] as int? ?? json['groupID'] as int? ?? json['gd'] as int? ?? 0,
+      name: json['t'] as String? ?? json['n'] as String? ?? json['name'] as String? ?? 'Grupo',
+      category: json['c'] as String? ?? json['ct'] as String? ?? 'Geral',
+      dailyGoalHours: json['gt'] as int? ?? json['g'] as int? ?? 8,
+      membersCount: json['jc'] as int? ?? json['mc'] as int? ?? json['personnel'] as int? ?? 1,
+      maxCapacity: json['mc'] as int? ?? json['mp'] as int? ?? json['maxPersonnel'] as int? ?? 50,
+      isPrivate: json['ip'] as bool? ?? json['p'] as bool? ?? false,
+      leaderName: json['on'] as String? ?? json['ln'] as String? ?? json['leader'] as String? ?? '',
+      notice: json['sn'] as String? ?? json['nt'] as String? ?? json['notice'] as String?,
     );
   }
 }

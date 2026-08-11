@@ -29,7 +29,7 @@ class GroupMemberModel {
     return GroupMemberModel(
       userId: json['ud'] as int? ?? json['id'] as int? ?? 0,
       name: json['n'] as String? ?? json['nickname'] as String? ?? 'Membro',
-      studiconId: json['st'] as int? ?? json['pv'] as int? ?? 377,
+      studiconId: json['st'] as int? ?? json['pv'] as int? ?? 0,
       isStudying: json['is'] as bool? ?? json['dlIsStudying'] as bool? ?? false,
       studyMs: json['sm'] as int? ?? 0,
       hasCustomAvatar: json['hasCustomAvatar'] as bool? ?? false,

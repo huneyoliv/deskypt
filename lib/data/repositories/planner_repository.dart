@@ -11,66 +11,138 @@ class PlannerRepository {
   Future<List<DDayModel>> fetchDDays() async {
     try {
       final response = await _apiClient.get('/planner/ddays');
-      final data = response.data as Map<String, dynamic>;
-      if (data['ddays'] != null && data['ddays'] is List) {
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['ddays'] is List) {
         final list = data['ddays'] as List;
         return list
-            .map((item) => DDayModel.fromJson(item as Map<String, dynamic>))
+            .whereType<Map<String, dynamic>>()
+            .map((item) => DDayModel.fromJson(item))
             .toList();
       }
     } catch (_) {}
-    return [
-      DDayModel(
-        id: 1,
-        title: 'Exame Nacional / Concurso',
-        targetDate: DateTime.now().add(const Duration(days: 45)),
-        colorInt: 4294948685,
-      ),
-      DDayModel(
-        id: 2,
-        title: 'Simulado Geral',
-        targetDate: DateTime.now().add(const Duration(days: 12)),
-        colorInt: 4292557552,
-      ),
-    ];
+    return [];
   }
 
   Future<List<TodoItemModel>> fetchTodos(String dateYmd) async {
     try {
-      final response = await _apiClient.get('/planner/todos?date=$dateYmd');
-      final data = response.data as Map<String, dynamic>;
-      if (data['todos'] != null && data['todos'] is List) {
-        final list = data['todos'] as List;
-        return list
-            .map((item) => TodoItemModel.fromJson(item as Map<String, dynamic>))
-            .toList();
+      final response = await _apiClient.get(
+        '/study/study-plan/get-by-date?start_at=${dateYmd}T00:00:00.000Z&end_at=${dateYmd}T23:59:59.000Z&is_unscheduled=true',
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final rawList = data['r'] ?? data['todos'];
+        if (rawList is List) {
+          return rawList
+              .whereType<Map<String, dynamic>>()
+              .map((item) => TodoItemModel.fromJson(item))
+              .toList();
+        }
       }
     } catch (_) {}
-    return [
-      TodoItemModel(
-        id: 10,
-        subjectTitle: 'Português',
-        subjectColorInt: 4292557552,
-        title: 'Resolver 30 questões de Sintaxe',
-        isCompleted: true,
-        dateYmd: dateYmd,
-      ),
-      TodoItemModel(
-        id: 11,
-        subjectTitle: 'Matemática',
-        subjectColorInt: 4294948685,
-        title: 'Revisar aula de Geometria Plana',
-        isCompleted: false,
-        dateYmd: dateYmd,
-      ),
-      TodoItemModel(
-        id: 12,
-        subjectTitle: 'Direito Constitucional',
-        subjectColorInt: 4278241526,
-        title: 'Leitura dos Artigos 5º a 11º da CF/88',
-        isCompleted: false,
-        dateYmd: dateYmd,
-      ),
-    ];
+    return [];
+  }
+
+  Future<TodoItemModel?> createTodo({
+    required String title,
+    required String dateYmd,
+    int? subjectId,
+    RecurrenceRuleModel? recurrenceRule,
+  }) async {
+    try {
+      final payload = <String, dynamic>{
+        'title': title,
+        'subject_id': subjectId,
+        'start_at': '${dateYmd}T00:00:00.000Z',
+        'all_day': false,
+        'order': 0,
+        'score': null,
+        'duration': null,
+      };
+      if (recurrenceRule != null) {
+        payload['recurrence_rule'] = recurrenceRule.toJson();
+      }
+
+      final response = await _apiClient.post(
+        '/study/study-plan/rest',
+        data: payload,
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['s'] == true) {
+        final raw = data['r'] ?? data;
+        if (raw is Map<String, dynamic>) {
+          return TodoItemModel.fromJson(raw);
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<bool> toggleTodo(TodoItemModel todo) async {
+    try {
+      final newScore = todo.isCompleted ? null : 1;
+      final response = await _apiClient.put(
+        '/study/study-plan/rest',
+        data: {
+          'id': todo.id,
+          'title': todo.title,
+          'subject_id': todo.subjectId,
+          'start_at': '${todo.dateYmd}T00:00:00.000Z',
+          'all_day': false,
+          'order': 0,
+          'score': newScore,
+          'duration': null,
+        },
+      );
+      final data = response.data;
+      return data is Map<String, dynamic> && data['s'] == true;
+    } catch (_) {}
+    return false;
+  }
+
+  Future<bool> editTodo(
+    TodoItemModel todo,
+    String newTitle, {
+    RecurrenceRuleModel? recurrenceRule,
+    bool applyToAll = false,
+  }) async {
+    try {
+      final payload = <String, dynamic>{
+        'id': todo.id,
+        'title': newTitle,
+        'subject_id': todo.subjectId,
+        'start_at': '${todo.dateYmd}T00:00:00.000Z',
+        'all_day': false,
+        'order': 0,
+        'score': todo.isCompleted ? 1 : null,
+        'duration': null,
+      };
+
+      if (applyToAll && (recurrenceRule != null || todo.recurrenceRule != null)) {
+        final rr = recurrenceRule ?? todo.recurrenceRule;
+        if (rr != null) {
+          payload['recurrence_rule'] = rr.toJson();
+        }
+      }
+
+      final response = await _apiClient.put(
+        '/study/study-plan/rest',
+        data: payload,
+      );
+      final data = response.data;
+      return data is Map<String, dynamic> && data['s'] == true;
+    } catch (_) {}
+    return false;
+  }
+
+  Future<bool> deleteTodo(int todoId, {bool deleteAllSeries = false}) async {
+    try {
+      final query = deleteAllSeries ? '?id=$todoId&target=all' : '?id=$todoId';
+      final response = await _apiClient.delete(
+        '/study/study-plan/rest$query',
+      );
+      final data = response.data;
+      return data is Map<String, dynamic> && data['s'] == true;
+    } catch (_) {}
+    return false;
   }
 }

@@ -115,7 +115,7 @@ class SidebarNav extends ConsumerWidget {
                 Row(
                   children: [
                     StudiconAvatar(
-                      studiconId: user?.studiconId ?? 377,
+                      studiconId: user?.studiconId ?? -1,
                       pose: StudiconPose.mini,
                       size: 40,
                     ),

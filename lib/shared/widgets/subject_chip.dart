@@ -15,13 +15,21 @@ class SubjectChip extends StatelessWidget {
   });
 
   String _formatMs(int ms) {
-    final mins = ms ~/ 60000;
+    final totalSecs = ms ~/ 1000;
+    final mins = totalSecs ~/ 60;
     final hours = mins ~/ 60;
     final remainingMins = mins % 60;
+    final remainingSecs = totalSecs % 60;
     if (hours > 0) {
       return '${hours}h ${remainingMins}m';
     }
-    return '${remainingMins}m';
+    if (remainingMins > 0) {
+      return '${remainingMins}m';
+    }
+    if (remainingSecs > 0) {
+      return '${remainingSecs}s';
+    }
+    return '0m';
   }
 
   @override

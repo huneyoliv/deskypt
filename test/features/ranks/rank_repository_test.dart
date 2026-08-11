@@ -1,16 +1,26 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deskypt/data/repositories/rank_repository.dart';
+import 'package:deskypt/data/models/rank_entry_model.dart';
 
 void main() {
-  group('RankRepository Tests', () {
-    test('fetchGlobalRanks returns top ranked users', () async {
-      final repo = RankRepository();
-      final ranks = await repo.fetchGlobalRanks('Concursos');
+  group('RankEntryModel Tests', () {
+    test('fromJson parses rank entry response from HAR schema correctly', () {
+      final json = {
+        'ud': 13579179,
+        'n': 'Dra. K',
+        'ct': 'Concurso',
+        'sd': 279,
+        'dl': {
+          'sm': 48467445,
+        }
+      };
+      final entry = RankEntryModel.fromJson(json, 1);
 
-      expect(ranks.length, greaterThanOrEqualTo(3));
-      expect(ranks[0].rank, equals(1));
-      expect(ranks[0].userName, equals('Matheus K.'));
-      expect(ranks[0].studyMs, equals(43200000));
+      expect(entry.rank, equals(1));
+      expect(entry.userId, equals(13579179));
+      expect(entry.userName, equals('Dra. K'));
+      expect(entry.studyMs, equals(48467445));
+      expect(entry.studiconId, equals(279));
+      expect(entry.categoryName, equals('Concurso'));
     });
   });
 }

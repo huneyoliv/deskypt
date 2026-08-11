@@ -112,6 +112,41 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<bool> updateNickname(String newNickname) async {
+    final success = await _repository.changeNickname(newNickname);
+    if (success && state.user != null) {
+      state = state.copyWith(
+        user: state.user!.copyWith(name: newNickname),
+      );
+    }
+    return success;
+  }
+
+  Future<bool> updateStatusMessage(String newStatusMsg) async {
+    final success = await _repository.changeStatusMessage(newStatusMsg);
+    if (success && state.user != null) {
+      state = state.copyWith(
+        user: state.user!.copyWith(statusMessage: newStatusMsg),
+      );
+    }
+    return success;
+  }
+
+  Future<bool> updateCategory(int categoryId, String defaultTitle) async {
+    final res = await _repository.changeCategory(categoryId);
+    if (res != null && state.user != null) {
+      final categoryName = (res['ct'] as String?) ?? defaultTitle;
+      state = state.copyWith(
+        user: state.user!.copyWith(
+          categoryId: categoryId,
+          categoryName: categoryName,
+        ),
+      );
+      return true;
+    }
+    return false;
+  }
+
   Future<void> logout() async {
     await _repository.logout();
     state = const AuthState();

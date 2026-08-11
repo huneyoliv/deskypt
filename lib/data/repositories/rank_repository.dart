@@ -1,4 +1,5 @@
 import '../../core/api/api_client.dart';
+import '../../core/constants/api_constants.dart';
 import '../models/rank_entry_model.dart';
 
 class RankRepository {
@@ -9,60 +10,52 @@ class RankRepository {
 
   Future<List<RankEntryModel>> fetchGlobalRanks(String category) async {
     try {
-      final response = await _apiClient.get('/rank/list?category=$category');
-      final data = response.data as Map<String, dynamic>;
-      if (data['ranks'] != null && data['ranks'] is List) {
-        final list = data['ranks'] as List;
-        return list
-            .asMap()
-            .entries
-            .map((entry) => RankEntryModel.fromJson(
-                entry.value as Map<String, dynamic>, entry.key + 1))
-            .toList();
+      final now = DateTime.now();
+      final dateStr = '${now.year}-${now.month}-${now.day}';
+      
+      final response = await _apiClient.get(
+        '${ApiConstants.metadataCdnUrl}/logs/category/member/ranks?date=$dateStr&categoryID=0&countryID=23&page=1&type=day',
+      );
+      
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['s'] == true) {
+        final list = data['ms'] ?? data['ranks'];
+        if (list is List) {
+          return list
+              .asMap()
+              .entries
+              .map((entry) => RankEntryModel.fromJson(
+                  entry.value as Map<String, dynamic>, entry.key + 1))
+              .toList();
+        }
       }
     } catch (_) {}
 
-    return [
-      const RankEntryModel(
-        rank: 1,
-        userId: 101,
-        userName: 'Matheus K.',
-        studiconId: 377,
-        studyMs: 43200000, // 12h
-        categoryName: 'Concursos',
-      ),
-      const RankEntryModel(
-        rank: 2,
-        userId: 102,
-        userName: 'Fernanda Lima',
-        studiconId: 120,
-        studyMs: 39600000, // 11h
-        categoryName: 'Concursos',
-      ),
-      const RankEntryModel(
-        rank: 3,
-        userId: 103,
-        userName: 'Lucas (Você)',
-        studiconId: 50,
-        studyMs: 36000000, // 10h
-        categoryName: 'Concursos',
-      ),
-      const RankEntryModel(
-        rank: 4,
-        userId: 104,
-        userName: 'Gabriel R.',
-        studiconId: 90,
-        studyMs: 28800000, // 8h
-        categoryName: 'Concursos',
-      ),
-      const RankEntryModel(
-        rank: 5,
-        userId: 105,
-        userName: 'Beatriz S.',
-        studiconId: 110,
-        studyMs: 25200000, // 7h
-        categoryName: 'Concursos',
-      ),
-    ];
+    return [];
+  }
+
+  Future<Map<String, dynamic>> fetchUserStats({
+    required int userId,
+    required String startDate,
+    required String endDate,
+  }) async {
+    try {
+      final response = await _apiClient.post(
+        '/logs/range/days',
+        data: {
+          'id': userId,
+          'isMember': true,
+          'startDate': startDate,
+          'endDate': endDate,
+        },
+      );
+
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['s'] == true) {
+        return data;
+      }
+    } catch (_) {}
+
+    return {'ls': [], 'ss': []};
   }
 }

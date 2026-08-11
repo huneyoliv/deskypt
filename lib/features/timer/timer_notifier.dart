@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/utils/json_utils.dart';
 import '../../data/models/subject_model.dart';
 import '../../data/repositories/subject_repository.dart';
 import '../../data/repositories/timer_repository.dart';
@@ -31,7 +32,7 @@ class TimerState {
     this.currentSubject,
     this.subjects = const [],
     this.sessionStartAt,
-    this.studiconId = 377,
+    this.studiconId = -1,
   });
 
   TimerState copyWith({
@@ -74,17 +75,16 @@ class TimerNotifier extends StateNotifier<TimerState> {
 
   Future<void> loadSubjects() async {
     try {
-      final subjects = await _subjectRepository.fetchSubjects();
+      final result = await _subjectRepository.fetchSubjectsData();
+      final subjects = result.subjects;
       final current = subjects.isNotEmpty ? subjects.first : null;
-      final total = subjects.fold<int>(0, (sum, s) => sum + s.studyMs);
 
       state = state.copyWith(
         subjects: subjects,
         currentSubject: current,
-        todayTotalMs: total,
+        todayTotalMs: result.todayTotalMs,
       );
     } catch (_) {
-      // Usar subjects padrão de fallback em ambiente offline
       if (state.subjects.isEmpty) {
         final fallbackSubject = const SubjectModel(
           id: 1,
@@ -110,6 +110,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
 
     try {
       await _timerRepository.startStudy(
+        subjectTitle: state.currentSubject!.title,
         subjectId: state.currentSubject!.id,
         startAt: now,
       );
@@ -143,14 +144,35 @@ class TimerNotifier extends StateNotifier<TimerState> {
   Future<void> stopStudy() async {
     _ticker?.cancel();
     final now = DateTime.now();
+    final elapsed = state.sessionElapsedMs;
+    final currentSub = state.currentSubject;
 
-    if (state.currentSubject != null && state.sessionElapsedMs > 0) {
+    if (currentSub != null && elapsed > 0) {
       try {
-        await _timerRepository.stopStudy(
-          subjectId: state.currentSubject!.id,
+        final res = await _timerRepository.stopStudy(
+          subjectTitle: currentSub.title,
+          subjectId: currentSub.id,
+          startAt: state.sessionStartAt ?? now,
           stopAt: now,
-          studyMs: state.sessionElapsedMs,
+          studyMs: elapsed,
         );
+
+        if (res != null) {
+          final dl = res['dl'] as Map<String, dynamic>?;
+          final serverTotalMs = safeInt(dl?['sm'] ?? dl?['tp']);
+          final updatedSubjects = state.subjects.map((s) {
+            if (s.id == currentSub.id) {
+              return s.copyWith(studyMs: s.studyMs + elapsed);
+            }
+            return s;
+          }).toList();
+
+          state = state.copyWith(
+            subjects: updatedSubjects,
+            todayTotalMs: serverTotalMs > 0 ? serverTotalMs : state.todayTotalMs,
+            currentSubject: currentSub.copyWith(studyMs: currentSub.studyMs + elapsed),
+          );
+        }
       } catch (_) {}
     }
 
@@ -189,6 +211,57 @@ class TimerNotifier extends StateNotifier<TimerState> {
     }
   }
 
+  Future<void> deleteSubject(int subjectId) async {
+    final updatedList = state.subjects.where((s) => s.id != subjectId).toList();
+    final newCurrent = updatedList.isNotEmpty ? updatedList.first : null;
+
+    state = state.copyWith(
+      subjects: updatedList,
+      currentSubject: state.currentSubject?.id == subjectId ? newCurrent : state.currentSubject,
+    );
+
+    try {
+      await _subjectRepository.deleteSubject(subjectId);
+    } catch (_) {}
+  }
+
+  Future<void> updateSubject(SubjectModel subject) async {
+    final updatedList = state.subjects.map((s) => s.id == subject.id ? subject : s).toList();
+    final newCurrent = state.currentSubject?.id == subject.id ? subject : state.currentSubject;
+
+    state = state.copyWith(
+      subjects: updatedList,
+      currentSubject: newCurrent,
+    );
+
+    try {
+      await _subjectRepository.updateSubject(subject);
+    } catch (_) {}
+  }
+
+  Future<void> archiveSubject(int subjectId, bool isArchived) async {
+    final updatedList = state.subjects.map((s) {
+      if (s.id == subjectId) {
+        return s.copyWith(isArchived: isArchived);
+      }
+      return s;
+    }).toList();
+
+    final activeList = updatedList.where((s) => !s.isArchived).toList();
+    final newCurrent = (state.currentSubject?.id == subjectId && isArchived)
+        ? (activeList.isNotEmpty ? activeList.first : null)
+        : (state.currentSubject ?? (activeList.isNotEmpty ? activeList.first : null));
+
+    state = state.copyWith(
+      subjects: updatedList,
+      currentSubject: newCurrent,
+    );
+
+    try {
+      await _subjectRepository.archiveSubject(subjectId, isArchived);
+    } catch (_) {}
+  }
+
   @override
   void dispose() {
     _ticker?.cancel();
@@ -205,6 +278,6 @@ final timerNotifierProvider =
   return TimerNotifier(
     timerRepository: timerRepo,
     subjectRepository: subjectRepo,
-    userStudiconId: user?.studiconId ?? 377,
+    userStudiconId: user?.studiconId ?? 0,
   );
 });

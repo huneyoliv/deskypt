@@ -20,12 +20,13 @@ class StudiconItemModel {
   String get previewUrl => CdnResolver.studiconUrl(id, StudiconPose.normal1);
 
   factory StudiconItemModel.fromJson(Map<String, dynamic> json) {
+    final title = json['te'] as String? ?? json['tk'] as String? ?? json['name'] as String? ?? 'Studicon';
     return StudiconItemModel(
-      id: json['id'] as int? ?? 0,
-      name: json['name'] as String? ?? 'Studicon',
-      category: json['category'] as String? ?? 'Geral',
-      priceFlames: json['price'] as int? ?? 100,
-      isOwned: json['isOwned'] as bool? ?? false,
+      id: json['id'] as int? ?? json['studiconID'] as int? ?? 0,
+      name: title,
+      category: json['category'] as String? ?? 'Meus Studicons',
+      priceFlames: json['price'] as int? ?? 0,
+      isOwned: json['isOwned'] as bool? ?? true,
       isEquipped: json['isEquipped'] as bool? ?? false,
     );
   }
