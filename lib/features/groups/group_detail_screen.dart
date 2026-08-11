@@ -7,6 +7,7 @@ import '../../data/models/group_model.dart';
 import '../../data/models/group_member_model.dart';
 import '../../data/models/chat_message_model.dart';
 import '../../data/repositories/group_repository.dart';
+import 'group_leader_panel.dart';
 
 final groupRepositoryProvider = Provider<GroupRepository>((ref) {
   return GroupRepository();
@@ -203,6 +204,23 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.admin_panel_settings, color: AppColors.primary),
+            tooltip: 'Menu do Líder',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => GroupLeaderPanel(
+                    group: widget.group,
+                    members: _members,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
