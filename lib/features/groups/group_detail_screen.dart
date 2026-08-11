@@ -11,6 +11,7 @@ import 'group_leader_panel.dart';
 import 'widgets/cam_study_member_tile.dart';
 import 'widgets/sticker_picker_panel.dart';
 import '../../data/models/sticker_model.dart';
+import '../auth/auth_notifier.dart';
 
 final groupRepositoryProvider = Provider<GroupRepository>((ref) {
   return GroupRepository();
@@ -63,6 +64,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
     } catch (_) {}
   }
 
+  Timer? _chatTimer;
+
   @override
   void initState() {
     super.initState();
@@ -73,11 +76,17 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
     _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       _loadMembersSilently();
     });
+
+    // Auto refresh live chat messages every 3 seconds
+    _chatTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      _loadChatSilently();
+    });
   }
 
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    _chatTimer?.cancel();
     _tabController.dispose();
     _chatInputController.dispose();
     super.dispose();
@@ -187,12 +196,13 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
     final text = _chatInputController.text.trim();
     if (text.isEmpty) return;
 
+    final user = ref.read(authStateProvider).user;
     _chatInputController.clear();
     final newMsg = ChatMessageModel(
       id: DateTime.now().millisecondsSinceEpoch,
-      senderId: 1,
-      senderName: 'Você',
-      studiconId: 377,
+      senderId: user?.id ?? 1,
+      senderName: user?.name ?? 'Você',
+      studiconId: user?.studiconId ?? 377,
       message: text,
       sentAt: DateTime.now(),
     );
@@ -203,7 +213,13 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
 
     try {
       final repo = ref.read(groupRepositoryProvider);
-      await repo.sendMessage(groupId: widget.group.id, message: text);
+      await repo.sendMessage(
+        groupId: widget.group.id,
+        nickname: user?.name ?? 'Usuário',
+        userId: user?.id ?? 0,
+        message: text,
+      );
+      _loadChatSilently();
     } catch (_) {}
   }
 
