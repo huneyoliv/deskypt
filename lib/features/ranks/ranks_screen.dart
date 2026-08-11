@@ -7,6 +7,8 @@ import '../../data/models/rank_entry_model.dart';
 import '../../data/repositories/rank_repository.dart';
 import '../../shared/widgets/studicon_avatar.dart';
 import '../auth/auth_notifier.dart';
+import 'widgets/heatmap_grid.dart';
+import 'widgets/study_calendar.dart';
 
 final rankRepositoryProvider = Provider<RankRepository>((ref) {
   return RankRepository();
@@ -31,7 +33,7 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _loadRanks();
     _loadUserStats();
   }
@@ -211,7 +213,8 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
           unselectedLabelColor: AppColors.textSecondary,
           tabs: const [
             Tab(text: 'Rankings Globais'),
-            Tab(text: 'Minhas Estatísticas'),
+            Tab(text: 'Estatísticas & Mapa 24h'),
+            Tab(text: 'Calendário Mensal'),
           ],
         ),
       ),
@@ -310,129 +313,180 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
           // Tab 2: Statistics & fl_chart Graphs (Real Data)
           _isLoadingStats
               ? const Center(child: CircularProgressIndicator())
-              : Padding(
+              : SingleChildScrollView(
                   padding: const EdgeInsets.all(32),
-                  child: Row(
+                  child: Column(
                     children: [
-                      // Weekly Bar Chart
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: AppColors.card,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.border),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Horas Estudadas na Semana',
-                                style: AppTextStyles.titleMedium,
-                              ),
-                              const SizedBox(height: 24),
-                              Expanded(
-                                child: BarChart(
-                                  BarChartData(
-                                    alignment: BarChartAlignment.spaceAround,
-                                    maxY: maxWeeklyHour * 1.2,
-                                    barTouchData: BarTouchData(enabled: false),
-                                    titlesData: FlTitlesData(
-                                      show: true,
-                                      bottomTitles: AxisTitles(
-                                        sideTitles: SideTitles(
-                                          showTitles: true,
-                                          getTitlesWidget: (value, meta) {
-                                            const days = [
-                                              'Seg',
-                                              'Ter',
-                                              'Qua',
-                                              'Qui',
-                                              'Sex',
-                                              'Sáb',
-                                              'Dom'
-                                            ];
-                                            if (value.toInt() >= 0 && value.toInt() < days.length) {
-                                              return Text(
-                                                days[value.toInt()],
-                                                style: const TextStyle(
-                                                    color: AppColors.textSecondary,
-                                                    fontSize: 12),
-                                              );
-                                            }
-                                            return const Text('');
-                                          },
+                      SizedBox(
+                        height: 320,
+                        child: Row(
+                          children: [
+                            // Weekly Bar Chart
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: AppColors.card,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: AppColors.border),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Horas Estudadas na Semana',
+                                      style: AppTextStyles.titleMedium,
+                                    ),
+                                    const SizedBox(height: 24),
+                                    Expanded(
+                                      child: BarChart(
+                                        BarChartData(
+                                          alignment: BarChartAlignment.spaceAround,
+                                          maxY: maxWeeklyHour * 1.2,
+                                          barTouchData: BarTouchData(enabled: false),
+                                          titlesData: FlTitlesData(
+                                            show: true,
+                                            bottomTitles: AxisTitles(
+                                              sideTitles: SideTitles(
+                                                showTitles: true,
+                                                getTitlesWidget: (value, meta) {
+                                                  const days = [
+                                                    'Seg',
+                                                    'Ter',
+                                                    'Qua',
+                                                    'Qui',
+                                                    'Sex',
+                                                    'Sáb',
+                                                    'Dom'
+                                                  ];
+                                                  if (value.toInt() >= 0 && value.toInt() < days.length) {
+                                                    return Text(
+                                                      days[value.toInt()],
+                                                      style: const TextStyle(
+                                                          color: AppColors.textSecondary,
+                                                          fontSize: 12),
+                                                    );
+                                                  }
+                                                  return const Text('');
+                                                },
+                                              ),
+                                            ),
+                                            leftTitles: const AxisTitles(
+                                                sideTitles: SideTitles(showTitles: false)),
+                                            topTitles: const AxisTitles(
+                                                sideTitles: SideTitles(showTitles: false)),
+                                            rightTitles: const AxisTitles(
+                                                sideTitles: SideTitles(showTitles: false)),
+                                          ),
+                                          borderData: FlBorderData(show: false),
+                                          barGroups: List.generate(7, (index) {
+                                            return BarChartGroupData(
+                                              x: index,
+                                              barRods: [
+                                                BarChartRodData(
+                                                  toY: _weeklyHours[index],
+                                                  color: AppColors.primary,
+                                                )
+                                              ],
+                                            );
+                                          }),
                                         ),
                                       ),
-                                      leftTitles: const AxisTitles(
-                                          sideTitles: SideTitles(showTitles: false)),
-                                      topTitles: const AxisTitles(
-                                          sideTitles: SideTitles(showTitles: false)),
-                                      rightTitles: const AxisTitles(
-                                          sideTitles: SideTitles(showTitles: false)),
                                     ),
-                                    borderData: FlBorderData(show: false),
-                                    barGroups: List.generate(7, (index) {
-                                      return BarChartGroupData(
-                                        x: index,
-                                        barRods: [
-                                          BarChartRodData(
-                                            toY: _weeklyHours[index],
-                                            color: AppColors.primary,
-                                          )
-                                        ],
-                                      );
-                                    }),
-                                  ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(width: 24),
+
+                            // Subject Distribution Pie Chart
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: AppColors.card,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: AppColors.border),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Distribuição por Matéria',
+                                      style: AppTextStyles.titleMedium,
+                                    ),
+                                    const SizedBox(height: 24),
+                                    Expanded(
+                                      child: pieSections.isEmpty
+                                          ? const Center(
+                                              child: Text(
+                                                'Nenhum dado registrado esta semana.',
+                                                style: TextStyle(
+                                                    color: AppColors.textSecondary),
+                                              ),
+                                            )
+                                          : PieChart(
+                                              PieChartData(
+                                                sectionsSpace: 4,
+                                                centerSpaceRadius: 50,
+                                                sections: pieSections,
+                                              ),
+                                            ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 24),
+                      const SizedBox(height: 24),
 
-                      // Subject Distribution Pie Chart
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: AppColors.card,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.border),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Distribuição por Matéria',
-                                style: AppTextStyles.titleMedium,
-                              ),
-                              const SizedBox(height: 24),
-                              Expanded(
-                                child: pieSections.isEmpty
-                                    ? const Center(
-                                        child: Text(
-                                          'Nenhum dado registrado esta semana.',
-                                          style: TextStyle(
-                                              color: AppColors.textSecondary),
-                                        ),
-                                      )
-                                    : PieChart(
-                                        PieChartData(
-                                          sectionsSpace: 4,
-                                          centerSpaceRadius: 50,
-                                          sections: pieSections,
-                                        ),
-                                      ),
-                              ),
-                            ],
-                          ),
+                      // 24h Heatmap Component
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: AppColors.card,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: HeatmapGrid(
+                          hourlyLogs: {
+                            '2026-08-11': List.generate(24, (i) => (i >= 8 && i <= 18) ? (i * 3) % 60 : 0),
+                          },
                         ),
                       ),
                     ],
                   ),
                 ),
+
+          // Tab 3: Monthly Study Calendar
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(32),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: StudyCalendar(
+                dailyStudyTimeMs: {
+                  '2026-08-01': 7200000,
+                  '2026-08-02': 14400000,
+                  '2026-08-03': 18000000,
+                  '2026-08-04': 21600000,
+                  '2026-08-05': 25200000,
+                  '2026-08-06': 14400000,
+                  '2026-08-07': 28800000,
+                  '2026-08-08': 10800000,
+                  '2026-08-09': 14400000,
+                  '2026-08-10': 18000000,
+                  '2026-08-11': 21600000,
+                },
+              ),
+            ),
+          ),
         ],
       ),
     );
