@@ -489,6 +489,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     ),
                             ),
                           ),
+                          const SizedBox(height: 20),
+
+                          Row(
+                            children: const [
+                              Expanded(child: Divider(color: AppColors.border)),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text('ou entre com', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                              ),
+                              Expanded(child: Divider(color: AppColors.border)),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+
+                          OutlinedButton.icon(
+                            icon: const Icon(Icons.g_mobiledata_rounded, color: Colors.white, size: 28),
+                            label: const Text('Entrar com Google', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              side: const BorderSide(color: AppColors.border),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            onPressed: authState.isLoading
+                                ? null
+                                : () {
+                                    ref.read(authStateProvider.notifier).signInWithGoogle();
+                                  },
+                          ),
                           const SizedBox(height: 24),
 
                           // Social Logins Separator
