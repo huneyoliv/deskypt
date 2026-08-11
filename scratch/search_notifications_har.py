@@ -1,6 +1,6 @@
 import json
 
-print("Searching timelapse in HAR...")
+print("Searching notifications in HAR...")
 with open("YPT Completo.har", "r", encoding="utf-8", errors="ignore") as f:
     data = json.load(f)
 
@@ -10,12 +10,9 @@ for entry in entries:
     url = req.get("url", "")
     method = req.get("method", "")
     
-    if "timelapse" in url.lower() or "cam" in url.lower() or "snap" in url.lower() or "photo" in url.lower():
+    if "notification" in url.lower() or "push" in url.lower() or "alert" in url.lower():
         print(f"=== {method} {url} ===")
-        post_data = req.get("postData", {}).get("text", "")
-        if post_data:
-            print("Request Body:", post_data[:200])
         res = entry.get("response", {}).get("content", {}).get("text", "")
         if res:
-            print("Response Snippet:", res[:300])
+            print("Response Snippet:", res[:400])
         print()

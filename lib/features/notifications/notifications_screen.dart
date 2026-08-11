@@ -36,7 +36,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
   Future<void> _loadNotifications() async {
     setState(() => _isLoading = true);
     final repo = ref.read(notificationRepositoryProvider);
-    final list = await repo.fetchNotifications();
+    final list = await repo.fetchNotifications(isNew: false);
     if (mounted) {
       setState(() {
         _allNotifications = list;

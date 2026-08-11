@@ -7,12 +7,14 @@ class NotificationRepository {
   NotificationRepository({ApiClient? apiClient})
       : _apiClient = apiClient ?? ApiClient();
 
-  Future<List<NotificationModel>> fetchNotifications() async {
+  Future<List<NotificationModel>> fetchNotifications({int page = 1, bool isNew = false}) async {
     try {
-      final response = await _apiClient.get('/notice/list');
+      final response = await _apiClient.get(
+        '/user/notifications?page=$page&is_new=$isNew',
+      );
       final data = response.data;
-      if (data is Map<String, dynamic>) {
-        final list = data['notices'] ?? data['list'] ?? data['n'];
+      if (data is Map<String, dynamic> && data['s'] == true) {
+        final list = data['ns'] ?? data['notices'] ?? data['list'];
         if (list is List) {
           return list
               .whereType<Map<String, dynamic>>()
@@ -21,6 +23,21 @@ class NotificationRepository {
         }
       }
     } catch (_) {}
+
+    try {
+      final response = await _apiClient.get('/notice/list');
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final list = data['ns'] ?? data['notices'] ?? data['list'];
+        if (list is List) {
+          return list
+              .whereType<Map<String, dynamic>>()
+              .map((item) => NotificationModel.fromJson(item))
+              .toList();
+        }
+      }
+    } catch (_) {}
+
     return [];
   }
 

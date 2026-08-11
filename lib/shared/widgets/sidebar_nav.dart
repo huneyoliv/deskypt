@@ -71,11 +71,6 @@ class SidebarNav extends ConsumerWidget {
       fallbackIcon: Icons.emoji_events_outlined,
     ),
     SidebarNavItemData(
-      title: 'Time Lapse',
-      route: '/timelapse',
-      fallbackIcon: Icons.video_library_rounded,
-    ),
-    SidebarNavItemData(
       title: 'Notificações',
       route: '/notifications',
       fallbackIcon: Icons.notifications_none_rounded,
