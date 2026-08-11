@@ -35,6 +35,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
   Timer? _refreshTimer;
 
   List<GroupMemberModel> _members = [];
+  List<GroupMemberModel> _weeklyRanks = [];
   List<ChatMessageModel> _chatMessages = [];
   bool _isLoadingMembers = true;
   bool _showStickerPicker = false;
@@ -404,7 +405,11 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                   itemCount: _chatMessages.length,
                   itemBuilder: (context, index) {
                     final msg = _chatMessages[index];
-                    final isMe = msg.senderId == 1;
+                    final activeUser = ref.read(authStateProvider).user;
+                    final isMe = (activeUser != null && msg.senderId == activeUser.id) ||
+                        (activeUser != null && msg.senderName == activeUser.name) ||
+                        msg.senderId == 1 ||
+                        msg.senderName == 'Você';
 
                     return Align(
                       alignment:
@@ -514,30 +519,73 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
             ],
           ),
 
-          // Tab 3: Rankings
-          ListView.builder(
-            padding: const EdgeInsets.all(24),
-            itemCount: _members.length,
-            itemBuilder: (context, index) {
-              final member = _members[index];
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: AppColors.surface,
-                  child: Text('${index + 1}',
-                      style: const TextStyle(color: Colors.white)),
-                ),
-                title: Text(member.name,
-                    style: const TextStyle(color: Colors.white)),
-                trailing: Text(
-                  _formatMs(member.studyMs),
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
+          // Tab 3: Weekly Rankings
+          (() {
+            final displayList = _weeklyRanks.isNotEmpty ? _weeklyRanks : _members;
+            return ListView.builder(
+              padding: const EdgeInsets.all(24),
+              itemCount: displayList.length,
+              itemBuilder: (context, index) {
+                final member = displayList[index];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border),
                   ),
-                ),
-              );
-            },
-          ),
+                  child: ListTile(
+                    leading: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 28,
+                          height: 28,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: index == 0
+                                ? const Color(0xFFFFD700)
+                                : index == 1
+                                    ? const Color(0xFFC0C0C0)
+                                    : index == 2
+                                        ? const Color(0xFFCD7F32)
+                                        : AppColors.surface,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            '${index + 1}',
+                            style: TextStyle(
+                              color: index < 3 ? Colors.black : Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: AppColors.surface,
+                          backgroundImage: NetworkImage(member.avatarUrl),
+                        ),
+                      ],
+                    ),
+                    title: Text(
+                      member.name,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                    ),
+                    trailing: Text(
+                      _formatMs(member.studyMs),
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          })(),
         ],
       ),
     );

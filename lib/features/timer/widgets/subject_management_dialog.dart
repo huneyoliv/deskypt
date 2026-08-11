@@ -60,12 +60,27 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
   final _titleController = TextEditingController();
   int _selectedColorInt = 0xFF4CAF50;
   bool _showArchived = false;
+  late List<SubjectModel> _localSubjects;
 
   final List<int> _availableColors = const [
     0xFF4CAF50, 0xFF2196F3, 0xFFFF9800, 0xFF9C27B0,
     0xFFE91E63, 0xFF00BCD4, 0xFFFF5722, 0xFF795548,
     0xFF607D8B, 0xFF3F51B5,
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _localSubjects = List.from(widget.subjects);
+  }
+
+  @override
+  void didUpdateWidget(SubjectManagementDialog oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.subjects != oldWidget.subjects) {
+      _localSubjects = List.from(widget.subjects);
+    }
+  }
 
   @override
   void dispose() {
@@ -122,8 +137,17 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
             ),
             ElevatedButton(
               onPressed: () {
-                if (_titleController.text.trim().isNotEmpty) {
-                  widget.onCreateSubject(_titleController.text.trim(), _selectedColorInt);
+                final title = _titleController.text.trim();
+                if (title.isNotEmpty) {
+                  final newSub = SubjectModel(
+                    id: DateTime.now().millisecondsSinceEpoch,
+                    title: title,
+                    colorInt: _selectedColorInt,
+                  );
+                  setState(() {
+                    _localSubjects = [..._localSubjects, newSub];
+                  });
+                  widget.onCreateSubject(title, _selectedColorInt);
                   Navigator.pop(context);
                 }
               },
@@ -189,7 +213,11 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
               onPressed: () {
                 final newTitle = _titleController.text.trim();
                 if (newTitle.isNotEmpty) {
-                  widget.onUpdateSubject(subject.copyWith(title: newTitle, colorInt: editColorInt));
+                  final updated = subject.copyWith(title: newTitle, colorInt: editColorInt);
+                  setState(() {
+                    _localSubjects = _localSubjects.map((s) => s.id == subject.id ? updated : s).toList();
+                  });
+                  widget.onUpdateSubject(updated);
                   Navigator.pop(context);
                 }
               },
@@ -202,6 +230,25 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
     );
   }
 
+  void _handleArchive(int subjectId, bool archive) {
+    setState(() {
+      _localSubjects = _localSubjects.map((s) {
+        if (s.id == subjectId) {
+          return s.copyWith(isArchived: archive);
+        }
+        return s;
+      }).toList();
+    });
+    widget.onArchiveSubject(subjectId, archive);
+  }
+
+  void _handleDelete(int subjectId) {
+    setState(() {
+      _localSubjects = _localSubjects.where((s) => s.id != subjectId).toList();
+    });
+    widget.onDeleteSubject(subjectId);
+  }
+
   String _formatMs(int ms) {
     final m = ms ~/ 60000;
     final h = m ~/ 60;
@@ -211,7 +258,7 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredSubjects = widget.subjects.where((s) => s.isArchived == _showArchived).toList();
+    final filteredSubjects = _localSubjects.where((s) => s.isArchived == _showArchived).toList();
 
     return Dialog(
       backgroundColor: AppColors.card.withValues(alpha: 0.85),
@@ -347,12 +394,12 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
                                   color: AppColors.primary,
                                 ),
                                 tooltip: _showArchived ? 'Desarquivar' : 'Arquivar',
-                                onPressed: () => widget.onArchiveSubject(subject.id, !_showArchived),
+                                onPressed: () => _handleArchive(subject.id, !_showArchived),
                               ),
                               IconButton(
                                 icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
                                 tooltip: 'Excluir Matéria',
-                                onPressed: () => widget.onDeleteSubject(subject.id),
+                                onPressed: () => _handleDelete(subject.id),
                               ),
                             ],
                           ),
