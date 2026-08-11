@@ -40,19 +40,27 @@ class ChatMessageModel {
     final msgType = json['type'] as String? ??
         (sticker != null ? 'sticker' : (image != null ? 'image' : 'text'));
 
+    DateTime sentTime = DateTime.now();
+    if (json['ts'] != null) {
+      final tsNum = json['ts'];
+      if (tsNum is num) {
+        sentTime = DateTime.fromMillisecondsSinceEpoch((tsNum * 1000).toInt());
+      }
+    } else if (json['ca'] != null && json['ca'] is int) {
+      sentTime = DateTime.fromMillisecondsSinceEpoch(json['ca'] as int);
+    }
+
     return ChatMessageModel(
-      id: json['id'] as int? ?? DateTime.now().millisecondsSinceEpoch,
-      senderId: json['ud'] as int? ?? 0,
-      senderName: json['n'] as String? ?? 'Usuário',
+      id: json['idx'] as int? ?? json['id'] as int? ?? DateTime.now().millisecondsSinceEpoch,
+      senderId: json['uid'] as int? ?? json['ud'] as int? ?? 0,
+      senderName: json['nn'] as String? ?? json['n'] as String? ?? 'Usuário',
       studiconId: json['st'] as int? ?? 377,
-      message: json['m'] as String? ?? json['text'] as String? ?? '',
+      message: json['msg'] as String? ?? json['m'] as String? ?? json['text'] as String? ?? '',
       photoUrl: photo,
       stickerUrl: sticker,
       imageUrl: image,
       type: msgType,
-      sentAt: json['ca'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(json['ca'] as int)
-          : DateTime.now(),
+      sentAt: sentTime,
       isNotice: json['isNotice'] as bool? ?? false,
     );
   }

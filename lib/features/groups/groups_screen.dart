@@ -31,6 +31,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _performSearch();
   }
 
   @override
