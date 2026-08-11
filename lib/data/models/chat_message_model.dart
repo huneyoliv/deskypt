@@ -7,6 +7,9 @@ class ChatMessageModel {
   final int studiconId;
   final String message;
   final String? photoUrl;
+  final String? stickerUrl;
+  final String? imageUrl;
+  final String type; // 'text' | 'sticker' | 'image'
   final DateTime sentAt;
   final bool isNotice;
 
@@ -17,6 +20,9 @@ class ChatMessageModel {
     required this.studiconId,
     required this.message,
     this.photoUrl,
+    this.stickerUrl,
+    this.imageUrl,
+    this.type = 'text',
     required this.sentAt,
     this.isNotice = false,
   });
@@ -29,6 +35,11 @@ class ChatMessageModel {
       photo = CdnResolver.chatPhotoUrl(json['photo'] as String);
     }
 
+    final sticker = json['stickerUrl'] as String? ?? json['sticker'] as String?;
+    final image = json['imageUrl'] as String? ?? photo;
+    final msgType = json['type'] as String? ??
+        (sticker != null ? 'sticker' : (image != null ? 'image' : 'text'));
+
     return ChatMessageModel(
       id: json['id'] as int? ?? DateTime.now().millisecondsSinceEpoch,
       senderId: json['ud'] as int? ?? 0,
@@ -36,6 +47,9 @@ class ChatMessageModel {
       studiconId: json['st'] as int? ?? 377,
       message: json['m'] as String? ?? json['text'] as String? ?? '',
       photoUrl: photo,
+      stickerUrl: sticker,
+      imageUrl: image,
+      type: msgType,
       sentAt: json['ca'] != null
           ? DateTime.fromMillisecondsSinceEpoch(json['ca'] as int)
           : DateTime.now(),

@@ -9,6 +9,8 @@ import '../../data/models/chat_message_model.dart';
 import '../../data/repositories/group_repository.dart';
 import 'group_leader_panel.dart';
 import 'widgets/cam_study_member_tile.dart';
+import 'widgets/sticker_picker_panel.dart';
+import '../../data/models/sticker_model.dart';
 
 final groupRepositoryProvider = Provider<GroupRepository>((ref) {
   return GroupRepository();
@@ -34,8 +36,32 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
   List<GroupMemberModel> _members = [];
   List<ChatMessageModel> _chatMessages = [];
   bool _isLoadingMembers = true;
+  bool _showStickerPicker = false;
 
   final _chatInputController = TextEditingController();
+
+  Future<void> _sendSticker(Sticker sticker) async {
+    setState(() => _showStickerPicker = false);
+    final newMsg = ChatMessageModel(
+      id: DateTime.now().millisecondsSinceEpoch,
+      senderId: 1,
+      senderName: 'Você',
+      studiconId: 377,
+      message: '',
+      stickerUrl: sticker.url,
+      type: 'sticker',
+      sentAt: DateTime.now(),
+    );
+
+    setState(() {
+      _chatMessages = [newMsg, ..._chatMessages];
+    });
+
+    try {
+      final repo = ref.read(groupRepositoryProvider);
+      await repo.sendMessage(groupId: widget.group.id, stickerUrl: sticker.url);
+    } catch (_) {}
+  }
 
   @override
   void initState() {
@@ -387,10 +413,35 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                                   fontSize: 12,
                                 ),
                               ),
-                            Text(
-                              msg.message,
-                              style: const TextStyle(color: Colors.white),
-                            ),
+                            if (msg.stickerUrl != null)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Image.network(
+                                  msg.stickerUrl!,
+                                  height: 100,
+                                  width: 100,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, __, ___) => const Icon(Icons.extension, color: Colors.white70),
+                                ),
+                              )
+                            else if (msg.imageUrl != null)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    msg.imageUrl!,
+                                    height: 150,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.white70),
+                                  ),
+                                ),
+                              )
+                            else
+                              Text(
+                                msg.message,
+                                style: const TextStyle(color: Colors.white),
+                              ),
                           ],
                         ),
                       ),
@@ -398,11 +449,26 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                   },
                 ),
               ),
+              if (_showStickerPicker)
+                StickerPickerPanel(
+                  onStickerSelected: _sendSticker,
+                ),
               Container(
                 padding: const EdgeInsets.all(16),
                 color: AppColors.surface,
                 child: Row(
                   children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.emoji_emotions_outlined,
+                        color: _showStickerPicker ? AppColors.primary : AppColors.textSecondary,
+                      ),
+                      tooltip: 'Figurinhas',
+                      onPressed: () {
+                        setState(() => _showStickerPicker = !_showStickerPicker);
+                      },
+                    ),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: TextField(
                         controller: _chatInputController,

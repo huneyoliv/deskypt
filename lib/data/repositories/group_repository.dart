@@ -55,14 +55,20 @@ class GroupRepository {
 
   Future<ChatMessageModel> sendMessage({
     required int groupId,
-    required String message,
+    String? message,
+    String? stickerUrl,
+    String? imageUrl,
   }) async {
+    final payload = <String, dynamic>{
+      'groupID': groupId,
+      'message': message ?? '',
+    };
+    if (stickerUrl != null) payload['stickerUrl'] = stickerUrl;
+    if (imageUrl != null) payload['imageUrl'] = imageUrl;
+
     final response = await _apiClient.post(
       ApiConstants.groupChatMessages,
-      data: {
-        'groupID': groupId,
-        'message': message,
-      },
+      data: payload,
     );
 
     final data = response.data as Map<String, dynamic>;
