@@ -82,6 +82,7 @@ class TimerScreen extends ConsumerWidget {
                         onSelectSubject: (subject) => notifier.selectSubject(subject),
                         onCreateSubject: (title, colorInt) => notifier.createSubject(title, colorInt),
                         onUpdateSubject: (subject) => notifier.updateSubject(subject),
+                        onArchiveSubject: (id, archive) => notifier.archiveSubject(id, archive),
                         onDeleteSubject: (id) => notifier.deleteSubject(id),
                       );
                     },

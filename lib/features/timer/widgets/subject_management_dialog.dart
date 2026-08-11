@@ -10,6 +10,7 @@ class SubjectManagementDialog extends StatefulWidget {
   final ValueChanged<SubjectModel> onSelectSubject;
   final Function(String title, int colorInt) onCreateSubject;
   final Function(SubjectModel subject) onUpdateSubject;
+  final Function(int id, bool archive) onArchiveSubject;
   final Function(int id) onDeleteSubject;
 
   const SubjectManagementDialog({
@@ -19,6 +20,7 @@ class SubjectManagementDialog extends StatefulWidget {
     required this.onSelectSubject,
     required this.onCreateSubject,
     required this.onUpdateSubject,
+    required this.onArchiveSubject,
     required this.onDeleteSubject,
   });
 
@@ -29,6 +31,7 @@ class SubjectManagementDialog extends StatefulWidget {
     required ValueChanged<SubjectModel> onSelectSubject,
     required Function(String title, int colorInt) onCreateSubject,
     required Function(SubjectModel subject) onUpdateSubject,
+    required Function(int id, bool archive) onArchiveSubject,
     required Function(int id) onDeleteSubject,
   }) {
     return showDialog(
@@ -42,6 +45,7 @@ class SubjectManagementDialog extends StatefulWidget {
           onSelectSubject: onSelectSubject,
           onCreateSubject: onCreateSubject,
           onUpdateSubject: onUpdateSubject,
+          onArchiveSubject: onArchiveSubject,
           onDeleteSubject: onDeleteSubject,
         ),
       ),
@@ -55,6 +59,7 @@ class SubjectManagementDialog extends StatefulWidget {
 class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
   final _titleController = TextEditingController();
   int _selectedColorInt = 0xFF4CAF50;
+  bool _showArchived = false;
 
   final List<int> _availableColors = const [
     0xFF4CAF50, 0xFF2196F3, 0xFFFF9800, 0xFF9C27B0,
@@ -131,6 +136,72 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
     );
   }
 
+  void _showEditSubjectDialog(SubjectModel subject) {
+    _titleController.text = subject.title;
+    int editColorInt = subject.colorInt;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: AppColors.card,
+          title: Text('Editar: ${subject.title}', style: const TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _titleController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  labelText: 'Nome da Matéria',
+                  labelStyle: TextStyle(color: AppColors.textSecondary),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _availableColors.map((c) {
+                  final color = Color(c);
+                  final isSel = editColorInt == c;
+                  return GestureDetector(
+                    onTap: () => setDialogState(() => editColorInt = c),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        border: isSel ? Border.all(color: Colors.white, width: 3) : null,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final newTitle = _titleController.text.trim();
+                if (newTitle.isNotEmpty) {
+                  widget.onUpdateSubject(subject.copyWith(title: newTitle, colorInt: editColorInt));
+                  Navigator.pop(context);
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              child: const Text('Salvar', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   String _formatMs(int ms) {
     final m = ms ~/ 60000;
     final h = m ~/ 60;
@@ -140,6 +211,8 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredSubjects = widget.subjects.where((s) => s.isArchived == _showArchived).toList();
+
     return Dialog(
       backgroundColor: AppColors.card.withValues(alpha: 0.85),
       shape: RoundedRectangleBorder(
@@ -147,7 +220,7 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
         side: const BorderSide(color: AppColors.border),
       ),
       child: Container(
-        width: 480,
+        width: 520,
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -157,7 +230,7 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
               children: [
                 const Icon(Icons.bookmark_outline_rounded, color: AppColors.primary, size: 24),
                 const SizedBox(width: 10),
-                const Text('Selecionar & Gerenciar Matérias', style: AppTextStyles.titleMedium),
+                const Text('Gerenciar Matérias YPT', style: AppTextStyles.titleMedium),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.close, color: AppColors.textMuted),
@@ -165,76 +238,127 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Clique em uma matéria para selecioná-la para o cronômetro.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                ChoiceChip(
+                  label: const Text('Ativas'),
+                  selected: !_showArchived,
+                  selectedColor: AppColors.primary,
+                  backgroundColor: AppColors.surface,
+                  labelStyle: TextStyle(color: !_showArchived ? Colors.white : AppColors.textMuted),
+                  onSelected: (_) => setState(() => _showArchived = false),
+                ),
+                const SizedBox(width: 8),
+                ChoiceChip(
+                  label: const Text('Arquivadas'),
+                  selected: _showArchived,
+                  selectedColor: AppColors.primary,
+                  backgroundColor: AppColors.surface,
+                  labelStyle: TextStyle(color: _showArchived ? Colors.white : AppColors.textMuted),
+                  onSelected: (_) => setState(() => _showArchived = true),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 320),
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: widget.subjects.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (context, index) {
-                  final subject = widget.subjects[index];
-                  final isSelected = widget.selectedSubject?.id == subject.id;
-
-                  return InkWell(
-                    onTap: () {
-                      widget.onSelectSubject(subject);
-                      Navigator.pop(context);
-                    },
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? subject.color.withValues(alpha: 0.2)
-                            : AppColors.surface.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isSelected ? subject.color : AppColors.border,
-                          width: isSelected ? 2 : 1,
+              child: filteredSubjects.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32.0),
+                        child: Text(
+                          _showArchived ? 'Nenhuma matéria arquivada.' : 'Nenhuma matéria ativa.',
+                          style: const TextStyle(color: AppColors.textMuted),
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 16,
-                            height: 16,
-                            decoration: BoxDecoration(
-                              color: subject.color,
-                              shape: BoxShape.circle,
+                    )
+                  : ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: filteredSubjects.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final subject = filteredSubjects[index];
+                        final isSelected = widget.selectedSubject?.id == subject.id;
+
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? subject.color.withValues(alpha: 0.2)
+                                : AppColors.surface.withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isSelected ? subject.color : AppColors.border,
+                              width: isSelected ? 2 : 1,
                             ),
                           ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Text(
-                              subject.title,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                fontSize: 15,
+                          child: Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  widget.onSelectSubject(subject);
+                                  Navigator.pop(context);
+                                },
+                                child: Container(
+                                  width: 16,
+                                  height: 16,
+                                  decoration: BoxDecoration(
+                                    color: subject.color,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    widget.onSelectSubject(subject);
+                                    Navigator.pop(context);
+                                  },
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        subject.title,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                      Text(
+                                        _formatMs(subject.studyMs),
+                                        style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.white70),
+                                tooltip: 'Editar Matéria',
+                                onPressed: () => _showEditSubjectDialog(subject),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  _showArchived ? Icons.unarchive_outlined : Icons.archive_outlined,
+                                  size: 18,
+                                  color: AppColors.primary,
+                                ),
+                                tooltip: _showArchived ? 'Desarquivar' : 'Arquivar',
+                                onPressed: () => widget.onArchiveSubject(subject.id, !_showArchived),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
+                                tooltip: 'Excluir Matéria',
+                                onPressed: () => widget.onDeleteSubject(subject.id),
+                              ),
+                            ],
                           ),
-                          Text(
-                            _formatMs(subject.studyMs),
-                            style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.textMuted),
-                            onPressed: () => widget.onDeleteSubject(subject.id),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
             const SizedBox(height: 20),
             SizedBox(
