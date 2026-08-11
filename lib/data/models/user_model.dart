@@ -12,6 +12,7 @@ class UserModel {
   final String? profilePhotoUrl;
   final String jwtToken;
   final List<GroupModel> userGroups;
+  final int flamesBalance;
 
   const UserModel({
     required this.id,
@@ -24,6 +25,7 @@ class UserModel {
     this.profilePhotoUrl,
     required this.jwtToken,
     this.userGroups = const [],
+    this.flamesBalance = 100,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json, String token) {
@@ -52,6 +54,7 @@ class UserModel {
           : null,
       jwtToken: token,
       userGroups: groups,
+      flamesBalance: safeInt(json['fl'] ?? json['flames'] ?? json['flameBalance'], 100),
     );
   }
 
@@ -65,6 +68,7 @@ class UserModel {
       'ci': categoryId,
       'pv': studiconId,
       'jwtToken': jwtToken,
+      'fl': flamesBalance,
     };
   }
 
@@ -79,6 +83,7 @@ class UserModel {
     String? profilePhotoUrl,
     String? jwtToken,
     List<GroupModel>? userGroups,
+    int? flamesBalance,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -91,6 +96,7 @@ class UserModel {
       profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
       jwtToken: jwtToken ?? this.jwtToken,
       userGroups: userGroups ?? this.userGroups,
+      flamesBalance: flamesBalance ?? this.flamesBalance,
     );
   }
 }

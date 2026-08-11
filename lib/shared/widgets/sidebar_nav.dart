@@ -241,7 +241,7 @@ class SidebarNav extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const FlamesBadge(count: 100),
+                FlamesBadge(count: user?.flamesBalance ?? 0),
                 IconButton(
                   icon: const Icon(Icons.logout_rounded,
                       color: AppColors.textMuted, size: 20),
