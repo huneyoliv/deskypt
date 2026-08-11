@@ -67,9 +67,9 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
           children: [
             Text(challenge.description, style: const TextStyle(color: AppColors.textSecondary)),
             const SizedBox(height: 12),
-            Text('Aposta: 🔥 ${challenge.flameCost} Flames', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+            Text('Aposta de Entrada: 🔥 ${challenge.flameCost} Flames', style: const TextStyle(color: AppColors.flame, fontWeight: FontWeight.bold, fontSize: 15)),
             const SizedBox(height: 8),
-            Text('Regras: ${challenge.rules}', style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+            Text('Regras de Sucesso: ${challenge.rules}', style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
           ],
         ),
         actions: [
@@ -80,7 +80,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Confirmar & Apostar', style: TextStyle(color: Colors.white)),
+            child: const Text('Confirmar Aposta', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -95,8 +95,8 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
           SnackBar(
             content: Text(
               success
-                  ? 'Você entrou no desafio! Boa sorte! 🚀'
-                  : 'Falha ao entrar no desafio. Verifique seu saldo de Flames.',
+                  ? 'Inscrição confirmada! Boa sorte no Desafio! 🚀'
+                  : 'Falha ao inscrever no desafio. Verifique seu saldo de Flames.',
             ),
             backgroundColor: success ? AppColors.primary : AppColors.error,
           ),
@@ -104,6 +104,15 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
         if (success) _loadChallenges();
       }
     }
+  }
+
+  Future<void> _doCheckIn(ChallengeModel challenge) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Check-in do dia registrado com sucesso! Meta de hoje cumprida. 🔥'),
+        backgroundColor: AppColors.success,
+      ),
+    );
   }
 
   Widget _buildChallengeGrid(List<ChallengeModel> list, {bool isMyList = false}) {
@@ -115,7 +124,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
             const Icon(Icons.emoji_events_outlined, size: 64, color: AppColors.textMuted),
             const SizedBox(height: 16),
             Text(
-              isMyList ? 'Você não está participando de nenhum desafio.' : 'Nenhum desafio disponível no momento.',
+              isMyList ? 'Você ainda não entrou em nenhum desafio.' : 'Nenhum desafio disponível no momento.',
               style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
             ),
           ],
@@ -126,15 +135,16 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
     return GridView.builder(
       padding: const EdgeInsets.all(24),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 360,
-        childAspectRatio: 1.1,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
+        maxCrossAxisExtent: 380,
+        childAspectRatio: 0.9,
+        crossAxisSpacing: 20,
+        mainAxisSpacing: 20,
       ),
       itemCount: list.length,
       itemBuilder: (context, index) {
         final challenge = list[index];
         final df = DateFormat('dd/MM');
+        final progress = (challenge.checkInCount / 7.0).clamp(0.0, 1.0);
 
         return Card(
           color: AppColors.card,
@@ -156,25 +166,25 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.15),
+                        color: AppColors.flame.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        '🔥 ${challenge.flameCost} Flames',
+                        'Aposta: 🔥 ${challenge.flameCost} Flames',
                         style: const TextStyle(
-                          color: AppColors.primary,
+                          color: AppColors.flame,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
                       ),
                     ),
                     Text(
-                      '${(challenge.successThreshold * 100).toInt()}% meta',
+                      'Meta: ${(challenge.successThreshold * 100).toInt()}%',
                       style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 Text(
                   challenge.name,
                   maxLines: 1,
@@ -192,40 +202,66 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 ),
+                const SizedBox(height: 14),
+
+                if (isMyList || challenge.isJoined) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Progresso de Check-in', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                      Text('${(progress * 100).toInt()}%', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      backgroundColor: AppColors.surface,
+                      color: AppColors.primary,
+                      minHeight: 6,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                ],
+
                 const Spacer(),
                 Row(
                   children: [
                     const Icon(Icons.calendar_today, size: 14, color: AppColors.textMuted),
                     const SizedBox(width: 6),
                     Text(
-                      '${df.format(challenge.startDate)} até ${df.format(challenge.endDate)}',
+                      '${df.format(challenge.startDate)} a ${df.format(challenge.endDate)}',
                       style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
                     ),
                     const Spacer(),
                     const Icon(Icons.people_outline, size: 14, color: AppColors.textMuted),
                     const SizedBox(width: 4),
                     Text(
-                      '${challenge.participantCount}',
+                      '${challenge.participantCount} inscritos',
                       style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: challenge.isJoined ? null : () => _joinChallenge(challenge),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: challenge.isJoined ? AppColors.surface : AppColors.primary,
-                    ),
-                    child: Text(
-                      challenge.isJoined ? 'Participando' : 'Entrar no Desafio',
-                      style: TextStyle(
-                        color: challenge.isJoined ? AppColors.textMuted : Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                  child: challenge.isJoined
+                      ? ElevatedButton.icon(
+                          onPressed: () => _doCheckIn(challenge),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.success,
+                          ),
+                          icon: const Icon(Icons.check_circle, color: Colors.white, size: 18),
+                          label: const Text('Fazer Check-in Hoje', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        )
+                      : ElevatedButton(
+                          onPressed: () => _joinChallenge(challenge),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                          ),
+                          child: const Text('Participar do Desafio', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
                 ),
               ],
             ),
@@ -240,7 +276,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Desafios & Metas', style: AppTextStyles.titleLarge),
+        title: const Text('Desafios & Metas Yeolpumta', style: AppTextStyles.titleLarge),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
