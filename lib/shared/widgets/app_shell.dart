@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/timer/focus_mode_notifier.dart';
+import '../../features/notifications/widgets/notification_bell.dart';
 import 'sidebar_nav.dart';
 
 class AppShell extends ConsumerWidget {
@@ -69,6 +70,13 @@ class AppShell extends ConsumerWidget {
                   ),
                 ),
               ),
+            ),
+          // Top-right Notification Bell
+          if (!isFocusActive)
+            const Positioned(
+              top: 10,
+              right: 16,
+              child: NotificationBell(),
             ),
         ],
       ),

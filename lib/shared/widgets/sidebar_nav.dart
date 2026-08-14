@@ -72,11 +72,6 @@ class SidebarNav extends ConsumerWidget {
       fallbackIcon: Icons.emoji_events_outlined,
     ),
     SidebarNavItemData(
-      title: 'Notificações',
-      route: '/notifications',
-      fallbackIcon: Icons.notifications_none_rounded,
-    ),
-    SidebarNavItemData(
       title: 'Perfil',
       route: '/profile',
       fallbackIcon: Icons.person_outline,

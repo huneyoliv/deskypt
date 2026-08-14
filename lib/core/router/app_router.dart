@@ -10,7 +10,6 @@ import '../../features/store/store_screen.dart';
 import '../../features/flashcards/flashcards_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/challenges/challenges_screen.dart';
-import '../../features/notifications/notifications_screen.dart';
 import '../../shared/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -74,10 +73,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/challenges',
             builder: (context, state) => const ChallengesScreen(),
-          ),
-          GoRoute(
-            path: '/notifications',
-            builder: (context, state) => const NotificationsScreen(),
           ),
         ],
       ),
