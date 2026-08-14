@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/localization/app_translation.dart';
 import '../../data/models/dday_model.dart';
 import '../../data/models/todo_item_model.dart';
 import '../../data/repositories/planner_repository.dart';
@@ -414,6 +415,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
     final completedCount = _todos.where((t) => t.isCompleted).length;
     final totalCount = _todos.length;
     final progressPct = totalCount > 0 ? completedCount / totalCount : 0.0;
+    final t = ref.watch(appTranslationProvider);
 
     return DefaultTabController(
       length: 2,
@@ -421,13 +423,13 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
         backgroundColor: AppColors.background,
         appBar: AppBar(
           toolbarHeight: 0,
-          bottom: const TabBar(
+          bottom: TabBar(
             indicatorColor: AppColors.primary,
             labelColor: Colors.white,
             unselectedLabelColor: AppColors.textSecondary,
             tabs: [
-              Tab(text: 'Tarefas & D-Days'),
-              Tab(text: 'Grade Horária'),
+              Tab(text: t.tr('todo', fallback: 'Tarefas & D-Days')),
+              Tab(text: t.tr('timetable', fallback: 'Grade Horária')),
             ],
           ),
         ),

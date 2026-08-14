@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/localization/app_translation.dart';
 import '../../shared/widgets/studicon_avatar.dart';
 import '../auth/auth_notifier.dart';
 import '../settings/settings_notifier.dart';
@@ -132,16 +133,17 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
     final timerState = ref.watch(timerNotifierProvider);
+    final t = ref.watch(appTranslationProvider);
     final user = authState.user;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Perfil & Configurações', style: AppTextStyles.titleLarge),
+        title: Text('${t.tr('profile', fallback: 'Perfil')} & ${t.tr('settings', fallback: 'Configurações')}', style: AppTextStyles.titleLarge),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.error),
-            tooltip: 'Sair da Conta',
+            tooltip: t.tr('logout', fallback: 'Sair da Conta'),
             onPressed: () {
               showDialog(
                 context: context,
@@ -428,9 +430,9 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 32),
 
             // Settings Section
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
-              child: Text('Configurações & Dispositivo', style: AppTextStyles.titleMedium),
+              child: Text('${t.tr('settings', fallback: 'Configurações')} & ${t.tr('device', fallback: 'Dispositivo')}', style: AppTextStyles.titleMedium),
             ),
             const SizedBox(height: 16),
 
@@ -459,7 +461,7 @@ class ProfileScreen extends ConsumerWidget {
                   children: [
                     ListTile(
                       leading: const Icon(Icons.public, color: AppColors.primary),
-                      title: const Text('Região / País', style: TextStyle(color: Colors.white)),
+                      title: Text(t.tr('region', fallback: 'Região / País'), style: const TextStyle(color: Colors.white)),
                       subtitle: Text(
                         '${country.name} (${country.code})',
                         style: const TextStyle(color: AppColors.textSecondary),
@@ -470,7 +472,7 @@ class ProfileScreen extends ConsumerWidget {
                     const Divider(color: AppColors.border, height: 1),
                     ListTile(
                       leading: const Icon(Icons.language, color: AppColors.primary),
-                      title: const Text('Idioma do Aplicativo', style: TextStyle(color: Colors.white)),
+                      title: Text(t.tr('language', fallback: 'Idioma do Aplicativo'), style: const TextStyle(color: Colors.white)),
                       subtitle: Text(
                         langLabel,
                         style: const TextStyle(color: AppColors.textSecondary),
@@ -481,24 +483,24 @@ class ProfileScreen extends ConsumerWidget {
                     const Divider(color: AppColors.border, height: 1),
                     ListTile(
                       leading: const Icon(Icons.access_time, color: AppColors.primary),
-                      title: const Text('Fuso Horário da Região', style: TextStyle(color: Colors.white)),
+                      title: Text(t.tr('timezone', fallback: 'Fuso Horário da Região'), style: const TextStyle(color: Colors.white)),
                       subtitle: Text(
                         country.timezone,
                         style: const TextStyle(color: AppColors.textSecondary),
                       ),
                     ),
                     const Divider(color: AppColors.border, height: 1),
-                    const ListTile(
-                      leading: Icon(Icons.computer, color: AppColors.primary),
-                      title: Text('Plataforma', style: TextStyle(color: Colors.white)),
-                      subtitle: Text('DeskYPT Desktop (Windows x64)',
+                    ListTile(
+                      leading: const Icon(Icons.computer, color: AppColors.primary),
+                      title: Text(t.tr('platform', fallback: 'Plataforma'), style: const TextStyle(color: Colors.white)),
+                      subtitle: const Text('DeskYPT Desktop (Windows x64)',
                           style: TextStyle(color: AppColors.textSecondary)),
                     ),
                     const Divider(color: AppColors.border, height: 1),
-                    const ListTile(
-                      leading: Icon(Icons.info_outline, color: AppColors.primary),
-                      title: Text('Versão do Cliente API', style: TextStyle(color: Colors.white)),
-                      subtitle: Text('v8.1.0 (build 810041)',
+                    ListTile(
+                      leading: const Icon(Icons.info_outline, color: AppColors.primary),
+                      title: Text(t.tr('version', fallback: 'Versão do Cliente API'), style: const TextStyle(color: Colors.white)),
+                      subtitle: const Text('v8.1.0 (build 810041)',
                           style: TextStyle(color: AppColors.textSecondary)),
                     ),
                   ],
@@ -508,11 +510,11 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 32),
 
             // Danger Zone Section
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Zona de Perigo',
-                style: TextStyle(
+                t.tr('danger_zone', fallback: 'Zona de Perigo'),
+                style: const TextStyle(
                   color: AppColors.error,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -529,16 +531,16 @@ class ProfileScreen extends ConsumerWidget {
               ),
               child: ListTile(
                 leading: const Icon(Icons.delete_forever, color: AppColors.error),
-                title: const Text(
-                  'Excluir Minha Conta',
-                  style: TextStyle(
+                title: Text(
+                  t.tr('delete_account', fallback: 'Excluir Minha Conta'),
+                  style: const TextStyle(
                     color: AppColors.error,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                subtitle: const Text(
-                  'Apagar permanentemente seus dados, histórico e desvincular grupos',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                subtitle: Text(
+                  t.tr('delete_account_desc', fallback: 'Apagar permanentemente seus dados, histórico e desvincular grupos'),
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 ),
                 trailing: const Icon(Icons.chevron_right, color: AppColors.error),
                 onTap: () => DeleteAccountDialog.show(context),

@@ -4,20 +4,22 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../core/cdn/cdn_resolver.dart';
+import '../../core/localization/app_translation.dart';
 import '../../features/auth/auth_notifier.dart';
 import '../../data/repositories/notification_repository.dart';
 import '../../features/notifications/widgets/notification_bell.dart';
 import 'studicon_avatar.dart';
 
 class SidebarNavItemData {
-  final String title;
+  final String keyName;
+  final String defaultTitle;
   final String route;
   final IconData fallbackIcon;
   final String? svgAsset;
 
   const SidebarNavItemData({
-    required this.title,
+    required this.keyName,
+    required this.defaultTitle,
     required this.route,
     required this.fallbackIcon,
     this.svgAsset,
@@ -34,45 +36,53 @@ class SidebarNav extends ConsumerWidget {
 
   static const items = [
     SidebarNavItemData(
-      title: 'Cronômetro',
+      keyName: 'bottom_home',
+      defaultTitle: 'Cronômetro',
       route: '/home',
       fallbackIcon: Icons.timer,
       svgAsset: 'assets/icons/bottom_home_fill.svg',
     ),
     SidebarNavItemData(
-      title: 'Grupos',
+      keyName: 'bottom_group',
+      defaultTitle: 'Grupos',
       route: '/groups',
       fallbackIcon: Icons.group,
       svgAsset: 'assets/icons/bottom_group_fill.svg',
     ),
     SidebarNavItemData(
-      title: 'Planner',
+      keyName: 'bottom_calendar',
+      defaultTitle: 'Planner',
       route: '/planner',
       fallbackIcon: Icons.calendar_today,
       svgAsset: 'assets/icons/bottom_calendar.svg',
     ),
     SidebarNavItemData(
-      title: 'Rankings',
+      keyName: 'ranking',
+      defaultTitle: 'Rankings',
       route: '/ranks',
       fallbackIcon: Icons.leaderboard,
     ),
     SidebarNavItemData(
-      title: 'Flashcards',
+      keyName: 'flashcard',
+      defaultTitle: 'Flashcards',
       route: '/flashcards',
       fallbackIcon: Icons.style_outlined,
     ),
     SidebarNavItemData(
-      title: 'Loja Studicons',
+      keyName: 'store',
+      defaultTitle: 'Loja Studicons',
       route: '/store',
       fallbackIcon: Icons.storefront,
     ),
     SidebarNavItemData(
-      title: 'Desafios',
+      keyName: 'challenge',
+      defaultTitle: 'Desafios',
       route: '/challenges',
       fallbackIcon: Icons.emoji_events_outlined,
     ),
     SidebarNavItemData(
-      title: 'Perfil',
+      keyName: 'profile',
+      defaultTitle: 'Perfil',
       route: '/profile',
       fallbackIcon: Icons.person_outline,
     ),
@@ -83,6 +93,7 @@ class SidebarNav extends ConsumerWidget {
     final user = ref.watch(authStateProvider).user;
     final unreadAsync = ref.watch(unreadNotificationCountProvider);
     final hasUnread = unreadAsync.maybeWhen(data: (cnt) => cnt > 0, orElse: () => true);
+    final t = ref.watch(appTranslationProvider);
 
     return Container(
       width: 240,
@@ -124,7 +135,6 @@ class SidebarNav extends ConsumerWidget {
                   children: [
                     StudiconAvatar(
                       studiconId: user?.studiconId ?? -1,
-                      pose: StudiconPose.mini,
                       size: 40,
                     ),
                     const SizedBox(width: 12),
@@ -168,6 +178,7 @@ class SidebarNav extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final item = items[index];
                 final isSelected = currentRoute == item.route;
+                final localizedTitle = t.tr(item.keyName, fallback: item.defaultTitle);
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 4),
@@ -213,16 +224,19 @@ class SidebarNav extends ConsumerWidget {
                                     : AppColors.textSecondary,
                               ),
                             const SizedBox(width: 14),
-                            Text(
-                              item.title,
-                              style: TextStyle(
-                                color: isSelected
-                                    ? Colors.white
-                                    : AppColors.textSecondary,
-                                fontWeight: isSelected
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                fontSize: 14,
+                            Expanded(
+                              child: Text(
+                                localizedTitle,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppColors.textSecondary,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
+                                  fontSize: 14,
+                                ),
                               ),
                             ),
                             if (item.route == '/notifications' && hasUnread && currentRoute != '/notifications') ...[
@@ -259,7 +273,7 @@ class SidebarNav extends ConsumerWidget {
                 IconButton(
                   icon: const Icon(Icons.logout_rounded,
                       color: AppColors.textMuted, size: 20),
-                  tooltip: 'Sair',
+                  tooltip: t.tr('logout', fallback: 'Sair'),
                   onPressed: () {
                     ref.read(authStateProvider.notifier).logout();
                   },

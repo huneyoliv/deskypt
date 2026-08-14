@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/localization/app_translation.dart';
 import '../../data/models/studicon_item_model.dart';
 import '../../data/repositories/store_repository.dart';
 import '../../shared/widgets/studicon_avatar.dart';
@@ -168,7 +169,8 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
 
   @override
   Widget build(BuildContext context) {
-    final categories = ['Todos', 'Mascotes', 'Especiais', 'Animações'];
+    final t = ref.watch(appTranslationProvider);
+    final categories = ['Todos', 'Animais', 'Pessoas', 'Objetos', 'Natureza', 'Outros'];
     final filteredCatalog = _selectedCategory == 'Todos'
         ? _catalogItems
         : _catalogItems.where((i) => i.category == _selectedCategory).toList();
@@ -176,11 +178,11 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Studicons YPT', style: AppTextStyles.titleLarge),
+        title: Text(t.tr('store', fallback: 'Loja Studicons'), style: AppTextStyles.titleLarge),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Atualizar',
+            tooltip: t.tr('refresh', fallback: 'Atualizar'),
             onPressed: _loadCatalog,
           ),
           const SizedBox(width: 16),
@@ -190,9 +192,9 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
           indicatorColor: AppColors.primary,
           labelColor: Colors.white,
           unselectedLabelColor: AppColors.textSecondary,
-          tabs: const [
-            Tab(text: 'Meus Studicons'),
-            Tab(text: 'Catálogo Geral'),
+          tabs: [
+            Tab(text: t.tr('my_studicons', fallback: 'Meus Studicons')),
+            Tab(text: t.tr('catalog', fallback: 'Catálogo Geral')),
           ],
         ),
       ),

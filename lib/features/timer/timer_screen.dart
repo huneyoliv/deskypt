@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/localization/app_translation.dart';
 import 'timer_notifier.dart';
 import 'widgets/timer_display.dart';
 import 'widgets/subject_management_dialog.dart';
@@ -31,6 +32,7 @@ class TimerScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final timerState = ref.watch(timerNotifierProvider);
     final notifier = ref.read(timerNotifierProvider.notifier);
+    final t = ref.watch(appTranslationProvider);
 
     final currentSubjectColor =
         timerState.currentSubject?.color ?? AppColors.primary;
@@ -39,9 +41,9 @@ class TimerScreen extends ConsumerWidget {
     final displayMs = isPomodoro ? timerState.pomodoroRemainingMs : timerState.sessionElapsedMs;
 
     final phaseLabel = switch (timerState.pomodoroPhase) {
-      PomodoroPhase.focus => 'Foco',
-      PomodoroPhase.shortBreak => 'Pausa Curta',
-      PomodoroPhase.longBreak => 'Pausa Longa',
+      PomodoroPhase.focus => t.tr('timer_options_pomodoro_study', fallback: 'Foco'),
+      PomodoroPhase.shortBreak => t.tr('timer_options_pomodoro_break', fallback: 'Pausa Curta'),
+      PomodoroPhase.longBreak => t.tr('study_rest_label', fallback: 'Pausa Longa'),
     };
 
     final phaseColor = switch (timerState.pomodoroPhase) {
@@ -65,7 +67,7 @@ class TimerScreen extends ConsumerWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Total Estudado Hoje', style: AppTextStyles.labelSmall),
+                      Text(t.tr('today_total_study_time', fallback: 'Total Estudado Hoje'), style: AppTextStyles.labelSmall),
                       const SizedBox(height: 2),
                       Text(
                         _formatTotalTime(timerState.todayTotalMs),
@@ -90,14 +92,14 @@ class TimerScreen extends ConsumerWidget {
                     child: Row(
                       children: [
                         _buildModeTab(
-                          label: 'Cronômetro',
+                          label: t.tr('bottom_home', fallback: 'Cronômetro'),
                           isSelected: !isPomodoro,
                           onTap: timerState.isRunning
                               ? null
                               : () => notifier.setTimerMode(TimerMode.stopwatch),
                         ),
                         _buildModeTab(
-                          label: 'Pomodoro',
+                          label: t.tr('timer_options_pomodoro', fallback: 'Pomodoro'),
                           isSelected: isPomodoro,
                           onTap: timerState.isRunning
                               ? null
@@ -165,7 +167,7 @@ class TimerScreen extends ConsumerWidget {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                timerState.currentSubject?.title ?? 'Selecionar Matéria',
+                                timerState.currentSubject?.title ?? t.tr('timer_study_subject', fallback: 'Selecionar Matéria'),
                                 style: TextStyle(
                                   color: currentSubjectColor,
                                   fontWeight: FontWeight.w700,
@@ -349,7 +351,7 @@ class TimerScreen extends ConsumerWidget {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                             ),
                             icon: const Icon(Icons.pause_rounded, color: Colors.white, size: 24),
-                            label: const Text('PAUSAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                            label: Text(t.tr('pause', fallback: 'PAUSAR').toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                           ),
                           const SizedBox(width: 16),
                           ElevatedButton.icon(
@@ -360,7 +362,7 @@ class TimerScreen extends ConsumerWidget {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                             ),
                             icon: const Icon(Icons.stop_rounded, color: Colors.white, size: 24),
-                            label: const Text('PARAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                            label: Text(t.tr('stop', fallback: 'PARAR').toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                           ),
                         ],
 
@@ -373,7 +375,7 @@ class TimerScreen extends ConsumerWidget {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                             ),
                             icon: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 24),
-                            label: const Text('RETOMAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                            label: Text(t.tr('restart', fallback: 'RETOMAR').toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                           ),
                           const SizedBox(width: 16),
                           ElevatedButton.icon(
@@ -384,7 +386,7 @@ class TimerScreen extends ConsumerWidget {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                             ),
                             icon: const Icon(Icons.stop_rounded, color: Colors.white, size: 24),
-                            label: const Text('PARAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                            label: Text(t.tr('stop', fallback: 'PARAR').toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                           ),
                         ],
                       ],

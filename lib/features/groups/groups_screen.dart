@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/localization/app_translation.dart';
 import '../../data/models/group_model.dart';
 import '../../data/repositories/group_repository.dart';
 import '../auth/auth_notifier.dart';
@@ -120,21 +121,21 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(authStateProvider).user;
-    final myGroups = user?.userGroups ?? [];
+    final myGroups = ref.watch(authStateProvider).user?.userGroups ?? [];
+    final t = ref.watch(appTranslationProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Grupos de Estudo', style: AppTextStyles.titleLarge),
+        title: Text(t.tr('groups', fallback: 'Grupos de Estudo'), style: AppTextStyles.titleLarge),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
           labelColor: Colors.white,
           unselectedLabelColor: AppColors.textSecondary,
-          tabs: const [
-            Tab(text: 'Meus Grupos'),
-            Tab(text: 'Explorar Grupos'),
+          tabs: [
+            Tab(text: t.tr('my_groups', fallback: 'Meus Grupos')),
+            Tab(text: t.tr('explore_groups', fallback: 'Explorar Grupos')),
           ],
         ),
       ),

@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/localization/app_translation.dart';
 import '../../data/models/rank_entry_model.dart';
 import '../../data/repositories/rank_repository.dart';
 import '../../shared/widgets/studicon_avatar.dart';
@@ -218,19 +219,21 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
       );
     }).toList();
 
+    final t = ref.watch(appTranslationProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Rankings & Estatísticas', style: AppTextStyles.titleLarge),
+        title: Text('${t.tr('ranking', fallback: 'Rankings')} & ${t.tr('stats', fallback: 'Estatísticas')}', style: AppTextStyles.titleLarge),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
           labelColor: Colors.white,
           unselectedLabelColor: AppColors.textSecondary,
-          tabs: const [
-            Tab(text: 'Rankings Globais'),
-            Tab(text: 'Estatísticas & Mapa 24h'),
-            Tab(text: 'Calendário Mensal'),
+          tabs: [
+            Tab(text: t.tr('ranking', fallback: 'Rankings Globais')),
+            Tab(text: t.tr('stats', fallback: 'Estatísticas & Mapa 24h')),
+            Tab(text: t.tr('calendar', fallback: 'Calendário Mensal')),
           ],
         ),
       ),

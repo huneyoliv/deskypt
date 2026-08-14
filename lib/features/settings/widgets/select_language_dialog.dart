@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/localization/app_translation.dart';
 import '../settings_notifier.dart';
 
 class LanguageOption {
@@ -78,9 +79,11 @@ class SelectLanguageDialog extends ConsumerWidget {
               trailing: isSelected
                   ? const Icon(Icons.check_circle, color: AppColors.primary, size: 20)
                   : null,
-              onTap: () {
-                ref.read(settingsNotifierProvider.notifier).selectLanguage(lang.code);
-                Navigator.of(context).pop();
+              onTap: () async {
+                final nav = Navigator.of(context);
+                await ref.read(settingsNotifierProvider.notifier).selectLanguage(lang.code);
+                await ref.read(appTranslationProvider.notifier).loadLanguage(lang.code);
+                nav.pop();
               },
             );
           },
