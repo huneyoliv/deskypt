@@ -54,7 +54,9 @@ class SettingsRepository {
       '/category/category-by-country',
       baseUrl: ApiConstants.metadataCdnUrl,
       queryParameters: {
+        'countryID': countryId,
         'country_id': countryId,
+        'lang': language,
         'language': language,
       },
     );

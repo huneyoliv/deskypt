@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
+import 'core/localization/app_translation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,11 +38,13 @@ class DeskYptApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    final translation = ref.watch(appTranslationProvider);
 
     return MaterialApp.router(
       title: 'DeskYPT',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
+      locale: Locale(translation.languageCode.split('-').first),
       routerConfig: router,
       builder: (context, child) {
         return Column(
