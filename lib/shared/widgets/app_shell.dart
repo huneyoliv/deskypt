@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
+import '../../features/timer/focus_mode_notifier.dart';
 import 'sidebar_nav.dart';
 
-class AppShell extends StatelessWidget {
+class AppShell extends ConsumerWidget {
   final Widget child;
   final String currentRoute;
 
@@ -13,19 +15,61 @@ class AppShell extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final focusState = ref.watch(focusModeProvider);
+    final isFocusActive = focusState.isStrictFocus || focusState.isMiniPlayer;
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Row(
+      body: Stack(
         children: [
-          SidebarNav(currentRoute: currentRoute),
-          Container(
-            width: 1,
-            color: AppColors.border,
+          Row(
+            children: [
+              if (!isFocusActive) ...[
+                SidebarNav(currentRoute: currentRoute),
+                Container(
+                  width: 1,
+                  color: AppColors.border,
+                ),
+              ],
+              Expanded(
+                child: child,
+              ),
+            ],
           ),
-          Expanded(
-            child: child,
-          ),
+
+          // Floating Exit Focus Button when in Focus Mode
+          if (isFocusActive)
+            Positioned(
+              top: 16,
+              left: 16,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => ref.read(focusModeProvider.notifier).exitFocusModes(),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface.withValues(alpha: 0.85),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.close_fullscreen_rounded, size: 16, color: AppColors.textSecondary),
+                        SizedBox(width: 8),
+                        Text(
+                          'Sair do Foco',
+                          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

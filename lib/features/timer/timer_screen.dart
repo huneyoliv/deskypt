@@ -8,6 +8,7 @@ import 'widgets/subject_management_dialog.dart';
 import 'widgets/pomodoro_config_dialog.dart';
 import 'widgets/manual_study_log_dialog.dart';
 import 'offline_sync_notifier.dart';
+import 'focus_mode_notifier.dart';
 
 class TimerScreen extends ConsumerWidget {
   const TimerScreen({super.key});
@@ -108,6 +109,20 @@ class TimerScreen extends ConsumerWidget {
 
                   Row(
                     children: [
+                      // Focus Mode Distraction-Free Toggle
+                      IconButton(
+                        tooltip: 'Modo Foco Sem Distrações',
+                        icon: const Icon(Icons.fullscreen_rounded, color: AppColors.textSecondary),
+                        onPressed: () => ref.read(focusModeProvider.notifier).toggleStrictFocus(),
+                      ),
+
+                      // Mini-Player Floating Window Toggle
+                      IconButton(
+                        tooltip: 'Mini-Player Flutuante',
+                        icon: const Icon(Icons.picture_in_picture_alt_rounded, color: AppColors.textSecondary),
+                        onPressed: () => ref.read(focusModeProvider.notifier).toggleMiniPlayer(),
+                      ),
+
                       // Manual Study Log Button
                       IconButton(
                         tooltip: 'Registro Manual de Estudo',
