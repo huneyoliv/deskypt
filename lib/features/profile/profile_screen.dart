@@ -4,6 +4,9 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../shared/widgets/studicon_avatar.dart';
 import '../auth/auth_notifier.dart';
+import '../settings/settings_notifier.dart';
+import '../settings/widgets/select_country_dialog.dart';
+import '../settings/widgets/select_language_dialog.dart';
 import '../timer/timer_notifier.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -277,51 +280,57 @@ class ProfileScreen extends ConsumerWidget {
                                 style: const TextStyle(color: Colors.white, fontSize: 12),
                               ),
                               onPressed: () {
-                                final categories = [
-                                  {'id': 201, 'name': 'Graduação'},
-                                  {'id': 439, 'name': 'Concurso'},
-                                  {'id': 260, 'name': 'Vestibular / ENEM'},
-                                  {'id': 259, 'name': 'Ensino Médio'},
-                                  {'id': 258, 'name': 'Ensino Fundamental'},
-                                ];
+                                final settingsState = ref.read(settingsNotifierProvider);
+                                final categories = settingsState.countryCategories;
                                 showDialog(
                                   context: context,
                                   builder: (context) => SimpleDialog(
                                     backgroundColor: AppColors.card,
                                     title: const Text('Selecionar Categoria / Objetivo',
                                         style: TextStyle(color: Colors.white)),
-                                    children: categories.map((cat) {
-                                      final id = cat['id'] as int;
-                                      final name = cat['name'] as String;
-                                      return SimpleDialogOption(
-                                        onPressed: () async {
-                                          Navigator.of(context).pop();
-                                          final ok = await ref
-                                              .read(authStateProvider.notifier)
-                                              .updateCategory(id, name);
-                                          if (context.mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  ok
-                                                      ? 'Categoria alterada para $name'
-                                                      : 'Falha ao atualizar categoria',
+                                    children: categories.isEmpty
+                                        ? [
+                                            const Padding(
+                                              padding: EdgeInsets.all(16),
+                                              child: Center(
+                                                child: Text(
+                                                  'Carregando categorias da região...',
+                                                  style: TextStyle(color: AppColors.textMuted),
                                                 ),
-                                                backgroundColor:
-                                                    ok ? AppColors.success : AppColors.error,
+                                              ),
+                                            ),
+                                          ]
+                                        : categories.map((cat) {
+                                            return SimpleDialogOption(
+                                              onPressed: () async {
+                                                Navigator.of(context).pop();
+                                                final ok = await ref
+                                                    .read(authStateProvider.notifier)
+                                                    .updateCategory(cat.id, cat.title);
+                                                if (context.mounted) {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                        ok
+                                                            ? 'Categoria alterada para ${cat.title}'
+                                                            : 'Falha ao atualizar categoria',
+                                                      ),
+                                                      backgroundColor:
+                                                          ok ? AppColors.success : AppColors.error,
+                                                    ),
+                                                  );
+                                                }
+                                              },
+                                              child: Padding(
+                                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                                child: Text(
+                                                  cat.title,
+                                                  style: const TextStyle(
+                                                      color: Colors.white, fontSize: 15),
+                                                ),
                                               ),
                                             );
-                                          }
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(vertical: 8),
-                                          child: Text(
-                                            name,
-                                            style: const TextStyle(color: Colors.white, fontSize: 15),
-                                          ),
-                                        ),
-                                      );
-                                    }).toList(),
+                                          }).toList(),
                                   ),
                                 );
                               },
@@ -424,45 +433,77 @@ class ProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
 
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Column(
-                children: [
-                  const ListTile(
-                    leading: Icon(Icons.language, color: AppColors.primary),
-                    title: Text('Idioma do Aplicativo', style: TextStyle(color: Colors.white)),
-                    subtitle: Text('Português (Brasil)',
-                        style: TextStyle(color: AppColors.textSecondary)),
-                    trailing: Icon(Icons.chevron_right, color: AppColors.textMuted),
-                  ),
-                  const Divider(color: AppColors.border, height: 1),
-                  const ListTile(
-                    leading: Icon(Icons.access_time, color: AppColors.primary),
-                    title: Text('Fuso Horário Local', style: TextStyle(color: Colors.white)),
-                    subtitle: Text('America/Sao_Paulo (GMT-3)',
-                        style: TextStyle(color: AppColors.textSecondary)),
-                  ),
-                  const Divider(color: AppColors.border, height: 1),
-                  const ListTile(
-                    leading: Icon(Icons.computer, color: AppColors.primary),
-                    title: Text('Plataforma', style: TextStyle(color: Colors.white)),
-                    subtitle: Text('DeskYPT Desktop (Windows x64)',
-                        style: TextStyle(color: AppColors.textSecondary)),
-                  ),
-                  const Divider(color: AppColors.border, height: 1),
-                  const ListTile(
-                    leading: Icon(Icons.info_outline, color: AppColors.primary),
-                    title: Text('Versão do Cliente API', style: TextStyle(color: Colors.white)),
-                    subtitle: Text('v8.1.0 (build 810041)',
-                        style: TextStyle(color: AppColors.textSecondary)),
-                  ),
-                ],
-              ),
-            ),
+            Builder(builder: (context) {
+              final settingsState = ref.watch(settingsNotifierProvider);
+              final country = settingsState.selectedCountry;
+              final langCode = settingsState.selectedLanguage;
+              final langLabel = switch (langCode) {
+                'pt' => 'Português (Brasil)',
+                'en' => 'English (US)',
+                'es' => 'Español',
+                'ko' => '한국어 (Korean)',
+                'ja' => '日本語 (Japanese)',
+                'zh_hans' => '简体中文',
+                'zh_hant' => '繁體中文',
+                _ => langCode,
+              };
+
+              return Container(
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.public, color: AppColors.primary),
+                      title: const Text('Região / País', style: TextStyle(color: Colors.white)),
+                      subtitle: Text(
+                        '${country.name} (${country.code})',
+                        style: const TextStyle(color: AppColors.textSecondary),
+                      ),
+                      trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                      onTap: () => SelectCountryDialog.show(context),
+                    ),
+                    const Divider(color: AppColors.border, height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.language, color: AppColors.primary),
+                      title: const Text('Idioma do Aplicativo', style: TextStyle(color: Colors.white)),
+                      subtitle: Text(
+                        langLabel,
+                        style: const TextStyle(color: AppColors.textSecondary),
+                      ),
+                      trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                      onTap: () => SelectLanguageDialog.show(context),
+                    ),
+                    const Divider(color: AppColors.border, height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.access_time, color: AppColors.primary),
+                      title: const Text('Fuso Horário da Região', style: TextStyle(color: Colors.white)),
+                      subtitle: Text(
+                        country.timezone,
+                        style: const TextStyle(color: AppColors.textSecondary),
+                      ),
+                    ),
+                    const Divider(color: AppColors.border, height: 1),
+                    const ListTile(
+                      leading: Icon(Icons.computer, color: AppColors.primary),
+                      title: Text('Plataforma', style: TextStyle(color: Colors.white)),
+                      subtitle: Text('DeskYPT Desktop (Windows x64)',
+                          style: TextStyle(color: AppColors.textSecondary)),
+                    ),
+                    const Divider(color: AppColors.border, height: 1),
+                    const ListTile(
+                      leading: Icon(Icons.info_outline, color: AppColors.primary),
+                      title: Text('Versão do Cliente API', style: TextStyle(color: Colors.white)),
+                      subtitle: Text('v8.1.0 (build 810041)',
+                          style: TextStyle(color: AppColors.textSecondary)),
+                    ),
+                  ],
+                ),
+              );
+            }),
           ],
         ),
       ),

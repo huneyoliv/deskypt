@@ -33,7 +33,6 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
   late int _capacity;
   late int _goalHours;
   bool _chatEnabled = true;
-  int _chatLimit = 50;
 
   List<Map<String, dynamic>> _bannedList = [];
   List<Map<String, dynamic>> _joinRequests = [];

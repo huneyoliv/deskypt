@@ -21,19 +21,44 @@ class ApiClient {
     }
   }
 
-  Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) {
-    return dio.get(path, queryParameters: queryParameters);
+  Future<Response> get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    String? baseUrl,
+  }) {
+    final target = baseUrl != null ? '$baseUrl$path' : path;
+    return dio.get(target, queryParameters: queryParameters, options: options);
   }
 
-  Future<Response> post(String path, {dynamic data}) {
-    return dio.post(path, data: data);
+  Future<Response> post(
+    String path, {
+    dynamic data,
+    Options? options,
+    String? baseUrl,
+  }) {
+    final target = baseUrl != null ? '$baseUrl$path' : path;
+    return dio.post(target, data: data, options: options);
   }
 
-  Future<Response> put(String path, {dynamic data}) {
-    return dio.put(path, data: data);
+  Future<Response> put(
+    String path, {
+    dynamic data,
+    Options? options,
+    String? baseUrl,
+  }) {
+    final target = baseUrl != null ? '$baseUrl$path' : path;
+    return dio.put(target, data: data, options: options);
   }
 
-  Future<Response> delete(String path, {Map<String, dynamic>? queryParameters, dynamic data}) {
-    return dio.delete(path, queryParameters: queryParameters, data: data);
+  Future<Response> delete(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    dynamic data,
+    Options? options,
+    String? baseUrl,
+  }) {
+    final target = baseUrl != null ? '$baseUrl$path' : path;
+    return dio.delete(target, queryParameters: queryParameters, data: data, options: options);
   }
 }

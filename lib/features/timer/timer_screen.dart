@@ -2,23 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../core/cdn/cdn_resolver.dart';
-import '../../shared/widgets/studicon_avatar.dart';
 import 'timer_notifier.dart';
-import 'widgets/progress_ring_painter.dart';
 import 'widgets/timer_display.dart';
-import 'widgets/subject_selector.dart';
 import 'widgets/subject_management_dialog.dart';
 
 class TimerScreen extends ConsumerWidget {
   const TimerScreen({super.key});
-
-  StudiconPose _getStudiconPose(TimerState state) {
-    if (state.isPaused) return StudiconPose.smoke1;
-    if (!state.isRunning) return StudiconPose.normal1;
-    if (state.sessionElapsedMs > 7200000) return StudiconPose.ignite1;
-    return StudiconPose.sweat1;
-  }
 
   String _formatTotalTime(int ms) {
     final totalSecs = ms ~/ 1000;
@@ -41,8 +30,6 @@ class TimerScreen extends ConsumerWidget {
 
     final currentSubjectColor =
         timerState.currentSubject?.color ?? AppColors.primary;
-    const targetMs = 28800000; // 8 hours goal
-    final progress = timerState.todayTotalMs / targetMs;
 
     return Scaffold(
       backgroundColor: AppColors.background,

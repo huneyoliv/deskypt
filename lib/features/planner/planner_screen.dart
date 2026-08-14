@@ -76,34 +76,6 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
     await repo.toggleTodo(todo);
   }
 
-  Future<void> _createTodo() async {
-    final text = _todoTitleController.text.trim();
-    if (text.isEmpty) return;
-
-    final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
-    _todoTitleController.clear();
-    Navigator.of(context).pop();
-
-    final tempTodo = TodoItemModel(
-      id: DateTime.now().millisecondsSinceEpoch,
-      subjectTitle: 'Geral',
-      subjectColorInt: 4292557552,
-      title: text,
-      isCompleted: false,
-      dateYmd: dateStr,
-    );
-
-    setState(() {
-      _todos = [..._todos, tempTodo];
-    });
-
-    final repo = ref.read(plannerRepositoryProvider);
-    await repo.createTodo(
-      title: text,
-      dateYmd: dateStr,
-    );
-  }
-
   void _showAddTodoDialog() {
     bool isRecurring = false;
     Set<int> selectedDays = {1, 2, 3, 4, 5};

@@ -15,6 +15,7 @@ class MockApiClient extends ApiClient {
     String path, {
     Map<String, dynamic>? queryParameters,
     Options? options,
+    String? baseUrl,
   }) async {
     return Response(
       requestOptions: RequestOptions(path: path),
@@ -27,8 +28,8 @@ class MockApiClient extends ApiClient {
   Future<Response<dynamic>> post(
     String path, {
     dynamic data,
-    Map<String, dynamic>? queryParameters,
     Options? options,
+    String? baseUrl,
   }) async {
     return Response(
       requestOptions: RequestOptions(path: path),
@@ -40,9 +41,10 @@ class MockApiClient extends ApiClient {
   @override
   Future<Response<dynamic>> delete(
     String path, {
-    dynamic data,
     Map<String, dynamic>? queryParameters,
+    dynamic data,
     Options? options,
+    String? baseUrl,
   }) async {
     return Response(
       requestOptions: RequestOptions(path: path),
