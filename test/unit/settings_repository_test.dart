@@ -45,13 +45,19 @@ void main() {
         'c': 'KR',
         'tz': 'Asia/Seoul',
         'con': 'Asia',
+        'g': 9.0,
+        'st': '5 AM KST',
       };
       final country = CountryModel.fromJson(json);
       expect(country.id, 1);
       expect(country.name, 'SOUTH KOREA');
+      expect(country.formattedName, 'South Korea');
       expect(country.code, 'KR');
       expect(country.timezone, 'Asia/Seoul');
       expect(country.continent, 'Asia');
+      expect(country.gmtOffset, 9.0);
+      expect(country.gmtDisplay, 'GMT+9');
+      expect(country.startTime, '5 AM KST');
     });
 
     test('CountryModel.fromJson applies default values for missing fields', () {
