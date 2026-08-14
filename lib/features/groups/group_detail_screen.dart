@@ -123,39 +123,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
       if (mounted) {
         setState(() => _members = list);
       }
-    } catch (_) {
-      // Offline fallback mock list
-      if (_members.isEmpty && mounted) {
-        setState(() {
-          _members = [
-            const GroupMemberModel(
-              userId: 1,
-              name: 'Lucas (Você)',
-              studiconId: 377,
-              isStudying: true,
-              studyMs: 5400000,
-              hasCustomAvatar: false,
-            ),
-            const GroupMemberModel(
-              userId: 2,
-              name: 'Ana Silva',
-              studiconId: 120,
-              isStudying: true,
-              studyMs: 9000000,
-              hasCustomAvatar: false,
-            ),
-            const GroupMemberModel(
-              userId: 3,
-              name: 'Carlos M.',
-              studiconId: 50,
-              isStudying: false,
-              studyMs: 3600000,
-              hasCustomAvatar: false,
-            ),
-          ];
-        });
-      }
-    }
+    } catch (_) {}
   }
 
   Future<void> _loadChatSilently() async {
@@ -165,22 +133,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
       if (mounted) {
         setState(() => _chatMessages = messages);
       }
-    } catch (_) {
-      if (_chatMessages.isEmpty && mounted) {
-        setState(() {
-          _chatMessages = [
-            ChatMessageModel(
-              id: 1,
-              senderId: 2,
-              senderName: 'Ana Silva',
-              studiconId: 120,
-              message: 'Bora focar pessoal! 2h seguidas hoje 🔥',
-              sentAt: DateTime.now().subtract(const Duration(minutes: 15)),
-            ),
-          ];
-        });
-      }
-    }
+    } catch (_) {}
   }
 
   Future<void> _shakeUser(GroupMemberModel member) async {

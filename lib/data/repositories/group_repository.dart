@@ -46,17 +46,20 @@ class GroupRepository {
       final now = DateTime.now();
       final dateStr = '${now.year}-${now.month}-${now.day}';
       final response = await _apiClient.get(
-        '/logs/group/member/ranks?type=$period&countryID=23&categoryID=0&groupID=$groupId&date=$dateStr&page=1',
+        '/logs/group/member/ranks?type=$period&countryID=23&categoryID=0&groupID=$groupId&isCam=false&date=$dateStr&page=1',
       );
 
-      final data = response.data as Map<String, dynamic>;
-      final list = data['ms'] ?? data['ranks'];
-      if (list != null && list is List) {
-        final members = list
-            .map((m) => GroupMemberModel.fromJson(m as Map<String, dynamic>))
-            .toList();
-        members.sort((a, b) => b.studyMs.compareTo(a.studyMs));
-        return members;
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['s'] == true) {
+        final list = data['ms'] ?? data['ranks'];
+        if (list is List) {
+          final members = list
+              .whereType<Map<String, dynamic>>()
+              .map((m) => GroupMemberModel.fromJson(m))
+              .toList();
+          members.sort((a, b) => b.studyMs.compareTo(a.studyMs));
+          return members;
+        }
       }
     } catch (_) {}
     return [];
