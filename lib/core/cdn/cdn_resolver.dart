@@ -5,9 +5,13 @@ enum StudiconPose {
   normal1('normal1.png'),
   sweat1('sweat1.png'),
   sweat2('sweat2.png'),
+  sweat3('sweat3.png'),
   ignite1('ignite1.png'),
+  ignite2('ignite2.png'),
   smoke1('smoke1.png'),
+  smoke2('smoke2.png'),
   fire1('fire1.png'),
+  explosion1('explosion1.png'),
   app('app.png');
 
   final String fileName;

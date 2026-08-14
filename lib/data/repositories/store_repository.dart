@@ -8,13 +8,15 @@ class StoreRepository {
   StoreRepository({ApiClient? apiClient})
       : _apiClient = apiClient ?? ApiClient();
 
-  Future<List<StudiconItemModel>> fetchCatalog() async {
-    final List<StudiconItemModel> catalog = [];
+  Future<List<StudiconItemModel>> fetchCatalog({String language = 'pt'}) async {
+    final Map<int, StudiconItemModel> catalogMap = {};
     final Set<int> ownedIds = {};
 
-    // 1. Fetch user owned studicon IDs
     try {
-      final myResp = await _apiClient.get('/studicon/my/list?lang=pt');
+      final myResp = await _apiClient.get(
+        '/studicon/my/list',
+        queryParameters: {'lang': language},
+      );
       if (myResp.data is Map<String, dynamic> && myResp.data['s'] == true) {
         final myRaw = myResp.data['my'];
         if (myRaw is List) {
@@ -30,69 +32,68 @@ class StoreRepository {
       }
     } catch (_) {}
 
-    // 2. Fetch famous/new public studicons from CDN
     try {
-      final publicResp = await _apiClient.get(
-        '${ApiConstants.metadataCdnUrl}/studicon/list/famous?p=1&lang=pt',
+      final famousResp = await _apiClient.get(
+        '/studicon/list/famous',
+        baseUrl: ApiConstants.metadataCdnUrl,
+        queryParameters: {'p': 1, 'lang': language},
       );
-      if (publicResp.data is Map<String, dynamic> && publicResp.data['s'] == true) {
-        final scs = publicResp.data['scs'];
+      if (famousResp.data is Map<String, dynamic> && famousResp.data['s'] == true) {
+        final scs = famousResp.data['scs'];
         if (scs is List) {
           for (final item in scs) {
             if (item is Map<String, dynamic>) {
               final model = StudiconItemModel.fromJson(item);
               final isOwned = ownedIds.contains(model.id);
-              catalog.add(model.copyWith(isOwned: isOwned));
+              catalogMap[model.id] = model.copyWith(isOwned: isOwned);
             }
           }
         }
       }
     } catch (_) {}
 
-    if (catalog.isNotEmpty) {
-      return catalog;
-    }
+    try {
+      final newResp = await _apiClient.get(
+        '/studicon/list/new',
+        baseUrl: ApiConstants.metadataCdnUrl,
+        queryParameters: {'p': 1, 'lang': language},
+      );
+      if (newResp.data is Map<String, dynamic> && newResp.data['s'] == true) {
+        final scs = newResp.data['scs'];
+        if (scs is List) {
+          for (final item in scs) {
+            if (item is Map<String, dynamic>) {
+              final model = StudiconItemModel.fromJson(item);
+              if (!catalogMap.containsKey(model.id)) {
+                final isOwned = ownedIds.contains(model.id);
+                catalogMap[model.id] = model.copyWith(isOwned: isOwned);
+              }
+            }
+          }
+        }
+      }
+    } catch (_) {}
 
-    if (ownedIds.isNotEmpty) {
-      return ownedIds.map((id) {
-        return StudiconItemModel(
+    for (final id in ownedIds) {
+      if (!catalogMap.containsKey(id)) {
+        catalogMap[id] = StudiconItemModel(
           id: id,
           name: 'Studicon #$id',
           category: 'Meus Studicons',
           priceFlames: 0,
           isOwned: true,
         );
-      }).toList();
+      }
     }
 
-    return [
-      const StudiconItemModel(
-        id: 377,
-        name: 'Estrategista do Deserto',
-        category: 'Mascotes',
-        priceFlames: 100,
-        isOwned: true,
-        isEquipped: true,
-      ),
-      const StudiconItemModel(
-        id: 120,
-        name: 'Panda de Foco',
-        category: 'Mascotes',
-        priceFlames: 150,
-        isOwned: false,
-      ),
-      const StudiconItemModel(
-        id: 50,
-        name: 'Gato Estudioso',
-        category: 'Mascotes',
-        priceFlames: 200,
-        isOwned: false,
-      ),
-    ];
+    return catalogMap.values.toList();
   }
 
-  Future<List<StudiconItemModel>> fetchMyStudicons(int currentEquippedId) async {
-    final catalog = await fetchCatalog();
+  Future<List<StudiconItemModel>> fetchMyStudicons(
+    int currentEquippedId, {
+    String language = 'pt',
+  }) async {
+    final catalog = await fetchCatalog(language: language);
     return catalog
         .where((item) => item.isOwned || item.id == currentEquippedId)
         .map((item) => item.copyWith(isEquipped: item.id == currentEquippedId))

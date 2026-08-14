@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
 import '../../core/cdn/cdn_resolver.dart';
 
 class StudiconAvatar extends StatelessWidget {
@@ -16,13 +16,14 @@ class StudiconAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = CdnResolver.studiconUrl(studiconId, pose);
+    final primaryUrl = CdnResolver.studiconUrl(studiconId, pose);
+    final fallbackUrl = CdnResolver.studiconUrl(-1, pose);
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       child: CachedNetworkImage(
-        key: ValueKey(imageUrl),
-        imageUrl: imageUrl,
+        key: ValueKey(primaryUrl),
+        imageUrl: primaryUrl,
         width: size,
         height: size,
         fit: BoxFit.contain,
@@ -31,17 +32,33 @@ class StudiconAvatar extends StatelessWidget {
           height: size,
           child: const Center(
             child: SizedBox(
-              width: 24,
-              height: 24,
+              width: 20,
+              height: 20,
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
           ),
         ),
-        errorWidget: (context, url, error) => Image.asset(
-          'assets/icons/icon.png',
-          width: size,
-          height: size,
-        ),
+        errorWidget: (context, url, error) {
+          if (studiconId > 0) {
+            return CachedNetworkImage(
+              key: ValueKey(fallbackUrl),
+              imageUrl: fallbackUrl,
+              width: size,
+              height: size,
+              fit: BoxFit.contain,
+              errorWidget: (context, url, error) => Image.asset(
+                'assets/icons/icon.png',
+                width: size,
+                height: size,
+              ),
+            );
+          }
+          return Image.asset(
+            'assets/icons/icon.png',
+            width: size,
+            height: size,
+          );
+        },
       ),
     );
   }
