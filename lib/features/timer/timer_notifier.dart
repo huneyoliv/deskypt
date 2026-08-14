@@ -4,7 +4,9 @@ import '../../core/utils/json_utils.dart';
 import '../../data/models/subject_model.dart';
 import '../../data/repositories/subject_repository.dart';
 import '../../data/repositories/timer_repository.dart';
+import '../../data/repositories/offline_sync_repository.dart';
 import '../auth/auth_notifier.dart';
+import 'offline_sync_notifier.dart';
 
 enum TimerMode {
   stopwatch,
@@ -114,14 +116,17 @@ class TimerState {
 class TimerNotifier extends StateNotifier<TimerState> {
   final TimerRepository _timerRepository;
   final SubjectRepository _subjectRepository;
+  final OfflineSyncRepository? _offlineSyncRepository;
   Timer? _ticker;
 
   TimerNotifier({
     required TimerRepository timerRepository,
     required SubjectRepository subjectRepository,
+    OfflineSyncRepository? offlineSyncRepository,
     int userStudiconId = 377,
   })  : _timerRepository = timerRepository,
         _subjectRepository = subjectRepository,
+        _offlineSyncRepository = offlineSyncRepository,
         super(TimerState(studiconId: userStudiconId)) {
     loadSubjects();
   }
@@ -321,11 +326,12 @@ class TimerNotifier extends StateNotifier<TimerState> {
     final currentSub = state.currentSubject;
 
     if (currentSub != null && elapsed > 0) {
+      final startAt = state.sessionStartAt ?? now.subtract(Duration(milliseconds: elapsed));
       try {
         final res = await _timerRepository.stopStudy(
           subjectTitle: currentSub.title,
           subjectId: currentSub.id,
-          startAt: state.sessionStartAt ?? now.subtract(Duration(milliseconds: elapsed)),
+          startAt: startAt,
           stopAt: now,
           studyMs: elapsed,
         );
@@ -345,8 +351,24 @@ class TimerNotifier extends StateNotifier<TimerState> {
             todayTotalMs: serverTotalMs > 0 ? serverTotalMs : state.todayTotalMs,
             currentSubject: currentSub.copyWith(studyMs: currentSub.studyMs + elapsed),
           );
+        } else {
+          await _offlineSyncRepository?.enqueueSession(
+            subjectId: currentSub.id,
+            subjectTitle: currentSub.title,
+            startAt: startAt,
+            stopAt: now,
+            studyMs: elapsed,
+          );
         }
-      } catch (_) {}
+      } catch (_) {
+        await _offlineSyncRepository?.enqueueSession(
+          subjectId: currentSub.id,
+          subjectTitle: currentSub.title,
+          startAt: startAt,
+          stopAt: now,
+          studyMs: elapsed,
+        );
+      }
     }
   }
 
@@ -412,7 +434,16 @@ class TimerNotifier extends StateNotifier<TimerState> {
         );
         return true;
       }
-    } catch (_) {}
+    } catch (_) {
+      await _offlineSyncRepository?.enqueueSession(
+        subjectId: subjectId,
+        subjectTitle: subjectTitle,
+        startAt: startAt,
+        stopAt: stopAt,
+        studyMs: stopAt.difference(startAt).inMilliseconds,
+      );
+      return true;
+    }
     return false;
   }
 
@@ -504,11 +535,13 @@ final timerNotifierProvider =
     StateNotifierProvider<TimerNotifier, TimerState>((ref) {
   final timerRepo = ref.watch(timerRepositoryProvider);
   final subjectRepo = ref.watch(subjectRepositoryProvider);
+  final offlineSyncRepo = ref.watch(offlineSyncRepositoryProvider);
   final user = ref.watch(authStateProvider).user;
 
   return TimerNotifier(
     timerRepository: timerRepo,
     subjectRepository: subjectRepo,
+    offlineSyncRepository: offlineSyncRepo,
     userStudiconId: user?.studiconId ?? 0,
   );
 });

@@ -7,6 +7,7 @@ import 'widgets/timer_display.dart';
 import 'widgets/subject_management_dialog.dart';
 import 'widgets/pomodoro_config_dialog.dart';
 import 'widgets/manual_study_log_dialog.dart';
+import 'offline_sync_notifier.dart';
 
 class TimerScreen extends ConsumerWidget {
   const TimerScreen({super.key});
@@ -222,6 +223,68 @@ class TimerScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
+              ),
+            ],
+
+            // Offline Sync Pending Banner
+            if (ref.watch(offlineSyncNotifierProvider).hasPending) ...[
+              Builder(
+                builder: (context) {
+                  final syncState = ref.watch(offlineSyncNotifierProvider);
+                  return Container(
+                    margin: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.warning),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.cloud_off, color: AppColors.warning, size: 18),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${syncState.pendingCount} sessão(ões) pendente(s) de envio',
+                              style: const TextStyle(color: AppColors.warning, fontSize: 13, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                        TextButton(
+                          onPressed: syncState.isSyncing
+                              ? null
+                              : () async {
+                                  final res = await ref.read(offlineSyncNotifierProvider.notifier).syncNow();
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          res.remaining == 0
+                                              ? 'Todas as sessões foram sincronizadas!'
+                                              : '${res.totalSynced} enviadas, ${res.remaining} pendentes.',
+                                        ),
+                                        backgroundColor: res.remaining == 0 ? AppColors.success : AppColors.warning,
+                                      ),
+                                    );
+                                  }
+                                },
+                          child: syncState.isSyncing
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.warning),
+                                )
+                              : const Text(
+                                  'Sincronizar Agora',
+                                  style: TextStyle(color: AppColors.warning, fontWeight: FontWeight.bold, fontSize: 12),
+                                ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ],
 
