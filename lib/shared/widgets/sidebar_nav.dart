@@ -69,8 +69,8 @@ class SidebarNav extends ConsumerWidget {
       fallbackIcon: Icons.style_outlined,
     ),
     SidebarNavItemData(
-      keyName: 'store',
-      defaultTitle: 'Loja Studicons',
+      keyName: 'my_studicons',
+      defaultTitle: 'Meus Studicons',
       route: '/store',
       fallbackIcon: Icons.storefront,
     ),

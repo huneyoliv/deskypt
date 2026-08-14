@@ -25,6 +25,7 @@ class AppTranslation {
     'flashcard': ['flashcard', 'flashcard_title'],
     'store': ['store_title', 'studicon_title'],
     'studicons': ['store_title', 'studicon_title'],
+    'my_studicons': ['studicon_title', 'store_title'],
     'challenges': ['challenge', 'challenge_title', 'group_challenge'],
     'challenge': ['challenge', 'challenge_title'],
     'profile': ['profile_title', 'drawer_user_profile', 'user_profile'],
