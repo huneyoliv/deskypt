@@ -8,6 +8,7 @@ import '../settings/settings_notifier.dart';
 import '../settings/widgets/select_country_dialog.dart';
 import '../settings/widgets/select_language_dialog.dart';
 import '../timer/timer_notifier.dart';
+import 'widgets/delete_account_dialog.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -504,6 +505,46 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               );
             }),
+            const SizedBox(height: 32),
+
+            // Danger Zone Section
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Zona de Perigo',
+                style: TextStyle(
+                  color: AppColors.error,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+              ),
+              child: ListTile(
+                leading: const Icon(Icons.delete_forever, color: AppColors.error),
+                title: const Text(
+                  'Excluir Minha Conta',
+                  style: TextStyle(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                subtitle: const Text(
+                  'Apagar permanentemente seus dados, histórico e desvincular grupos',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                ),
+                trailing: const Icon(Icons.chevron_right, color: AppColors.error),
+                onTap: () => DeleteAccountDialog.show(context),
+              ),
+            ),
+            const SizedBox(height: 32),
           ],
         ),
       ),

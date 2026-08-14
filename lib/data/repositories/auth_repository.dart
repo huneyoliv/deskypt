@@ -279,6 +279,16 @@ class AuthRepository {
     return _storage.read(key: AuthInterceptor.keyJwtToken);
   }
 
+  Future<bool> deleteAccount() async {
+    final response = await _apiClient.post('/user/delete');
+    final data = response.data;
+    final isSuccess = data is Map<String, dynamic> && data['s'] == true;
+    if (isSuccess) {
+      await _storage.delete(key: AuthInterceptor.keyJwtToken);
+    }
+    return isSuccess;
+  }
+
   Future<void> logout() async {
     try {
       await _apiClient.post('/user/logout', data: {'pushToken': ''});

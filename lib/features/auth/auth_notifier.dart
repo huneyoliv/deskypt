@@ -174,6 +174,28 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<bool> deleteAccount() async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final success = await _repository.deleteAccount();
+      if (success) {
+        state = const AuthState();
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: 'Falha ao excluir conta. Tente novamente.',
+        );
+      }
+      return success;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     await _repository.logout();
     state = const AuthState();
