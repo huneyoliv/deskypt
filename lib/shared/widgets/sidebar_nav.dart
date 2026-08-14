@@ -67,11 +67,6 @@ class SidebarNav extends ConsumerWidget {
       fallbackIcon: Icons.storefront,
     ),
     SidebarNavItemData(
-      title: 'Ruído Branco',
-      route: '/music',
-      fallbackIcon: Icons.graphic_eq,
-    ),
-    SidebarNavItemData(
       title: 'Desafios',
       route: '/challenges',
       fallbackIcon: Icons.emoji_events_outlined,
