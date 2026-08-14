@@ -377,6 +377,45 @@ class TimerNotifier extends StateNotifier<TimerState> {
     );
   }
 
+  Future<bool> logManualStudy({
+    required int subjectId,
+    required String subjectTitle,
+    required DateTime startAt,
+    required DateTime stopAt,
+  }) async {
+    try {
+      final res = await _timerRepository.logManualStudy(
+        subjectId: subjectId,
+        subjectTitle: subjectTitle,
+        startAt: startAt,
+        stopAt: stopAt,
+      );
+
+      if (res != null) {
+        final elapsed = stopAt.difference(startAt).inMilliseconds;
+        final dl = res['dl'] as Map<String, dynamic>?;
+        final serverTotalMs = safeInt(dl?['sm'] ?? dl?['tp']);
+
+        final updatedSubjects = state.subjects.map((s) {
+          if (s.id == subjectId) {
+            return s.copyWith(studyMs: s.studyMs + elapsed);
+          }
+          return s;
+        }).toList();
+
+        state = state.copyWith(
+          subjects: updatedSubjects,
+          todayTotalMs: serverTotalMs > 0 ? serverTotalMs : state.todayTotalMs + elapsed,
+          currentSubject: state.currentSubject?.id == subjectId
+              ? state.currentSubject!.copyWith(studyMs: state.currentSubject!.studyMs + elapsed)
+              : state.currentSubject,
+        );
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
   Future<void> createSubject(String title, int colorInt) async {
     try {
       final newSubject = await _subjectRepository.createSubject(

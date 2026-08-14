@@ -1,4 +1,5 @@
 import '../../core/api/api_client.dart';
+import '../../core/api/api_exception.dart';
 import '../../core/constants/api_constants.dart';
 
 class TimerRepository {
@@ -49,6 +50,40 @@ class TimerRepository {
       return data;
     }
     return null;
+  }
+
+  Future<Map<String, dynamic>?> logManualStudy({
+    required int subjectId,
+    required String subjectTitle,
+    required DateTime startAt,
+    required DateTime stopAt,
+  }) async {
+    final studyMs = stopAt.difference(startAt).inMilliseconds;
+    if (studyMs <= 0) {
+      throw const ApiException('O horário de término deve ser posterior ao início');
+    }
+
+    final response = await _apiClient.post(
+      '/logs/v2/study/manual',
+      data: {
+        'subject_id': subjectId,
+        'subject': subjectTitle,
+        'startedAt': startAt.millisecondsSinceEpoch,
+        'stopAt': stopAt.millisecondsSinceEpoch,
+        'study_ms': studyMs,
+        'deviceModel': 'Desktop',
+        'language': 'pt',
+      },
+    );
+
+    final data = response.data;
+    if (data is Map<String, dynamic> && data['s'] == true) {
+      return data;
+    }
+    if (data is Map<String, dynamic> && data['m'] != null) {
+      throw ApiException(data['m'].toString());
+    }
+    throw const ApiException('Falha ao registrar estudo manual');
   }
 
   Future<Map<String, dynamic>?> fetchDailyLog(DateTime date) async {

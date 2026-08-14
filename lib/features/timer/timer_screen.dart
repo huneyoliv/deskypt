@@ -6,6 +6,7 @@ import 'timer_notifier.dart';
 import 'widgets/timer_display.dart';
 import 'widgets/subject_management_dialog.dart';
 import 'widgets/pomodoro_config_dialog.dart';
+import 'widgets/manual_study_log_dialog.dart';
 
 class TimerScreen extends ConsumerWidget {
   const TimerScreen({super.key});
@@ -104,52 +105,64 @@ class TimerScreen extends ConsumerWidget {
                     ),
                   ),
 
-                  // Subject Selector Badge
-                  InkWell(
-                    onTap: () {
-                      SubjectManagementDialog.show(
-                        context,
-                        subjects: timerState.subjects,
-                        selectedSubject: timerState.currentSubject,
-                        onSelectSubject: (subject) => notifier.selectSubject(subject),
-                        onCreateSubject: (title, colorInt) => notifier.createSubject(title, colorInt),
-                        onUpdateSubject: (subject) => notifier.updateSubject(subject),
-                        onArchiveSubject: (id, archive) => notifier.archiveSubject(id, archive),
-                        onDeleteSubject: (id) => notifier.deleteSubject(id),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: currentSubjectColor.withValues(alpha: 0.2),
+                  Row(
+                    children: [
+                      // Manual Study Log Button
+                      IconButton(
+                        tooltip: 'Registro Manual de Estudo',
+                        icon: const Icon(Icons.edit_calendar_rounded, color: AppColors.primaryLight),
+                        onPressed: () => ManualStudyLogDialog.show(context),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Subject Selector Badge
+                      InkWell(
+                        onTap: () {
+                          SubjectManagementDialog.show(
+                            context,
+                            subjects: timerState.subjects,
+                            selectedSubject: timerState.currentSubject,
+                            onSelectSubject: (subject) => notifier.selectSubject(subject),
+                            onCreateSubject: (title, colorInt) => notifier.createSubject(title, colorInt),
+                            onUpdateSubject: (subject) => notifier.updateSubject(subject),
+                            onArchiveSubject: (id, archive) => notifier.archiveSubject(id, archive),
+                            onDeleteSubject: (id) => notifier.deleteSubject(id),
+                          );
+                        },
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: currentSubjectColor, width: 1.5),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 10,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: currentSubjectColor,
-                              shape: BoxShape.circle,
-                            ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: currentSubjectColor.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: currentSubjectColor, width: 1.5),
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            timerState.currentSubject?.title ?? 'Selecionar Matéria',
-                            style: TextStyle(
-                              color: currentSubjectColor,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: currentSubjectColor,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                timerState.currentSubject?.title ?? 'Selecionar Matéria',
+                                style: TextStyle(
+                                  color: currentSubjectColor,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Icon(Icons.keyboard_arrow_down_rounded, color: currentSubjectColor, size: 18),
+                            ],
                           ),
-                          const SizedBox(width: 6),
-                          Icon(Icons.keyboard_arrow_down_rounded, color: currentSubjectColor, size: 18),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
