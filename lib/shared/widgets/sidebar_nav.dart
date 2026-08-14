@@ -57,6 +57,11 @@ class SidebarNav extends ConsumerWidget {
       fallbackIcon: Icons.leaderboard,
     ),
     SidebarNavItemData(
+      title: 'Flashcards',
+      route: '/flashcards',
+      fallbackIcon: Icons.style_outlined,
+    ),
+    SidebarNavItemData(
       title: 'Loja Studicons',
       route: '/store',
       fallbackIcon: Icons.storefront,

@@ -7,6 +7,7 @@ import '../../features/groups/groups_screen.dart';
 import '../../features/planner/planner_screen.dart';
 import '../../features/ranks/ranks_screen.dart';
 import '../../features/store/store_screen.dart';
+import '../../features/flashcards/flashcards_screen.dart';
 import '../../features/music/music_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/challenges/challenges_screen.dart';
@@ -62,6 +63,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/store',
             builder: (context, state) => const StoreScreen(),
+          ),
+          GoRoute(
+            path: '/flashcards',
+            builder: (context, state) => const FlashcardsScreen(),
           ),
           GoRoute(
             path: '/music',
