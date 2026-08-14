@@ -6,6 +6,17 @@ import '../../data/repositories/subject_repository.dart';
 import '../../data/repositories/timer_repository.dart';
 import '../auth/auth_notifier.dart';
 
+enum TimerMode {
+  stopwatch,
+  pomodoro,
+}
+
+enum PomodoroPhase {
+  focus,
+  shortBreak,
+  longBreak,
+}
+
 final subjectRepositoryProvider = Provider<SubjectRepository>((ref) {
   return SubjectRepository();
 });
@@ -24,6 +35,18 @@ class TimerState {
   final DateTime? sessionStartAt;
   final int studiconId;
 
+  // Pomodoro properties
+  final TimerMode mode;
+  final PomodoroPhase pomodoroPhase;
+  final int currentPomodoroCycle;
+  final int totalPomodoroCycles;
+  final int pomodoroFocusMinutes;
+  final int pomodoroShortBreakMinutes;
+  final int pomodoroLongBreakMinutes;
+  final int pomodoroRemainingMs;
+  final bool autoStartBreaks;
+  final bool autoStartFocus;
+
   const TimerState({
     this.isRunning = false,
     this.isPaused = false,
@@ -33,6 +56,16 @@ class TimerState {
     this.subjects = const [],
     this.sessionStartAt,
     this.studiconId = -1,
+    this.mode = TimerMode.stopwatch,
+    this.pomodoroPhase = PomodoroPhase.focus,
+    this.currentPomodoroCycle = 1,
+    this.totalPomodoroCycles = 4,
+    this.pomodoroFocusMinutes = 25,
+    this.pomodoroShortBreakMinutes = 5,
+    this.pomodoroLongBreakMinutes = 15,
+    this.pomodoroRemainingMs = 25 * 60 * 1000,
+    this.autoStartBreaks = false,
+    this.autoStartFocus = false,
   });
 
   TimerState copyWith({
@@ -44,6 +77,16 @@ class TimerState {
     List<SubjectModel>? subjects,
     DateTime? sessionStartAt,
     int? studiconId,
+    TimerMode? mode,
+    PomodoroPhase? pomodoroPhase,
+    int? currentPomodoroCycle,
+    int? totalPomodoroCycles,
+    int? pomodoroFocusMinutes,
+    int? pomodoroShortBreakMinutes,
+    int? pomodoroLongBreakMinutes,
+    int? pomodoroRemainingMs,
+    bool? autoStartBreaks,
+    bool? autoStartFocus,
   }) {
     return TimerState(
       isRunning: isRunning ?? this.isRunning,
@@ -54,6 +97,16 @@ class TimerState {
       subjects: subjects ?? this.subjects,
       sessionStartAt: sessionStartAt ?? this.sessionStartAt,
       studiconId: studiconId ?? this.studiconId,
+      mode: mode ?? this.mode,
+      pomodoroPhase: pomodoroPhase ?? this.pomodoroPhase,
+      currentPomodoroCycle: currentPomodoroCycle ?? this.currentPomodoroCycle,
+      totalPomodoroCycles: totalPomodoroCycles ?? this.totalPomodoroCycles,
+      pomodoroFocusMinutes: pomodoroFocusMinutes ?? this.pomodoroFocusMinutes,
+      pomodoroShortBreakMinutes: pomodoroShortBreakMinutes ?? this.pomodoroShortBreakMinutes,
+      pomodoroLongBreakMinutes: pomodoroLongBreakMinutes ?? this.pomodoroLongBreakMinutes,
+      pomodoroRemainingMs: pomodoroRemainingMs ?? this.pomodoroRemainingMs,
+      autoStartBreaks: autoStartBreaks ?? this.autoStartBreaks,
+      autoStartFocus: autoStartFocus ?? this.autoStartFocus,
     );
   }
 }
@@ -86,7 +139,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
       );
     } catch (_) {
       if (state.subjects.isEmpty) {
-        final fallbackSubject = const SubjectModel(
+        const fallbackSubject = SubjectModel(
           id: 1,
           title: 'Matéria Inicial',
           colorInt: 4292557552,
@@ -100,49 +153,169 @@ class TimerNotifier extends StateNotifier<TimerState> {
   }
 
   void selectSubject(SubjectModel subject) {
-    if (state.isRunning) return; // Não troca de matéria estudando
+    if (state.isRunning) return;
     state = state.copyWith(currentSubject: subject);
   }
 
+  void setTimerMode(TimerMode mode) {
+    if (state.isRunning) return;
+    state = state.copyWith(
+      mode: mode,
+      isPaused: false,
+      sessionElapsedMs: 0,
+      pomodoroRemainingMs: state.pomodoroFocusMinutes * 60 * 1000,
+      pomodoroPhase: PomodoroPhase.focus,
+    );
+  }
+
+  void configurePomodoro({
+    int? focusMinutes,
+    int? shortBreakMinutes,
+    int? longBreakMinutes,
+    int? totalCycles,
+    bool? autoStartBreaks,
+    bool? autoStartFocus,
+  }) {
+    final newFocus = focusMinutes ?? state.pomodoroFocusMinutes;
+    final newShort = shortBreakMinutes ?? state.pomodoroShortBreakMinutes;
+    final newLong = longBreakMinutes ?? state.pomodoroLongBreakMinutes;
+    final newCycles = totalCycles ?? state.totalPomodoroCycles;
+    final newAutoBreaks = autoStartBreaks ?? state.autoStartBreaks;
+    final newAutoFocus = autoStartFocus ?? state.autoStartFocus;
+
+    int newRemaining = state.pomodoroRemainingMs;
+    if (!state.isRunning) {
+      if (state.pomodoroPhase == PomodoroPhase.focus) {
+        newRemaining = newFocus * 60 * 1000;
+      } else if (state.pomodoroPhase == PomodoroPhase.shortBreak) {
+        newRemaining = newShort * 60 * 1000;
+      } else {
+        newRemaining = newLong * 60 * 1000;
+      }
+    }
+
+    state = state.copyWith(
+      pomodoroFocusMinutes: newFocus,
+      pomodoroShortBreakMinutes: newShort,
+      pomodoroLongBreakMinutes: newLong,
+      totalPomodoroCycles: newCycles,
+      autoStartBreaks: newAutoBreaks,
+      autoStartFocus: newAutoFocus,
+      pomodoroRemainingMs: newRemaining,
+    );
+  }
+
   Future<void> startStudy() async {
-    if (state.currentSubject == null) return;
+    if (state.currentSubject == null && state.pomodoroPhase == PomodoroPhase.focus) return;
     final now = DateTime.now();
 
-    try {
-      await _timerRepository.startStudy(
-        subjectTitle: state.currentSubject!.title,
-        subjectId: state.currentSubject!.id,
-        startAt: now,
-      );
-    } catch (_) {}
+    if (state.pomodoroPhase == PomodoroPhase.focus && state.currentSubject != null) {
+      try {
+        await _timerRepository.startStudy(
+          subjectTitle: state.currentSubject!.title,
+          subjectId: state.currentSubject!.id,
+          startAt: now,
+        );
+      } catch (_) {}
+    }
 
     state = state.copyWith(
       isRunning: true,
       isPaused: false,
-      sessionStartAt: now,
+      sessionStartAt: state.sessionStartAt ?? now,
     );
 
     _ticker?.cancel();
     _ticker = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _handleTick();
+    });
+  }
+
+  void _handleTick() {
+    if (state.mode == TimerMode.stopwatch) {
       final newSessionMs = state.sessionElapsedMs + 1000;
       final newTodayMs = state.todayTotalMs + 1000;
       state = state.copyWith(
         sessionElapsedMs: newSessionMs,
         todayTotalMs: newTodayMs,
       );
-    });
+    } else {
+      // Pomodoro Mode
+      if (state.pomodoroPhase == PomodoroPhase.focus) {
+        final newSessionMs = state.sessionElapsedMs + 1000;
+        final newTodayMs = state.todayTotalMs + 1000;
+        final newRemaining = state.pomodoroRemainingMs - 1000;
+
+        if (newRemaining <= 0) {
+          _advancePomodoroPhase();
+        } else {
+          state = state.copyWith(
+            sessionElapsedMs: newSessionMs,
+            todayTotalMs: newTodayMs,
+            pomodoroRemainingMs: newRemaining,
+          );
+        }
+      } else {
+        // Break phase (no study time added to subject)
+        final newRemaining = state.pomodoroRemainingMs - 1000;
+        if (newRemaining <= 0) {
+          _advancePomodoroPhase();
+        } else {
+          state = state.copyWith(
+            pomodoroRemainingMs: newRemaining,
+          );
+        }
+      }
+    }
   }
 
-  void pauseStudy() {
-    _ticker?.cancel();
-    state = state.copyWith(
-      isRunning: false,
-      isPaused: true,
-    );
+  Future<void> _advancePomodoroPhase() async {
+    if (state.pomodoroPhase == PomodoroPhase.focus) {
+      // Save completed focus session
+      await _syncCompletedFocusSession();
+
+      if (state.currentPomodoroCycle >= state.totalPomodoroCycles) {
+        // Transition to Long Break
+        state = state.copyWith(
+          pomodoroPhase: PomodoroPhase.longBreak,
+          pomodoroRemainingMs: state.pomodoroLongBreakMinutes * 60 * 1000,
+          currentPomodoroCycle: 1,
+          isRunning: state.autoStartBreaks,
+          isPaused: !state.autoStartBreaks,
+          sessionElapsedMs: 0,
+        );
+      } else {
+        // Transition to Short Break
+        state = state.copyWith(
+          pomodoroPhase: PomodoroPhase.shortBreak,
+          pomodoroRemainingMs: state.pomodoroShortBreakMinutes * 60 * 1000,
+          currentPomodoroCycle: state.currentPomodoroCycle + 1,
+          isRunning: state.autoStartBreaks,
+          isPaused: !state.autoStartBreaks,
+          sessionElapsedMs: 0,
+        );
+      }
+
+      if (!state.autoStartBreaks) {
+        _ticker?.cancel();
+      }
+    } else {
+      // Transition from Break to Focus
+      state = state.copyWith(
+        pomodoroPhase: PomodoroPhase.focus,
+        pomodoroRemainingMs: state.pomodoroFocusMinutes * 60 * 1000,
+        isRunning: state.autoStartFocus,
+        isPaused: !state.autoStartFocus,
+        sessionElapsedMs: 0,
+      );
+
+      if (!state.autoStartFocus) {
+        _ticker?.cancel();
+      }
+    }
   }
 
-  Future<void> stopStudy() async {
-    _ticker?.cancel();
+  Future<void> _syncCompletedFocusSession() async {
     final now = DateTime.now();
     final elapsed = state.sessionElapsedMs;
     final currentSub = state.currentSubject;
@@ -152,7 +325,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
         final res = await _timerRepository.stopStudy(
           subjectTitle: currentSub.title,
           subjectId: currentSub.id,
-          startAt: state.sessionStartAt ?? now,
+          startAt: state.sessionStartAt ?? now.subtract(Duration(milliseconds: elapsed)),
           stopAt: now,
           studyMs: elapsed,
         );
@@ -175,12 +348,32 @@ class TimerNotifier extends StateNotifier<TimerState> {
         }
       } catch (_) {}
     }
+  }
 
+  Future<void> skipPomodoroPhase() async {
+    await _advancePomodoroPhase();
+  }
+
+  void pauseStudy() {
+    _ticker?.cancel();
+    state = state.copyWith(
+      isRunning: false,
+      isPaused: true,
+    );
+  }
+
+  Future<void> stopStudy() async {
+    _ticker?.cancel();
+    await _syncCompletedFocusSession();
+
+    int initialRemaining = state.pomodoroFocusMinutes * 60 * 1000;
     state = state.copyWith(
       isRunning: false,
       isPaused: false,
       sessionElapsedMs: 0,
       sessionStartAt: null,
+      pomodoroPhase: PomodoroPhase.focus,
+      pomodoroRemainingMs: initialRemaining,
     );
   }
 
@@ -197,7 +390,6 @@ class TimerNotifier extends StateNotifier<TimerState> {
         currentSubject: newSubject,
       );
     } catch (_) {
-      // Fallback local se a API der erro
       final newSubject = SubjectModel(
         id: DateTime.now().millisecondsSinceEpoch,
         title: title,

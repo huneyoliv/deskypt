@@ -5,6 +5,7 @@ import '../../core/theme/app_text_styles.dart';
 import 'timer_notifier.dart';
 import 'widgets/timer_display.dart';
 import 'widgets/subject_management_dialog.dart';
+import 'widgets/pomodoro_config_dialog.dart';
 
 class TimerScreen extends ConsumerWidget {
   const TimerScreen({super.key});
@@ -31,6 +32,21 @@ class TimerScreen extends ConsumerWidget {
     final currentSubjectColor =
         timerState.currentSubject?.color ?? AppColors.primary;
 
+    final isPomodoro = timerState.mode == TimerMode.pomodoro;
+    final displayMs = isPomodoro ? timerState.pomodoroRemainingMs : timerState.sessionElapsedMs;
+
+    final phaseLabel = switch (timerState.pomodoroPhase) {
+      PomodoroPhase.focus => 'Foco',
+      PomodoroPhase.shortBreak => 'Pausa Curta',
+      PomodoroPhase.longBreak => 'Pausa Longa',
+    };
+
+    final phaseColor = switch (timerState.pomodoroPhase) {
+      PomodoroPhase.focus => currentSubjectColor,
+      PomodoroPhase.shortBreak => AppColors.success,
+      PomodoroPhase.longBreak => AppColors.warning,
+    };
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -46,8 +62,7 @@ class TimerScreen extends ConsumerWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Total Estudado Hoje',
-                          style: AppTextStyles.labelSmall),
+                      const Text('Total Estudado Hoje', style: AppTextStyles.labelSmall),
                       const SizedBox(height: 2),
                       Text(
                         _formatTotalTime(timerState.todayTotalMs),
@@ -60,6 +75,36 @@ class TimerScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
+
+                  // Mode Switcher Tabs
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Row(
+                      children: [
+                        _buildModeTab(
+                          label: 'Cronômetro',
+                          isSelected: !isPomodoro,
+                          onTap: timerState.isRunning
+                              ? null
+                              : () => notifier.setTimerMode(TimerMode.stopwatch),
+                        ),
+                        _buildModeTab(
+                          label: 'Pomodoro',
+                          isSelected: isPomodoro,
+                          onTap: timerState.isRunning
+                              ? null
+                              : () => notifier.setTimerMode(TimerMode.pomodoro),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Subject Selector Badge
                   InkWell(
                     onTap: () {
                       SubjectManagementDialog.show(
@@ -110,6 +155,63 @@ class TimerScreen extends ConsumerWidget {
               ),
             ),
 
+            // Pomodoro Info Banner & Config Button
+            if (isPomodoro) ...[
+              Container(
+                margin: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: phaseColor.withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: phaseColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Ciclo ${timerState.currentPomodoroCycle} de ${timerState.totalPomodoroCycles} • $phaseLabel',
+                          style: TextStyle(
+                            color: phaseColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        if (timerState.isRunning || timerState.isPaused)
+                          TextButton.icon(
+                            onPressed: () => notifier.skipPomodoroPhase(),
+                            icon: const Icon(Icons.skip_next, size: 18, color: AppColors.textSecondary),
+                            label: const Text('Pular Fase', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                          ),
+                        IconButton(
+                          icon: const Icon(Icons.settings_outlined, size: 20, color: AppColors.textSecondary),
+                          onPressed: () => PomodoroConfigDialog.show(
+                            context,
+                            state: timerState,
+                            onSave: notifier.configurePomodoro,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             // Center Interactive Ring & Timer Area
             Expanded(
               child: Center(
@@ -117,7 +219,7 @@ class TimerScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     TimerDisplay(
-                      elapsedMs: timerState.sessionElapsedMs,
+                      elapsedMs: displayMs,
                       fontSize: 64,
                     ),
                     const SizedBox(height: 40),
@@ -130,17 +232,15 @@ class TimerScreen extends ConsumerWidget {
                           ElevatedButton.icon(
                             onPressed: () => notifier.startStudy(),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: currentSubjectColor,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 40, vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
+                              backgroundColor: phaseColor,
+                              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                             ),
-                            icon: const Icon(Icons.play_arrow_rounded,
-                                color: Colors.white, size: 28),
+                            icon: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28),
                             label: Text(
-                              'INICIAR (${timerState.currentSubject?.title ?? "Selecione"})',
+                              isPomodoro
+                                  ? 'INICIAR $phaseLabel'.toUpperCase()
+                                  : 'INICIAR (${timerState.currentSubject?.title ?? "Selecione"})',
                               style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w800,
@@ -154,36 +254,22 @@ class TimerScreen extends ConsumerWidget {
                             onPressed: () => notifier.pauseStudy(),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.resting,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 24, vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                             ),
-                            icon: const Icon(Icons.pause_rounded,
-                                color: Colors.white, size: 24),
-                            label: const Text('PAUSAR',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700)),
+                            icon: const Icon(Icons.pause_rounded, color: Colors.white, size: 24),
+                            label: const Text('PAUSAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                           ),
                           const SizedBox(width: 16),
                           ElevatedButton.icon(
                             onPressed: () => notifier.stopStudy(),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.error,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 24, vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                             ),
-                            icon: const Icon(Icons.stop_rounded,
-                                color: Colors.white, size: 24),
-                            label: const Text('PARAR',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700)),
+                            icon: const Icon(Icons.stop_rounded, color: Colors.white, size: 24),
+                            label: const Text('PARAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                           ),
                         ],
 
@@ -191,37 +277,23 @@ class TimerScreen extends ConsumerWidget {
                           ElevatedButton.icon(
                             onPressed: () => notifier.startStudy(),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: currentSubjectColor,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 24, vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
+                              backgroundColor: phaseColor,
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                             ),
-                            icon: const Icon(Icons.play_arrow_rounded,
-                                color: Colors.white, size: 24),
-                            label: const Text('RETOMAR',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700)),
+                            icon: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 24),
+                            label: const Text('RETOMAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                           ),
                           const SizedBox(width: 16),
                           ElevatedButton.icon(
                             onPressed: () => notifier.stopStudy(),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.error,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 24, vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                             ),
-                            icon: const Icon(Icons.stop_rounded,
-                                color: Colors.white, size: 24),
-                            label: const Text('PARAR',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700)),
+                            icon: const Icon(Icons.stop_rounded, color: Colors.white, size: 24),
+                            label: const Text('PARAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                           ),
                         ],
                       ],
@@ -231,6 +303,32 @@ class TimerScreen extends ConsumerWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModeTab({
+    required String label,
+    required bool isSelected,
+    required VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppColors.textMuted,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 13,
+          ),
         ),
       ),
     );
