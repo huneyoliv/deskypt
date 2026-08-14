@@ -5,7 +5,6 @@ import '../../core/theme/app_text_styles.dart';
 import '../../data/models/studicon_item_model.dart';
 import '../../data/repositories/store_repository.dart';
 import '../../shared/widgets/studicon_avatar.dart';
-import '../../shared/widgets/flames_badge.dart';
 import '../auth/auth_notifier.dart';
 
 final storeRepositoryProvider = Provider<StoreRepository>((ref) {
@@ -86,58 +85,6 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
     }
   }
 
-  Future<void> _equipDefaultAvatar() async {
-    setState(() {
-      _catalogItems = _catalogItems.map((i) => i.copyWith(isEquipped: false)).toList();
-      _myStudicons = _myStudicons.map((i) => i.copyWith(isEquipped: false)).toList();
-    });
-
-    final repo = ref.read(storeRepositoryProvider);
-    await repo.equipStudicon(-1);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Avatar padrão restaurado! 👤'),
-          backgroundColor: AppColors.primary,
-        ),
-      );
-    }
-  }
-
-  Future<void> _buyItem(StudiconItemModel item) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.card,
-        title: Text('Comprar: ${item.name}', style: const TextStyle(color: Colors.white)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            StudiconAvatar(studiconId: item.id, size: 80),
-            const SizedBox(height: 16),
-            Text('Preço: 🔥 ${item.priceFlames} Flames', style: const TextStyle(color: AppColors.flame, fontWeight: FontWeight.bold, fontSize: 16)),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Confirmar Compra', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      _equipItem(item);
-    }
-  }
-
   Widget _buildGrid(List<StudiconItemModel> items) {
     if (items.isEmpty) {
       return const Center(
@@ -152,7 +99,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
       padding: const EdgeInsets.all(24),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 240,
-        childAspectRatio: 0.75,
+        childAspectRatio: 0.8,
         crossAxisSpacing: 20,
         mainAxisSpacing: 20,
       ),
@@ -184,21 +131,6 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
                   fontSize: 14,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.flame.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '🔥 ${item.priceFlames} Flames',
-                  style: const TextStyle(
-                    color: AppColors.flame,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
               if (item.isEquipped)
                 Container(
                   width: double.infinity,
@@ -218,22 +150,13 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
                     ),
                   ),
                 )
-              else if (item.isOwned)
+              else
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () => _equipItem(item),
                     style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-                    child: const Text('Equipar', style: TextStyle(color: Colors.white)),
-                  ),
-                )
-              else
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => _buyItem(item),
-                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.flame),
-                    child: const Text('Comprar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: const Text('Equipar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ),
             ],
@@ -245,7 +168,6 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(authStateProvider).user;
     final categories = ['Todos', 'Mascotes', 'Especiais', 'Animações'];
     final filteredCatalog = _selectedCategory == 'Todos'
         ? _catalogItems
@@ -254,17 +176,14 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Loja de Studicons YPT', style: AppTextStyles.titleLarge),
+        title: const Text('Studicons YPT', style: AppTextStyles.titleLarge),
         actions: [
-          TextButton.icon(
-            onPressed: _equipDefaultAvatar,
-            icon: const Icon(Icons.person_outline, color: Colors.white70, size: 18),
-            label: const Text('Avatar Padrão', style: TextStyle(color: Colors.white70)),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Atualizar',
+            onPressed: _loadCatalog,
           ),
-          Padding(
-            padding: const EdgeInsets.only(right: 24, left: 12),
-            child: FlamesBadge(count: user?.flamesBalance ?? 100),
-          ),
+          const SizedBox(width: 16),
         ],
         bottom: TabBar(
           controller: _tabController,
@@ -272,8 +191,8 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
           labelColor: Colors.white,
           unselectedLabelColor: AppColors.textSecondary,
           tabs: const [
-            Tab(text: 'Catálogo de Studicons'),
             Tab(text: 'Meus Studicons'),
+            Tab(text: 'Catálogo Geral'),
           ],
         ),
       ),
@@ -282,6 +201,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
           : TabBarView(
               controller: _tabController,
               children: [
+                _buildGrid(_myStudicons),
                 Column(
                   children: [
                     SingleChildScrollView(
@@ -312,7 +232,6 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
                     Expanded(child: _buildGrid(filteredCatalog)),
                   ],
                 ),
-                _buildGrid(_myStudicons),
               ],
             ),
     );

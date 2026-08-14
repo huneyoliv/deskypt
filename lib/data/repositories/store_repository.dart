@@ -94,10 +94,27 @@ class StoreRepository {
     String language = 'pt',
   }) async {
     final catalog = await fetchCatalog(language: language);
-    return catalog
-        .where((item) => item.isOwned || item.id == currentEquippedId)
-        .map((item) => item.copyWith(isEquipped: item.id == currentEquippedId))
-        .toList();
+    final myItems = <StudiconItemModel>[];
+
+    // Always provide the standard orange doll avatar (-1) as the default item
+    myItems.add(
+      StudiconItemModel(
+        id: -1,
+        name: 'Boneco Padrão (Laranja)',
+        category: 'Padrão',
+        priceFlames: 0,
+        isOwned: true,
+        isEquipped: currentEquippedId <= 0 || currentEquippedId == -1,
+      ),
+    );
+
+    for (final item in catalog) {
+      if (item.isOwned) {
+        myItems.add(item.copyWith(isEquipped: item.id == currentEquippedId));
+      }
+    }
+
+    return myItems;
   }
 
   Future<bool> equipStudicon(int studiconId) async {
