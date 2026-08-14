@@ -7,7 +7,12 @@ import '../../../data/repositories/notification_repository.dart';
 import 'notification_panel_dialog.dart';
 
 class NotificationBell extends ConsumerStatefulWidget {
-  const NotificationBell({super.key});
+  final double size;
+
+  const NotificationBell({
+    super.key,
+    this.size = 38,
+  });
 
   @override
   ConsumerState<NotificationBell> createState() => _NotificationBellState();
@@ -81,41 +86,62 @@ class _NotificationBellState extends ConsumerState<NotificationBell>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _wobbleAnimation,
-      builder: (context, child) {
-        return Transform.rotate(
-          angle: _wobbleAnimation.value * math.pi,
-          child: child,
-        );
-      },
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          IconButton(
-            icon: const Icon(
-              Icons.notifications_outlined,
-              color: Colors.white,
-              size: 22,
-            ),
-            tooltip: 'Notificações',
-            onPressed: _openNotifications,
-          ),
-          if (_unreadCount > 0)
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Container(
-                width: 9,
-                height: 9,
-                decoration: const BoxDecoration(
-                  color: AppColors.error,
-                  shape: BoxShape.circle,
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          child: InkWell(
+            onTap: _openNotifications,
+            customBorder: const CircleBorder(),
+            child: Container(
+              width: widget.size,
+              height: widget.size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.surface,
+                border: Border.all(
+                  color: _unreadCount > 0
+                      ? AppColors.primary.withValues(alpha: 0.6)
+                      : AppColors.border,
+                  width: 1.2,
+                ),
+              ),
+              child: Center(
+                child: AnimatedBuilder(
+                  animation: _wobbleAnimation,
+                  builder: (context, child) {
+                    return Transform.rotate(
+                      angle: _wobbleAnimation.value * math.pi,
+                      child: child,
+                    );
+                  },
+                  child: Icon(
+                    Icons.notifications_outlined,
+                    color: _unreadCount > 0 ? AppColors.primaryLight : Colors.white70,
+                    size: 19,
+                  ),
                 ),
               ),
             ),
-        ],
-      ),
+          ),
+        ),
+        if (_unreadCount > 0)
+          Positioned(
+            top: 2,
+            right: 2,
+            child: Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: AppColors.error,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.background, width: 1.5),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

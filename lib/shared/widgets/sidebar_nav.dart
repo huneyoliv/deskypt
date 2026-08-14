@@ -7,8 +7,8 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/cdn/cdn_resolver.dart';
 import '../../features/auth/auth_notifier.dart';
 import '../../data/repositories/notification_repository.dart';
+import '../../features/notifications/widgets/notification_bell.dart';
 import 'studicon_avatar.dart';
-import 'flames_badge.dart';
 
 class SidebarNavItemData {
   final String title;
@@ -246,7 +246,7 @@ class SidebarNav extends ConsumerWidget {
             ),
           ),
 
-          // Footer: Flames Badge & Logout
+          // Footer: Notification Bell & Logout
           Container(
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
@@ -255,7 +255,7 @@ class SidebarNav extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                FlamesBadge(count: user?.flamesBalance ?? 0),
+                const NotificationBell(),
                 IconButton(
                   icon: const Icon(Icons.logout_rounded,
                       color: AppColors.textMuted, size: 20),
