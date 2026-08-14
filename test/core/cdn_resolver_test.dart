@@ -21,11 +21,11 @@ void main() {
     test('studiconUrl fallback for invalid or negative id', () {
       expect(
         CdnResolver.studiconUrl(-1, StudiconPose.normal1),
-        equals('https://alicdn.tgclab.com/sc.v2/0/normal1.png'),
+        equals('https://alicdn.tgclab.com/sc.v2/-1/normal1.png'),
       );
       expect(
         CdnResolver.studiconUrl(0, StudiconPose.normal1),
-        equals('https://alicdn.tgclab.com/sc.v2/0/normal1.png'),
+        equals('https://alicdn.tgclab.com/sc.v2/-1/normal1.png'),
       );
     });
 

@@ -18,7 +18,7 @@ class CdnResolver {
   CdnResolver._();
 
   static String studiconUrl(int studiconId, StudiconPose pose) {
-    final safeId = studiconId < 0 ? 0 : studiconId;
+    final safeId = studiconId <= 0 ? -1 : studiconId;
     return '${ApiConstants.mediaCdnUrl}/sc.v2/$safeId/${pose.fileName}';
   }
 
@@ -27,15 +27,30 @@ class CdnResolver {
     required bool hasCustomAvatar,
     required int studiconId,
     required bool isStudying,
+    bool isPaused = false,
     required int studyMs,
+    int dailyGoalMs = 0,
   }) {
     if (hasCustomAvatar) {
       return '${ApiConstants.mediaCdnUrl}/user/profile/$userId.jpg';
     }
 
-    final pose = isStudying
-        ? (studyMs > 7200000 ? StudiconPose.ignite1 : StudiconPose.sweat1)
-        : StudiconPose.normal1;
+    final StudiconPose pose;
+    if (isStudying && !isPaused) {
+      if (dailyGoalMs > 0 && studyMs >= dailyGoalMs) {
+        pose = StudiconPose.fire1;
+      } else if (studyMs >= 10800000) {
+        pose = StudiconPose.sweat2;
+      } else if (studyMs > 7200000) {
+        pose = StudiconPose.ignite1;
+      } else {
+        pose = StudiconPose.sweat1;
+      }
+    } else if (isPaused) {
+      pose = StudiconPose.smoke1;
+    } else {
+      pose = StudiconPose.normal1;
+    }
 
     return studiconUrl(studiconId, pose);
   }

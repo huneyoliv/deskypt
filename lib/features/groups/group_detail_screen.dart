@@ -11,6 +11,8 @@ import 'group_leader_panel.dart';
 import 'widgets/cam_study_member_tile.dart';
 import 'widgets/sticker_picker_panel.dart';
 import '../../data/models/sticker_model.dart';
+import '../../shared/widgets/studicon_avatar.dart';
+import '../../core/cdn/cdn_resolver.dart';
 import '../auth/auth_notifier.dart';
 
 final groupRepositoryProvider = Provider<GroupRepository>((ref) {
@@ -300,117 +302,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
           // Tab 1: Studying Now Live Grid
           _isLoadingMembers
               ? const Center(child: CircularProgressIndicator())
-              : Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 220,
-                      childAspectRatio: 1.1,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                    ),
-                    itemCount: _members.length,
-                    itemBuilder: (context, index) {
-                      final member = _members[index];
-
-                      if (widget.group.isCamStudy) {
-                        return CamStudyMemberTile(
-                          member: member,
-                          onShake: () => _shakeUser(member),
-                        );
-                      }
-
-                      return Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.card,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: member.isStudying
-                                ? AppColors.primary.withValues(alpha: 0.6)
-                                : AppColors.border,
-                            width: member.isStudying ? 2 : 1,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Stack(
-                              children: [
-                                CircleAvatar(
-                                  radius: 28,
-                                  backgroundColor: AppColors.surface,
-                                  backgroundImage: NetworkImage(member.avatarUrl),
-                                ),
-                                if (member.isStudying)
-                                  Positioned(
-                                    right: 0,
-                                    bottom: 0,
-                                    child: Container(
-                                      width: 14,
-                                      height: 14,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.success,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                            color: AppColors.card, width: 2),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              member.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              member.isStudying
-                                  ? 'Estudando (${_formatMs(member.studyMs)})'
-                                  : 'Pausado',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: member.isStudying
-                                    ? AppColors.primary
-                                    : AppColors.textMuted,
-                              ),
-                            ),
-                            if (!member.isStudying) ...[
-                              const SizedBox(height: 8),
-                              InkWell(
-                                onTap: () => _shakeUser(member),
-                                borderRadius: BorderRadius.circular(6),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Text(
-                                    '🔔 Shake',
-                                    style: TextStyle(
-                                      color: AppColors.primary,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
+              : _buildMembersGridTab(),
 
           // Tab 2: Group Chat
           Column(
@@ -652,6 +544,238 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
               ],
             );
           })(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMembersGridTab() {
+    final studyingMembers = _members.where((m) => m.isStudying && !m.isPaused).toList()
+      ..sort((a, b) {
+        final cmp = b.studyMs.compareTo(a.studyMs);
+        if (cmp != 0) return cmp;
+        return a.name.compareTo(b.name);
+      });
+
+    final restingMembers = _members.where((m) => !m.isStudying || m.isPaused).toList()
+      ..sort((a, b) {
+        final cmp = b.studyMs.compareTo(a.studyMs);
+        if (cmp != 0) return cmp;
+        return a.name.compareTo(b.name);
+      });
+
+    if (_members.isEmpty) {
+      return const Center(
+        child: Text(
+          'Nenhum membro no grupo ainda.',
+          style: TextStyle(color: AppColors.textMuted),
+        ),
+      );
+    }
+
+    return CustomScrollView(
+      slivers: [
+        if (studyingMembers.isNotEmpty) ...[
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: AppColors.success,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Estudando Agora (${studyingMembers.length})',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 220,
+                childAspectRatio: 1.05,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => _buildMemberCard(studyingMembers[index]),
+                childCount: studyingMembers.length,
+              ),
+            ),
+          ),
+        ],
+        if (restingMembers.isNotEmpty) ...[
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 28, 24, 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: AppColors.textMuted,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Descansando / Inativos (${restingMembers.length})',
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 220,
+                childAspectRatio: 1.05,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => _buildMemberCard(restingMembers[index]),
+                childCount: restingMembers.length,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMemberCard(GroupMemberModel member) {
+    if (widget.group.isCamStudy) {
+      return CamStudyMemberTile(
+        member: member,
+        onShake: () => _shakeUser(member),
+      );
+    }
+
+    final isActivelyStudying = member.isStudying && !member.isPaused;
+    final StudiconPose pose;
+    if (isActivelyStudying) {
+      pose = member.studyMs > 7200000 ? StudiconPose.ignite1 : StudiconPose.sweat1;
+    } else if (member.isPaused) {
+      pose = StudiconPose.smoke1;
+    } else {
+      pose = StudiconPose.normal1;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isActivelyStudying
+              ? AppColors.primary.withValues(alpha: 0.6)
+              : AppColors.border,
+          width: isActivelyStudying ? 2 : 1,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Stack(
+            children: [
+              member.hasCustomAvatar
+                  ? CircleAvatar(
+                      radius: 28,
+                      backgroundColor: AppColors.surface,
+                      backgroundImage: NetworkImage(member.avatarUrl),
+                    )
+                  : StudiconAvatar(
+                      studiconId: member.studiconId,
+                      pose: pose,
+                      size: 56,
+                    ),
+              if (isActivelyStudying)
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: AppColors.success,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.card, width: 2),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            member.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isActivelyStudying
+                ? 'Estudando (${_formatMs(member.studyMs)})'
+                : member.isPaused
+                    ? 'Pausado (${_formatMs(member.studyMs)})'
+                    : 'Descansando (${_formatMs(member.studyMs)})',
+            style: TextStyle(
+              fontSize: 12,
+              color: isActivelyStudying
+                  ? AppColors.primary
+                  : member.isPaused
+                      ? AppColors.warning
+                      : AppColors.textMuted,
+            ),
+          ),
+          if (!isActivelyStudying) ...[
+            const SizedBox(height: 8),
+            InkWell(
+              onTap: () => _shakeUser(member),
+              borderRadius: BorderRadius.circular(6),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  '🔔 Shake',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
