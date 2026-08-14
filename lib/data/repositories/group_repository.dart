@@ -105,18 +105,25 @@ class GroupRepository {
     String? category,
     String? stickerUrl,
     String? imageUrl,
+    String? thumbUrl,
   }) async {
     final payload = <String, dynamic>{
       'group_id': groupId,
       'nickname': nickname,
       'category': category ?? 'Geral',
       'userID': userId,
-      'message': message,
+      'message': message.isNotEmpty ? message : (imageUrl != null ? 'Photo' : ''),
       'createdAt': null,
       'updatedAt': null,
     };
     if (stickerUrl != null) payload['stickerUrl'] = stickerUrl;
-    if (imageUrl != null) payload['imageUrl'] = imageUrl;
+    if (imageUrl != null) {
+      payload['img'] = imageUrl;
+      payload['imageUrl'] = imageUrl;
+    }
+    if (thumbUrl != null) {
+      payload['th'] = thumbUrl;
+    }
 
     final response = await _apiClient.post(
       '/chat/group/message',
@@ -129,6 +136,26 @@ class GroupRepository {
     }
 
     return ChatMessageModel.fromJson(data);
+  }
+
+  Future<bool> sendReaction({
+    required int groupId,
+    required int messageId,
+    required String emoji,
+  }) async {
+    try {
+      final response = await _apiClient.post(
+        '/chat/group/reaction',
+        data: {
+          'group_id': groupId,
+          'idx': messageId,
+          'reaction': emoji,
+        },
+      );
+      final data = response.data;
+      return data is Map<String, dynamic> && data['s'] == true;
+    } catch (_) {}
+    return false;
   }
 
   Future<List<GroupModel>> searchGroups(String query) async {

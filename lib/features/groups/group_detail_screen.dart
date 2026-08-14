@@ -238,6 +238,143 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
     } catch (_) {}
   }
 
+  Future<void> _toggleReaction(ChatMessageModel msg, String emoji) async {
+    final user = ref.read(authStateProvider).user;
+    final myId = user?.id ?? 1;
+
+    final existingReactions = Map<String, List<int>>.from(msg.reactions);
+    final usersForEmoji = List<int>.from(existingReactions[emoji] ?? []);
+
+    if (usersForEmoji.contains(myId)) {
+      usersForEmoji.remove(myId);
+      if (usersForEmoji.isEmpty) {
+        existingReactions.remove(emoji);
+      } else {
+        existingReactions[emoji] = usersForEmoji;
+      }
+    } else {
+      usersForEmoji.add(myId);
+      existingReactions[emoji] = usersForEmoji;
+    }
+
+    final updatedMsg = msg.copyWith(reactions: existingReactions);
+    setState(() {
+      _chatMessages = _chatMessages.map((m) => m.id == msg.id ? updatedMsg : m).toList();
+    });
+
+    try {
+      final repo = ref.read(groupRepositoryProvider);
+      await repo.sendReaction(
+        groupId: widget.group.id,
+        messageId: msg.id,
+        emoji: emoji,
+      );
+    } catch (_) {}
+  }
+
+  void _showReactionPicker(ChatMessageModel msg) {
+    const emojis = ['👍', '❤️', '🔥', '😂', '😮', '😢', '😡'];
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: emojis.map((emoji) {
+              return InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                  _toggleReaction(msg, emoji);
+                },
+                borderRadius: BorderRadius.circular(24),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(emoji, style: const TextStyle(fontSize: 28)),
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _attachMedia() async {
+    final controller = TextEditingController();
+    final url = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.card,
+        title: const Text('Anexar Imagem ao Chat', style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Insira a URL da imagem ou captura de estudo:',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                hintText: 'https://exemplo.com/estudo.jpg',
+                hintStyle: TextStyle(color: AppColors.textMuted),
+                filled: true,
+                fillColor: AppColors.surface,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Enviar Foto', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (url != null && url.isNotEmpty) {
+      final user = ref.read(authStateProvider).user;
+      final newMsg = ChatMessageModel(
+        id: DateTime.now().millisecondsSinceEpoch,
+        senderId: user?.id ?? 1,
+        senderName: user?.name ?? 'Você',
+        studiconId: user?.studiconId ?? 377,
+        message: 'Photo',
+        imageUrl: url,
+        type: 'image',
+        sentAt: DateTime.now(),
+      );
+
+      setState(() {
+        _chatMessages = [newMsg, ..._chatMessages];
+      });
+
+      try {
+        final repo = ref.read(groupRepositoryProvider);
+        await repo.sendMessage(
+          groupId: widget.group.id,
+          nickname: user?.name ?? 'Você',
+          userId: user?.id ?? 0,
+          imageUrl: url,
+        );
+      } catch (_) {}
+    }
+  }
+
   String _formatMs(int ms) {
     final mins = ms ~/ 60000;
     final h = mins ~/ 60;
@@ -321,59 +458,99 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                         msg.senderName == 'Você';
 
                     return Align(
-                      alignment:
-                          isMe ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(12),
-                        constraints: const BoxConstraints(maxWidth: 400),
-                        decoration: BoxDecoration(
-                          color: isMe ? AppColors.primary : AppColors.surface,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (!isMe)
-                              Text(
-                                msg.senderName,
-                                style: const TextStyle(
-                                  color: AppColors.primaryLight,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 12,
-                                ),
+                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Column(
+                        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                        children: [
+                          GestureDetector(
+                            onSecondaryTap: () => _showReactionPicker(msg),
+                            onLongPress: () => _showReactionPicker(msg),
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 4),
+                              padding: const EdgeInsets.all(12),
+                              constraints: const BoxConstraints(maxWidth: 400),
+                              decoration: BoxDecoration(
+                                color: isMe ? AppColors.primary : AppColors.surface,
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            if (msg.stickerUrl != null)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
-                                child: Image.network(
-                                  msg.stickerUrl!,
-                                  height: 100,
-                                  width: 100,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => const Icon(Icons.extension, color: Colors.white70),
-                                ),
-                              )
-                            else if (msg.imageUrl != null)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    msg.imageUrl!,
-                                    height: 150,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.white70),
-                                  ),
-                                ),
-                              )
-                            else
-                              Text(
-                                msg.message,
-                                style: const TextStyle(color: Colors.white),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (!isMe)
+                                    Text(
+                                      msg.senderName,
+                                      style: const TextStyle(
+                                        color: AppColors.primaryLight,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  if (msg.stickerUrl != null)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 4),
+                                      child: Image.network(
+                                        msg.stickerUrl!,
+                                        height: 100,
+                                        width: 100,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (_, __, ___) => const Icon(Icons.extension, color: Colors.white70),
+                                      ),
+                                    )
+                                  else if (msg.imageUrl != null)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 4),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(
+                                          msg.imageUrl!,
+                                          height: 180,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.white70),
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    Text(
+                                      msg.message,
+                                      style: const TextStyle(color: Colors.white),
+                                    ),
+                                ],
                               ),
-                          ],
-                        ),
+                            ),
+                          ),
+
+                          // Reactions pill row
+                          if (msg.reactions.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Wrap(
+                                spacing: 4,
+                                children: msg.reactions.entries.map((entry) {
+                                  final emoji = entry.key;
+                                  final count = entry.value.length;
+                                  final hasMine = activeUser != null && entry.value.contains(activeUser.id);
+                                  return InkWell(
+                                    onTap: () => _toggleReaction(msg, emoji),
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: hasMine ? AppColors.primary.withValues(alpha: 0.3) : AppColors.card,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: hasMine ? AppColors.primary : AppColors.border,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '$emoji $count',
+                                        style: const TextStyle(fontSize: 11, color: Colors.white),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                        ],
                       ),
                     );
                   },
@@ -388,6 +565,11 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                 color: AppColors.surface,
                 child: Row(
                   children: [
+                    IconButton(
+                      icon: const Icon(Icons.attach_file_rounded, color: AppColors.textSecondary),
+                      tooltip: 'Anexar Imagem',
+                      onPressed: _attachMedia,
+                    ),
                     IconButton(
                       icon: Icon(
                         Icons.emoji_emotions_outlined,
