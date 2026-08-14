@@ -202,6 +202,79 @@ class AuthRepository {
     return UserModel.fromJson(data, token);
   }
 
+  Future<bool> sendSignUpVerificationCode(String email) async {
+    final response = await _apiClient.post(
+      '/user/auth/check-email',
+      data: {
+        'email': email,
+        'language': 'pt',
+      },
+    );
+    final data = response.data;
+    if (data is Map<String, dynamic> && data['s'] == false) {
+      final msg = data['m'] ?? data['message'] ?? 'E-mail já cadastrado ou inválido';
+      throw ApiException(msg.toString());
+    }
+    return data is Map<String, dynamic> && data['s'] == true;
+  }
+
+  Future<bool> verifySignUpCode(String email, String code) async {
+    final response = await _apiClient.post(
+      '/user/auth/verify-code',
+      data: {
+        'email': email,
+        'code': code,
+      },
+    );
+    final data = response.data;
+    if (data is Map<String, dynamic> && data['s'] == false) {
+      final msg = data['c'] == 'invalid_auth_code_msg'
+          ? 'Código de validação inválido'
+          : (data['m'] ?? 'Código de verificação incorreto');
+      throw ApiException(msg.toString());
+    }
+    return data is Map<String, dynamic> && data['s'] == true;
+  }
+
+  Future<UserModel> signUp({
+    required String email,
+    required String password,
+    required String nickname,
+    required int categoryId,
+    required int countryId,
+  }) async {
+    final response = await _apiClient.post(
+      '/user/auth/join',
+      data: {
+        'email': email,
+        'password': password,
+        'nickname': nickname,
+        'category_id': categoryId,
+        'country_id': countryId,
+        'language': 'pt',
+      },
+    );
+
+    final data = response.data;
+    if (data is! Map<String, dynamic> || data['s'] != true) {
+      final msg = (data is Map && (data['m'] != null || data['message'] != null))
+          ? (data['m'] ?? data['message']).toString()
+          : 'Erro ao realizar cadastro';
+      throw ApiException(msg, statusCode: response.statusCode);
+    }
+
+    final token = (data['jwt'] ?? '').toString();
+    if (token.isNotEmpty) {
+      await _storage.write(key: AuthInterceptor.keyJwtToken, value: token);
+    }
+
+    try {
+      await splashLogin();
+    } catch (_) {}
+
+    return UserModel.fromJson(data, token);
+  }
+
   Future<String?> getStoredToken() async {
     return _storage.read(key: AuthInterceptor.keyJwtToken);
   }

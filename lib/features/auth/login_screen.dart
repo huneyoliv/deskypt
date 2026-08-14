@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/cdn/cdn_resolver.dart';
 import 'auth_notifier.dart';
+import 'signup_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -489,34 +490,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     ),
                             ),
                           ),
-                          const SizedBox(height: 20),
-
-                          Row(
-                            children: const [
-                              Expanded(child: Divider(color: AppColors.border)),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 12),
-                                child: Text('ou entre com', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
-                              ),
-                              Expanded(child: Divider(color: AppColors.border)),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-
-                          OutlinedButton.icon(
-                            icon: const Icon(Icons.g_mobiledata_rounded, color: Colors.white, size: 28),
-                            label: const Text('Entrar com Google', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              side: const BorderSide(color: AppColors.border),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            ),
-                            onPressed: authState.isLoading
-                                ? null
-                                : () {
-                                    ref.read(authStateProvider.notifier).signInWithGoogle();
-                                  },
-                          ),
                           const SizedBox(height: 24),
 
                           // Social Logins Separator
@@ -590,6 +563,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   label: const Text(
                                     'Apple',
                                     style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 32),
+
+                          // Sign up link
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              const Text(
+                                'Não tem uma conta? ',
+                                style: TextStyle(color: AppColors.textSecondary),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const SignUpScreen(),
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  'Cadastre-se',
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),

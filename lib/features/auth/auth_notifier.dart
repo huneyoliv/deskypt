@@ -147,6 +147,33 @@ class AuthNotifier extends StateNotifier<AuthState> {
     return false;
   }
 
+  Future<bool> signUp({
+    required String email,
+    required String password,
+    required String nickname,
+    required int categoryId,
+    required int countryId,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final user = await _repository.signUp(
+        email: email,
+        password: password,
+        nickname: nickname,
+        categoryId: categoryId,
+        countryId: countryId,
+      );
+      state = AuthState(user: user, isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     await _repository.logout();
     state = const AuthState();
