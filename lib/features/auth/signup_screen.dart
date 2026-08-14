@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/cdn/cdn_resolver.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/localization/app_translation.dart';
 import '../../data/models/category_model.dart';
 import '../../data/models/country_model.dart';
 import '../settings/settings_notifier.dart';
@@ -63,9 +64,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   Future<void> _loadCategories(int countryId) async {
     setState(() => _isLoadingCategories = true);
     final settingsRepo = ref.read(settingsRepositoryProvider);
+    final lang = ref.read(settingsNotifierProvider).selectedLanguage;
     final categories = await settingsRepo.fetchCategoriesByCountry(
       countryId: countryId,
-      language: 'pt',
+      language: lang.isNotEmpty ? lang : 'pt',
     );
     if (mounted) {
       setState(() {
@@ -216,6 +218,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(appTranslationProvider);
+
     return Scaffold(
       body: Row(
         children: [
@@ -249,9 +253,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Text(
-                      'Crie sua Conta',
-                      style: TextStyle(
+                    Text(
+                      t.tr('sign_up_title', fallback: 'Crie sua Conta'),
+                      style: const TextStyle(
                         fontFamily: AppTextStyles.fontPretendard,
                         fontSize: 34,
                         fontWeight: FontWeight.w800,
@@ -260,9 +264,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Junte-se à maior comunidade de estudos focados',
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 15),
+                    Text(
+                      t.tr('sign_up_slogan', fallback: 'Junte-se à maior comunidade de estudos focados'),
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 15),
                     ),
                   ],
                 ),
@@ -299,7 +303,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Passo $_currentStep de 3',
+                              '${t.tr("step", fallback: "Passo")} $_currentStep ${t.tr("of", fallback: "de")} 3',
                               style: const TextStyle(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.bold,
@@ -312,19 +316,19 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
                         Text(
                           _currentStep == 1
-                              ? 'Qual é o seu e-mail?'
+                              ? t.tr('what_is_your_email', fallback: 'Qual é o seu e-mail?')
                               : _currentStep == 2
-                                  ? 'Confirme o código'
-                                  : 'Informações do Perfil',
+                                  ? t.tr('confirm_code', fallback: 'Confirme o código')
+                                  : t.tr('profile_info', fallback: 'Informações do Perfil'),
                           style: AppTextStyles.displayMedium,
                         ),
                         const SizedBox(height: 8),
                         Text(
                           _currentStep == 1
-                              ? 'Enviaremos um código de 6 dígitos para verificar seu endereço.'
+                              ? t.tr('email_code_desc', fallback: 'Enviaremos um código de 6 dígitos para verificar seu endereço.')
                               : _currentStep == 2
-                                  ? 'Digite o código enviado para ${_emailController.text}'
-                                  : 'Defina seu apelido, senha de acesso e categoria de estudos.',
+                                  ? '${t.tr("enter_code_sent_to", fallback: "Digite o código enviado para")} ${_emailController.text}'
+                                  : t.tr('profile_setup_desc', fallback: 'Defina seu apelido, senha de acesso e categoria de estudos.'),
                           style: AppTextStyles.bodyMedium,
                         ),
                         const SizedBox(height: 24),
@@ -359,7 +363,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                             keyboardType: TextInputType.emailAddress,
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              labelText: 'E-mail',
+                              labelText: t.tr('email', fallback: 'E-mail'),
                               labelStyle: const TextStyle(color: AppColors.textSecondary),
                               filled: true,
                               fillColor: AppColors.surface,
@@ -385,7 +389,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                       height: 24,
                                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                                     )
-                                  : const Text('Enviar Código', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                                  : Text(t.tr('send_code', fallback: 'Enviar Código'), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
                             ),
                           ),
                         ] else if (_currentStep == 2) ...[
@@ -416,8 +420,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                     : _handleSendVerificationCode,
                                 child: Text(
                                   _resendCooldown > 0
-                                      ? 'Reenviar código em ${_resendCooldown}s'
-                                      : 'Reenviar código',
+                                      ? '${t.tr("resend_code", fallback: "Reenviar código")} (${_resendCooldown}s)'
+                                      : t.tr('resend_code', fallback: 'Reenviar código'),
                                   style: TextStyle(
                                     color: _resendCooldown > 0 ? AppColors.textMuted : AppColors.primary,
                                     fontSize: 13,
@@ -441,7 +445,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                       height: 24,
                                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                                     )
-                                  : const Text('Verificar Código', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                                  : Text(t.tr('confirm', fallback: 'Verificar Código'), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
                             ),
                           ),
                         ] else ...[
@@ -450,7 +454,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                             controller: _nicknameController,
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              labelText: 'Apelido (Nickname)',
+                              labelText: t.tr('nickname', fallback: 'Apelido (Nickname)'),
                               labelStyle: const TextStyle(color: AppColors.textSecondary),
                               filled: true,
                               fillColor: AppColors.surface,
@@ -469,7 +473,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                             obscureText: _obscurePassword,
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              labelText: 'Senha (mínimo 6 caracteres)',
+                              labelText: t.tr('password', fallback: 'Senha (mínimo 6 caracteres)'),
                               labelStyle: const TextStyle(color: AppColors.textSecondary),
                               filled: true,
                               fillColor: AppColors.surface,
@@ -492,7 +496,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                             obscureText: _obscureConfirmPassword,
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              labelText: 'Confirmar Senha',
+                              labelText: t.tr('confirm_password', fallback: 'Confirmar Senha'),
                               labelStyle: const TextStyle(color: AppColors.textSecondary),
                               filled: true,
                               fillColor: AppColors.surface,
@@ -518,7 +522,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                               dropdownColor: AppColors.card,
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
-                                labelText: 'Categoria de Estudo',
+                                labelText: t.tr('category', fallback: 'Categoria de Estudo'),
                                 labelStyle: const TextStyle(color: AppColors.textSecondary),
                                 filled: true,
                                 fillColor: AppColors.surface,
@@ -556,7 +560,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                       height: 24,
                                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                                     )
-                                  : const Text('Concluir Cadastro', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                                  : Text(t.tr('sign_up', fallback: 'Concluir Cadastro'), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
                             ),
                           ),
                         ],
@@ -565,10 +569,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text('Já possui uma conta?', style: TextStyle(color: AppColors.textSecondary)),
+                            Text(t.tr('already_have_account', fallback: 'Já possui uma conta?'), style: const TextStyle(color: AppColors.textSecondary)),
                             TextButton(
                               onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('Entrar', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                              child: Text(t.tr('login', fallback: 'Entrar'), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
                             ),
                           ],
                         ),

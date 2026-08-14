@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/localization/app_translation.dart';
 
-class StudyCalendar extends StatelessWidget {
+class StudyCalendar extends ConsumerWidget {
   final Map<String, int> dailyStudyTimeMs; // Key: 'yyyy-MM-dd', Value: ms
 
   const StudyCalendar({
@@ -27,12 +29,21 @@ class StudyCalendar extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
     final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
     final firstDayWeekday = DateTime(now.year, now.month, 1).weekday; // 1=Mon...7=Sun
+    final t = ref.watch(appTranslationProvider);
 
-    final dayLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+    final dayLabels = [
+      t.tr('mon', fallback: 'Seg'),
+      t.tr('tue', fallback: 'Ter'),
+      t.tr('wed', fallback: 'Qua'),
+      t.tr('thu', fallback: 'Qui'),
+      t.tr('fri', fallback: 'Sex'),
+      t.tr('sat', fallback: 'Sáb'),
+      t.tr('sun', fallback: 'Dom'),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,7 +52,7 @@ class StudyCalendar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Calendário de Presença — ${now.month}/${now.year}',
+              '${t.tr("presence_calendar", fallback: "Calendário de Presença")} — ${now.month}/${now.year}',
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -98,17 +109,17 @@ class StudyCalendar extends StatelessWidget {
                   context: context,
                   builder: (context) => AlertDialog(
                     backgroundColor: AppColors.card,
-                    title: Text('Estudos em $dateStr', style: const TextStyle(color: Colors.white)),
+                    title: Text('${t.tr("studies_on", fallback: "Estudos em")} $dateStr', style: const TextStyle(color: Colors.white)),
                     content: Text(
                       studyMs > 0
-                          ? 'Tempo total estudado: ${_formatMs(studyMs)}'
-                          : 'Nenhum estudo registrado neste dia.',
+                          ? '${t.tr("total_time_studied", fallback: "Tempo total estudado")}: ${_formatMs(studyMs)}'
+                          : t.tr('no_study_on_day', fallback: 'Nenhum estudo registrado neste dia.'),
                       style: const TextStyle(color: AppColors.textSecondary),
                     ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('OK', style: TextStyle(color: AppColors.primary)),
+                        child: Text(t.tr('ok', fallback: 'OK'), style: const TextStyle(color: AppColors.primary)),
                       ),
                     ],
                   ),

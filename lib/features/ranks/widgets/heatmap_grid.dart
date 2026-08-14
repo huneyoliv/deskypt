@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/localization/app_translation.dart';
 
-class HeatmapGrid extends StatelessWidget {
+class HeatmapGrid extends ConsumerWidget {
   final Map<String, List<int>> hourlyLogs; // Key: 'yyyy-MM-dd', Value: 24 ints (minutes per hour)
 
   const HeatmapGrid({
@@ -18,8 +20,9 @@ class HeatmapGrid extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final dates = hourlyLogs.keys.toList()..sort();
+    final t = ref.watch(appTranslationProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,9 +32,9 @@ class HeatmapGrid extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           runSpacing: 8,
           children: [
-            const Text(
-              'Mapa de Calor de Estudos (24h x 30d)',
-              style: TextStyle(
+            Text(
+              t.tr('heatmap_title', fallback: 'Mapa de Calor de Estudos (24h x 30d)'),
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 15,
@@ -40,7 +43,7 @@ class HeatmapGrid extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Menos ', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                Text('${t.tr("less", fallback: "Menos")} ', style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
                 Container(width: 10, height: 10, color: AppColors.surface),
                 const SizedBox(width: 4),
                 Container(width: 10, height: 10, color: const Color(0xFF0E4429)),
@@ -51,7 +54,7 @@ class HeatmapGrid extends StatelessWidget {
                 const SizedBox(width: 4),
                 Container(width: 10, height: 10, color: const Color(0xFF39D353)),
                 const SizedBox(width: 4),
-                const Text(' Mais', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                Text(' ${t.tr("more", fallback: "Mais")}', style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
               ],
             ),
           ],
@@ -92,7 +95,7 @@ class HeatmapGrid extends StatelessWidget {
                       children: List.generate(24, (h) {
                         final mins = hours[h];
                         return Tooltip(
-                          message: '$dateStr às ${h.toString().padLeft(2, '0')}:00 — $mins min estudados',
+                          message: '$dateStr ${t.tr("at", fallback: "às")} ${h.toString().padLeft(2, '0')}:00 — $mins min ${t.tr("studied", fallback: "estudados")}',
                           child: Container(
                             width: 12,
                             height: 12,

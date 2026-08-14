@@ -41,6 +41,7 @@ class SelectLanguageDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsState = ref.watch(settingsNotifierProvider);
+    final t = ref.watch(appTranslationProvider);
     final currentLang = settingsState.selectedLanguage;
 
     return AlertDialog(
@@ -49,9 +50,9 @@ class SelectLanguageDialog extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: AppColors.border),
       ),
-      title: const Text(
-        'Selecionar Idioma',
-        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+      title: Text(
+        t.tr('select_language', fallback: 'Selecionar Idioma'),
+        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
       ),
       content: SizedBox(
         width: 380,
@@ -92,7 +93,7 @@ class SelectLanguageDialog extends ConsumerWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Fechar', style: TextStyle(color: AppColors.textMuted)),
+          child: Text(t.tr('close', fallback: 'Fechar'), style: const TextStyle(color: AppColors.textMuted)),
         ),
       ],
     );

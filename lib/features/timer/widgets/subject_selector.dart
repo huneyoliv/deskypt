@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/app_translation.dart';
 import '../../../data/models/subject_model.dart';
 import '../../../shared/widgets/subject_chip.dart';
 import '../../../core/theme/app_colors.dart';
 
-class SubjectSelector extends StatelessWidget {
+class SubjectSelector extends ConsumerWidget {
   final List<SubjectModel> subjects;
   final SubjectModel? selectedSubject;
   final ValueChanged<SubjectModel> onSelectSubject;
@@ -23,7 +25,8 @@ class SubjectSelector extends StatelessWidget {
     this.onDeleteSubject,
   });
 
-  void _showAddSubjectDialog(BuildContext context, {SubjectModel? editSubject}) {
+  void _showAddSubjectDialog(BuildContext context, WidgetRef ref, {SubjectModel? editSubject}) {
+    final t = ref.read(appTranslationProvider);
     final titleController = TextEditingController(text: editSubject?.title ?? '');
     int selectedColorInt = editSubject?.colorInt ?? 4292557552;
 
@@ -44,7 +47,7 @@ class SubjectSelector extends StatelessWidget {
           return AlertDialog(
             backgroundColor: AppColors.card,
             title: Text(
-              isEditing ? 'Editar Matéria' : 'Nova Matéria',
+              isEditing ? t.tr('edit_subject', fallback: 'Editar Matéria') : t.tr('new_subject', fallback: 'Nova Matéria'),
               style: const TextStyle(color: Colors.white),
             ),
             content: Column(
@@ -54,7 +57,7 @@ class SubjectSelector extends StatelessWidget {
                   controller: titleController,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    hintText: 'Nome da matéria (ex: Matemática)',
+                    hintText: t.tr('subject_title', fallback: 'Nome da matéria (ex: Matemática)'),
                     hintStyle: const TextStyle(color: AppColors.textMuted),
                     filled: true,
                     fillColor: AppColors.surface,
@@ -65,9 +68,9 @@ class SubjectSelector extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('Cor da Matéria:', style: TextStyle(color: Colors.white70)),
+                  child: Text(t.tr('color', fallback: 'Cor da Matéria:'), style: const TextStyle(color: Colors.white70)),
                 ),
                 const SizedBox(height: 8),
                 Wrap(
@@ -101,7 +104,7 @@ class SubjectSelector extends StatelessWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+                child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -124,7 +127,7 @@ class SubjectSelector extends StatelessWidget {
                   backgroundColor: AppColors.primary,
                 ),
                 child: Text(
-                  isEditing ? 'Salvar' : 'Criar',
+                  isEditing ? t.tr('save', fallback: 'Salvar') : t.tr('create', fallback: 'Criar'),
                   style: const TextStyle(color: Colors.white),
                 ),
               ),
@@ -135,7 +138,8 @@ class SubjectSelector extends StatelessWidget {
     );
   }
 
-  void _showSubjectOptionsMenu(BuildContext context, SubjectModel subject) {
+  void _showSubjectOptionsMenu(BuildContext context, WidgetRef ref, SubjectModel subject) {
+    final t = ref.read(appTranslationProvider);
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.card,
@@ -148,16 +152,16 @@ class SubjectSelector extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.edit, color: Colors.white),
-              title: const Text('Editar Matéria', style: TextStyle(color: Colors.white)),
+              title: Text(t.tr('edit_subject', fallback: 'Editar Matéria'), style: const TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.of(context).pop();
-                _showAddSubjectDialog(context, editSubject: subject);
+                _showAddSubjectDialog(context, ref, editSubject: subject);
               },
             ),
             if (onArchiveSubject != null)
               ListTile(
                 leading: const Icon(Icons.archive, color: AppColors.warning),
-                title: const Text('Arquivar Matéria', style: TextStyle(color: AppColors.warning)),
+                title: Text(t.tr('archive', fallback: 'Arquivar Matéria'), style: const TextStyle(color: AppColors.warning)),
                 onTap: () {
                   Navigator.of(context).pop();
                   onArchiveSubject!(subject.id);
@@ -166,10 +170,10 @@ class SubjectSelector extends StatelessWidget {
             if (onDeleteSubject != null)
               ListTile(
                 leading: const Icon(Icons.delete_forever, color: AppColors.error),
-                title: const Text('Excluir Matéria', style: TextStyle(color: AppColors.error)),
+                title: Text(t.tr('delete_subject', fallback: 'Excluir Matéria'), style: const TextStyle(color: AppColors.error)),
                 onTap: () {
                   Navigator.of(context).pop();
-                  _showDeleteConfirmDialog(context, subject);
+                  _showDeleteConfirmDialog(context, ref, subject);
                 },
               ),
           ],
@@ -178,21 +182,22 @@ class SubjectSelector extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmDialog(BuildContext context, SubjectModel subject) {
+  void _showDeleteConfirmDialog(BuildContext context, WidgetRef ref, SubjectModel subject) {
     if (onDeleteSubject == null) return;
+    final t = ref.read(appTranslationProvider);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: Text('Excluir "${subject.title}"?', style: const TextStyle(color: Colors.white)),
-        content: const Text(
-          'Tem certeza que deseja excluir esta matéria do servidor?',
-          style: TextStyle(color: AppColors.textSecondary),
+        title: Text('${t.tr("delete", fallback: "Excluir")} "${subject.title}"?', style: const TextStyle(color: Colors.white)),
+        content: Text(
+          t.tr('delete_confirm_desc', fallback: 'Tem certeza que deseja excluir esta matéria do servidor?'),
+          style: const TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+            child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -200,30 +205,31 @@ class SubjectSelector extends StatelessWidget {
               Navigator.of(context).pop();
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Excluir', style: TextStyle(color: Colors.white)),
+            child: Text(t.tr('delete', fallback: 'Excluir'), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
   }
 
-  void _showManageSubjectsModal(BuildContext context) {
+  void _showManageSubjectsModal(BuildContext context, WidgetRef ref) {
+    final t = ref.read(appTranslationProvider);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: const Text('Gerenciar Matérias', style: TextStyle(color: Colors.white)),
+        title: Text(t.tr('manage_subjects', fallback: 'Gerenciar Matérias'), style: const TextStyle(color: Colors.white)),
         content: SizedBox(
           width: 450,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (subjects.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(16),
+                Padding(
+                  padding: const EdgeInsets.all(16),
                   child: Text(
-                    'Nenhuma matéria cadastrada',
-                    style: TextStyle(color: AppColors.textMuted),
+                    t.tr('no_active_subjects', fallback: 'Nenhuma matéria cadastrada'),
+                    style: const TextStyle(color: AppColors.textMuted),
                   ),
                 )
               else
@@ -247,7 +253,7 @@ class SubjectSelector extends StatelessWidget {
                           ),
                         ),
                         subtitle: Text(
-                          s.isArchived ? 'Arquivada' : 'Ativa',
+                          s.isArchived ? t.tr('archived', fallback: 'Arquivada') : t.tr('active', fallback: 'Ativa'),
                           style: TextStyle(
                             color: s.isArchived ? AppColors.warning : AppColors.success,
                             fontSize: 12,
@@ -258,10 +264,10 @@ class SubjectSelector extends StatelessWidget {
                           children: [
                             IconButton(
                               icon: const Icon(Icons.edit, color: Colors.white70, size: 18),
-                              tooltip: 'Editar',
+                              tooltip: t.tr('edit', fallback: 'Editar'),
                               onPressed: () {
                                 Navigator.of(context).pop();
-                                _showAddSubjectDialog(context, editSubject: s);
+                                _showAddSubjectDialog(context, ref, editSubject: s);
                               },
                             ),
                             if (onArchiveSubject != null)
@@ -270,8 +276,8 @@ class SubjectSelector extends StatelessWidget {
                                   s.isArchived ? Icons.unarchive : Icons.archive,
                                   color: AppColors.warning,
                                   size: 18,
-                                ),
-                                tooltip: s.isArchived ? 'Desarquivar' : 'Arquivar',
+                                  ),
+                                tooltip: s.isArchived ? t.tr('unarchive', fallback: 'Desarquivar') : t.tr('archive', fallback: 'Arquivar'),
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                   onArchiveSubject!(s.id);
@@ -280,10 +286,10 @@ class SubjectSelector extends StatelessWidget {
                             if (onDeleteSubject != null)
                               IconButton(
                                 icon: const Icon(Icons.delete_forever, color: AppColors.error, size: 18),
-                                tooltip: 'Excluir',
+                                tooltip: t.tr('delete', fallback: 'Excluir'),
                                 onPressed: () {
                                   Navigator.of(context).pop();
-                                  _showDeleteConfirmDialog(context, s);
+                                  _showDeleteConfirmDialog(context, ref, s);
                                 },
                               ),
                           ],
@@ -298,7 +304,7 @@ class SubjectSelector extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Fechar', style: TextStyle(color: Colors.white)),
+            child: Text(t.tr('close', fallback: 'Fechar'), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -306,7 +312,8 @@ class SubjectSelector extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = ref.watch(appTranslationProvider);
     final activeSubjects = subjects.where((s) => !s.isArchived).toList();
 
     return SingleChildScrollView(
@@ -319,7 +326,7 @@ class SubjectSelector extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: GestureDetector(
-                onLongPress: () => _showSubjectOptionsMenu(context, subject),
+                onLongPress: () => _showSubjectOptionsMenu(context, ref, subject),
                 child: SubjectChip(
                   subject: subject,
                   isSelected: isSelected,
@@ -331,8 +338,8 @@ class SubjectSelector extends StatelessWidget {
 
           // Add Subject Button
           IconButton(
-            onPressed: () => _showAddSubjectDialog(context),
-            tooltip: 'Adicionar Matéria',
+            onPressed: () => _showAddSubjectDialog(context, ref),
+            tooltip: t.tr('new_subject', fallback: 'Adicionar Matéria'),
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -346,8 +353,8 @@ class SubjectSelector extends StatelessWidget {
 
           // Manage Subjects Button
           IconButton(
-            onPressed: () => _showManageSubjectsModal(context),
-            tooltip: 'Gerenciar Matérias (Editar, Arquivar, Deletar)',
+            onPressed: () => _showManageSubjectsModal(context, ref),
+            tooltip: t.tr('manage_subjects', fallback: 'Gerenciar Matérias'),
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(

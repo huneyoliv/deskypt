@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/localization/app_translation.dart';
 import '../../auth/auth_notifier.dart';
 
 class DeleteAccountDialog extends ConsumerStatefulWidget {
@@ -24,20 +25,16 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  static const String requiredPhrase = 'Excluir conta';
-
   @override
   void dispose() {
     _confirmationController.dispose();
     super.dispose();
   }
 
-  bool get _canDelete =>
-      _isConsentChecked && _confirmationController.text.trim() == requiredPhrase;
+  bool _canDelete(String requiredPhrase) =>
+      _isConsentChecked && _confirmationController.text.trim().toLowerCase() == requiredPhrase.toLowerCase();
 
   Future<void> _handleDeleteAccount() async {
-    if (!_canDelete) return;
-
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -61,16 +58,19 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(appTranslationProvider);
+    final requiredPhrase = t.tr('delete_account', fallback: 'Excluir conta');
+
     return AlertDialog(
       backgroundColor: AppColors.card,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
-        children: const [
-          Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 28),
-          SizedBox(width: 10),
+        children: [
+          const Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 28),
+          const SizedBox(width: 10),
           Text(
-            'Excluir Conta YPT',
-            style: TextStyle(
+            t.tr('delete_account_title', fallback: 'Excluir Conta YPT'),
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
               fontSize: 20,
@@ -85,28 +85,25 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Esta ação é permanente e irreversível. Ao excluir sua conta:',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+              Text(
+                t.tr('delete_account_warning_intro', fallback: 'Esta ação é permanente e irreversível. Ao excluir sua conta:'),
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
               ),
               const SizedBox(height: 16),
 
               _buildBullet(
                 icon: Icons.delete_forever_outlined,
-                text:
-                    'Todos os seus registros de estudo, matérias, metas e histórico de tempo serão permanentemente apagados.',
+                text: t.tr('delete_account_warning_1', fallback: 'Todos os seus registros de estudo, matérias, metas e histórico de tempo serão permanentemente apagados.'),
               ),
               const SizedBox(height: 12),
               _buildBullet(
                 icon: Icons.group_off_outlined,
-                text:
-                    'Você será removido de todos os grupos de estudo, desafios e rankings comunitários.',
+                text: t.tr('delete_account_warning_2', fallback: 'Você será removido de todos os grupos de estudo, desafios e rankings comunitários.'),
               ),
               const SizedBox(height: 12),
               _buildBullet(
                 icon: Icons.local_fire_department_outlined,
-                text:
-                    'Todos os Studicons adquiridos, saldo de chamas e conquistas serão perdidos sem reembolso.',
+                text: t.tr('delete_account_warning_3', fallback: 'Todos os Studicons adquiridos, saldo de chamas e conquistas serão perdidos sem reembolso.'),
               ),
               const SizedBox(height: 20),
 
@@ -145,10 +142,10 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                         },
                       ),
                       const SizedBox(width: 8),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Compreendo as consequências e confirmo que desejo excluir minha conta de forma permanente.',
-                          style: TextStyle(
+                          t.tr('delete_account_consent', fallback: 'Compreendo as consequências e confirmo que desejo excluir minha conta de forma permanente.'),
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
@@ -162,9 +159,9 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
               const SizedBox(height: 16),
 
               // Confirmation Phrase Input
-              const Text(
-                'Digite exatamente "Excluir conta" para confirmar:',
-                style: TextStyle(
+              Text(
+                '${t.tr("type_to_confirm", fallback: "Digite exatamente")} "$requiredPhrase" ${t.tr("to_confirm", fallback: "para confirmar:")}',
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -197,13 +194,13 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: const Text(
-            'Cancelar',
-            style: TextStyle(color: AppColors.textMuted),
+          child: Text(
+            t.tr('cancel', fallback: 'Cancelar'),
+            style: const TextStyle(color: AppColors.textMuted),
           ),
         ),
         ElevatedButton(
-          onPressed: _canDelete && !_isLoading ? _handleDeleteAccount : null,
+          onPressed: _canDelete(requiredPhrase) && !_isLoading ? _handleDeleteAccount : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.error,
             disabledBackgroundColor: AppColors.error.withValues(alpha: 0.3),
@@ -218,9 +215,9 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                     strokeWidth: 2,
                   ),
                 )
-              : const Text(
-                  'Excluir Conta Definitivamente',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              : Text(
+                  t.tr('delete_account', fallback: 'Excluir Conta Definitivamente'),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
         ),
       ],

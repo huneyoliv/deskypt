@@ -1,10 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/localization/app_translation.dart';
 import '../../../data/models/subject_model.dart';
 
-class SubjectManagementDialog extends StatefulWidget {
+class SubjectManagementDialog extends ConsumerStatefulWidget {
   final List<SubjectModel> subjects;
   final SubjectModel? selectedSubject;
   final ValueChanged<SubjectModel> onSelectSubject;
@@ -53,10 +55,10 @@ class SubjectManagementDialog extends StatefulWidget {
   }
 
   @override
-  State<SubjectManagementDialog> createState() => _SubjectManagementDialogState();
+  ConsumerState<SubjectManagementDialog> createState() => _SubjectManagementDialogState();
 }
 
-class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
+class _SubjectManagementDialogState extends ConsumerState<SubjectManagementDialog> {
   final _titleController = TextEditingController();
   int _selectedColorInt = 0xFF4CAF50;
   bool _showArchived = false;
@@ -89,22 +91,23 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
   }
 
   void _showAddSubjectDialog() {
+    final t = ref.read(appTranslationProvider);
     _titleController.clear();
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: AppColors.card,
-          title: const Text('Nova Matéria', style: TextStyle(color: Colors.white)),
+          title: Text(t.tr('new_subject', fallback: 'Nova Matéria'), style: const TextStyle(color: Colors.white)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: _titleController,
                 style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Nome da Matéria',
-                  labelStyle: TextStyle(color: AppColors.textSecondary),
+                decoration: InputDecoration(
+                  labelText: t.tr('subject_title', fallback: 'Nome da Matéria'),
+                  labelStyle: const TextStyle(color: AppColors.textSecondary),
                 ),
               ),
               const SizedBox(height: 16),
@@ -133,7 +136,7 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+              child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -152,7 +155,7 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text('Criar', style: TextStyle(color: Colors.white)),
+              child: Text(t.tr('save', fallback: 'Criar'), style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -161,6 +164,7 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
   }
 
   void _showEditSubjectDialog(SubjectModel subject) {
+    final t = ref.read(appTranslationProvider);
     _titleController.text = subject.title;
     int editColorInt = subject.colorInt;
 
@@ -169,16 +173,16 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: AppColors.card,
-          title: Text('Editar: ${subject.title}', style: const TextStyle(color: Colors.white)),
+          title: Text('${t.tr("edit", fallback: "Editar")}: ${subject.title}', style: const TextStyle(color: Colors.white)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: _titleController,
                 style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Nome da Matéria',
-                  labelStyle: TextStyle(color: AppColors.textSecondary),
+                decoration: InputDecoration(
+                  labelText: t.tr('subject_title', fallback: 'Nome da Matéria'),
+                  labelStyle: const TextStyle(color: AppColors.textSecondary),
                 ),
               ),
               const SizedBox(height: 16),
@@ -207,7 +211,7 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+              child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -222,7 +226,7 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text('Salvar', style: TextStyle(color: Colors.white)),
+              child: Text(t.tr('save', fallback: 'Salvar'), style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -258,6 +262,7 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(appTranslationProvider);
     final filteredSubjects = _localSubjects.where((s) => s.isArchived == _showArchived).toList();
 
     return Dialog(
@@ -277,7 +282,7 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
               children: [
                 const Icon(Icons.bookmark_outline_rounded, color: AppColors.primary, size: 24),
                 const SizedBox(width: 10),
-                const Text('Gerenciar Matérias YPT', style: AppTextStyles.titleMedium),
+                Text(t.tr('manage_subjects', fallback: 'Gerenciar Matérias'), style: AppTextStyles.titleMedium),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.close, color: AppColors.textMuted),
@@ -289,7 +294,7 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
             Row(
               children: [
                 ChoiceChip(
-                  label: const Text('Ativas'),
+                  label: Text(t.tr('active', fallback: 'Ativas')),
                   selected: !_showArchived,
                   selectedColor: AppColors.primary,
                   backgroundColor: AppColors.surface,
@@ -298,7 +303,7 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
                 ),
                 const SizedBox(width: 8),
                 ChoiceChip(
-                  label: const Text('Arquivadas'),
+                  label: Text(t.tr('archived', fallback: 'Arquivadas')),
                   selected: _showArchived,
                   selectedColor: AppColors.primary,
                   backgroundColor: AppColors.surface,
@@ -315,7 +320,9 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
                       child: Padding(
                         padding: const EdgeInsets.all(32.0),
                         child: Text(
-                          _showArchived ? 'Nenhuma matéria arquivada.' : 'Nenhuma matéria ativa.',
+                          _showArchived
+                              ? t.tr('no_archived_subjects', fallback: 'Nenhuma matéria arquivada.')
+                              : t.tr('no_active_subjects', fallback: 'Nenhuma matéria ativa.'),
                           style: const TextStyle(color: AppColors.textMuted),
                         ),
                       ),
@@ -384,7 +391,7 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
                               ),
                               IconButton(
                                 icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.white70),
-                                tooltip: 'Editar Matéria',
+                                tooltip: t.tr('edit_subject', fallback: 'Editar Matéria'),
                                 onPressed: () => _showEditSubjectDialog(subject),
                               ),
                               IconButton(
@@ -393,12 +400,14 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
                                   size: 18,
                                   color: AppColors.primary,
                                 ),
-                                tooltip: _showArchived ? 'Desarquivar' : 'Arquivar',
+                                tooltip: _showArchived
+                                    ? t.tr('unarchive', fallback: 'Desarquivar')
+                                    : t.tr('archive', fallback: 'Arquivar'),
                                 onPressed: () => _handleArchive(subject.id, !_showArchived),
                               ),
                               IconButton(
                                 icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
-                                tooltip: 'Excluir Matéria',
+                                tooltip: t.tr('delete_subject', fallback: 'Excluir Matéria'),
                                 onPressed: () => _handleDelete(subject.id),
                               ),
                             ],
@@ -418,7 +427,7 @@ class _SubjectManagementDialogState extends State<SubjectManagementDialog> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 icon: const Icon(Icons.add, color: AppColors.primary),
-                label: const Text('Nova Matéria', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                label: Text(t.tr('new_subject', fallback: 'Nova Matéria'), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
               ),
             ),
           ],

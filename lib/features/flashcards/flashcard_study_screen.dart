@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/localization/app_translation.dart';
 import 'flashcard_notifier.dart';
 
 class FlashcardStudyScreen extends ConsumerWidget {
@@ -10,14 +11,15 @@ class FlashcardStudyScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(flashcardNotifierProvider);
     final notifier = ref.read(flashcardNotifierProvider.notifier);
+    final t = ref.watch(appTranslationProvider);
     final deck = state.selectedDeck;
 
     if (deck == null) {
       return Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(backgroundColor: AppColors.surface),
-        body: const Center(
-          child: Text('Nenhum baralho selecionado.', style: TextStyle(color: Colors.white)),
+        body: Center(
+          child: Text(t.tr('no_deck_selected', fallback: 'Nenhum baralho selecionado.'), style: const TextStyle(color: Colors.white)),
         ),
       );
     }
@@ -44,13 +46,13 @@ class FlashcardStudyScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.style_outlined, size: 64, color: AppColors.textMuted),
               const SizedBox(height: 16),
-              const Text('Este baralho ainda não tem cartões.',
-                  style: TextStyle(color: Colors.white, fontSize: 16)),
+              Text(t.tr('deck_empty_cards', fallback: 'Este baralho ainda não tem cartões.'),
+                  style: const TextStyle(color: Colors.white, fontSize: 16)),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: () => Navigator.of(context).pop(),
                 icon: const Icon(Icons.arrow_back),
-                label: const Text('Voltar'),
+                label: Text(t.tr('back', fallback: 'Voltar')),
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
               ),
             ],
@@ -69,13 +71,13 @@ class FlashcardStudyScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.celebration_rounded, size: 80, color: AppColors.warning),
               const SizedBox(height: 20),
-              const Text(
-                'Sessão Concluída!',
-                style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+              Text(
+                t.tr('session_completed', fallback: 'Sessão Concluída!'),
+                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               Text(
-                'Você revisou todos os ${state.currentCards.length} cartões deste baralho.',
+                '${t.tr("reviewed_all", fallback: "Você revisou todos os")} ${state.currentCards.length} ${t.tr("cards_in_deck", fallback: "cartões deste baralho.")}',
                 style: const TextStyle(color: AppColors.textSecondary, fontSize: 15),
               ),
               const SizedBox(height: 30),
@@ -85,14 +87,14 @@ class FlashcardStudyScreen extends ConsumerWidget {
                   ElevatedButton.icon(
                     onPressed: () => notifier.restartSession(),
                     icon: const Icon(Icons.replay_rounded),
-                    label: const Text('Revisar Novamente'),
+                    label: Text(t.tr('review_again', fallback: 'Revisar Novamente')),
                     style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
                   ),
                   const SizedBox(width: 16),
                   OutlinedButton.icon(
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.check_rounded, color: Colors.white),
-                    label: const Text('Concluir', style: TextStyle(color: Colors.white)),
+                    label: Text(t.tr('done', fallback: 'Concluir'), style: const TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
@@ -172,7 +174,9 @@ class FlashcardStudyScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            state.isFlipped ? 'VERSO (RESPOSTA)' : 'FRENTE (PERGUNTA)',
+                            state.isFlipped
+                                ? t.tr('back_answer', fallback: 'VERSO (RESPOSTA)')
+                                : t.tr('front_question', fallback: 'FRENTE (PERGUNTA)'),
                             style: TextStyle(
                               color: state.isFlipped ? AppColors.success : deck.color,
                               fontSize: 12,
@@ -186,7 +190,7 @@ class FlashcardStudyScreen extends ConsumerWidget {
                           state.isFlipped ? card.back : card.front,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            color: Colors.white,
+                              color: Colors.white,
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                             height: 1.4,
@@ -207,7 +211,7 @@ class FlashcardStudyScreen extends ConsumerWidget {
                                 const Icon(Icons.lightbulb_outline, size: 16, color: AppColors.warning),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'Dica: ${card.hint!}',
+                                  '${t.tr("hint", fallback: "Dica")}: ${card.hint!}',
                                   style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
                                 ),
                               ],
@@ -217,12 +221,12 @@ class FlashcardStudyScreen extends ConsumerWidget {
                         const Spacer(),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.touch_app_outlined, size: 16, color: AppColors.textMuted),
-                            SizedBox(width: 6),
+                          children: [
+                            const Icon(Icons.touch_app_outlined, size: 16, color: AppColors.textMuted),
+                            const SizedBox(width: 6),
                             Text(
-                              'Toque para virar',
-                              style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                              t.tr('tap_to_flip', fallback: 'Toque para virar'),
+                              style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                             ),
                           ],
                         ),
@@ -242,9 +246,9 @@ class FlashcardStudyScreen extends ConsumerWidget {
                   child: ElevatedButton.icon(
                     onPressed: () => notifier.flipCard(),
                     icon: const Icon(Icons.visibility_outlined, color: Colors.white),
-                    label: const Text(
-                      'Mostrar Resposta',
-                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    label: Text(
+                      t.tr('show_answer', fallback: 'Mostrar Resposta'),
+                      style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: deck.color,
@@ -257,7 +261,7 @@ class FlashcardStudyScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: _buildEaseButton(
-                        label: 'Difícil',
+                        label: t.tr('hard', fallback: 'Difícil'),
                         icon: Icons.close_rounded,
                         color: AppColors.error,
                         onTap: () => notifier.answerCard(1),
@@ -266,7 +270,7 @@ class FlashcardStudyScreen extends ConsumerWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _buildEaseButton(
-                        label: 'Bom',
+                        label: t.tr('good', fallback: 'Bom'),
                         icon: Icons.thumb_up_alt_outlined,
                         color: AppColors.primary,
                         onTap: () => notifier.answerCard(2),
@@ -275,7 +279,7 @@ class FlashcardStudyScreen extends ConsumerWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _buildEaseButton(
-                        label: 'Fácil',
+                        label: t.tr('easy', fallback: 'Fácil'),
                         icon: Icons.sentiment_very_satisfied_outlined,
                         color: AppColors.success,
                         onTap: () => notifier.answerCard(3),

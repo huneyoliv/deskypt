@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/localization/app_translation.dart';
 import '../timer_notifier.dart';
 
-class PomodoroConfigDialog extends StatefulWidget {
+class PomodoroConfigDialog extends ConsumerStatefulWidget {
   final TimerState state;
   final void Function({
     int? focusMinutes,
@@ -41,10 +43,10 @@ class PomodoroConfigDialog extends StatefulWidget {
   }
 
   @override
-  State<PomodoroConfigDialog> createState() => _PomodoroConfigDialogState();
+  ConsumerState<PomodoroConfigDialog> createState() => _PomodoroConfigDialogState();
 }
 
-class _PomodoroConfigDialogState extends State<PomodoroConfigDialog> {
+class _PomodoroConfigDialogState extends ConsumerState<PomodoroConfigDialog> {
   late int _focusMinutes;
   late int _shortBreakMinutes;
   late int _longBreakMinutes;
@@ -65,16 +67,18 @@ class _PomodoroConfigDialogState extends State<PomodoroConfigDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(appTranslationProvider);
+
     return AlertDialog(
       backgroundColor: AppColors.card,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
-        children: const [
-          Icon(Icons.timer_outlined, color: AppColors.primary),
-          SizedBox(width: 10),
+        children: [
+          const Icon(Icons.timer_outlined, color: AppColors.primary),
+          const SizedBox(width: 10),
           Text(
-            'Configurações do Pomodoro',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+            t.tr('pomodoro_settings', fallback: 'Configurações do Pomodoro'),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
           ),
         ],
       ),
@@ -85,7 +89,7 @@ class _PomodoroConfigDialogState extends State<PomodoroConfigDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildStepper(
-                label: 'Tempo de Foco',
+                label: t.tr('focus_time', fallback: 'Tempo de Foco'),
                 value: '$_focusMinutes min',
                 icon: Icons.local_fire_department,
                 iconColor: AppColors.primary,
@@ -94,7 +98,7 @@ class _PomodoroConfigDialogState extends State<PomodoroConfigDialog> {
               ),
               const Divider(color: AppColors.border),
               _buildStepper(
-                label: 'Pausa Curta',
+                label: t.tr('short_break', fallback: 'Pausa Curta'),
                 value: '$_shortBreakMinutes min',
                 icon: Icons.coffee,
                 iconColor: AppColors.success,
@@ -103,7 +107,7 @@ class _PomodoroConfigDialogState extends State<PomodoroConfigDialog> {
               ),
               const Divider(color: AppColors.border),
               _buildStepper(
-                label: 'Pausa Longa',
+                label: t.tr('long_break', fallback: 'Pausa Longa'),
                 value: '$_longBreakMinutes min',
                 icon: Icons.beach_access,
                 iconColor: AppColors.warning,
@@ -112,8 +116,8 @@ class _PomodoroConfigDialogState extends State<PomodoroConfigDialog> {
               ),
               const Divider(color: AppColors.border),
               _buildStepper(
-                label: 'Ciclos até Pausa Longa',
-                value: '$_totalCycles ciclos',
+                label: t.tr('cycles_to_long_break', fallback: 'Ciclos até Pausa Longa'),
+                value: '$_totalCycles ${t.tr("cycles", fallback: "ciclos")}',
                 icon: Icons.repeat,
                 iconColor: AppColors.textSecondary,
                 onDecrement: _totalCycles > 2 ? () => setState(() => _totalCycles -= 1) : null,
@@ -122,14 +126,14 @@ class _PomodoroConfigDialogState extends State<PomodoroConfigDialog> {
               const SizedBox(height: 16),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Iniciar pausas automaticamente', style: TextStyle(color: Colors.white, fontSize: 14)),
+                title: Text(t.tr('auto_start_breaks', fallback: 'Iniciar pausas automaticamente'), style: const TextStyle(color: Colors.white, fontSize: 14)),
                 value: _autoStartBreaks,
                 activeColor: AppColors.primary,
                 onChanged: (val) => setState(() => _autoStartBreaks = val),
               ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Iniciar foco automaticamente', style: TextStyle(color: Colors.white, fontSize: 14)),
+                title: Text(t.tr('auto_start_focus', fallback: 'Iniciar foco automaticamente'), style: const TextStyle(color: Colors.white, fontSize: 14)),
                 value: _autoStartFocus,
                 activeColor: AppColors.primary,
                 onChanged: (val) => setState(() => _autoStartFocus = val),
@@ -141,7 +145,7 @@ class _PomodoroConfigDialogState extends State<PomodoroConfigDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+          child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
         ),
         ElevatedButton(
           onPressed: () {
@@ -156,7 +160,7 @@ class _PomodoroConfigDialogState extends State<PomodoroConfigDialog> {
             Navigator.of(context).pop();
           },
           style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-          child: const Text('Salvar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          child: Text(t.tr('save', fallback: 'Salvar'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ],
     );

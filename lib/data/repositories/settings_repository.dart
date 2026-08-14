@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/api/api_client.dart';
 import '../../core/api/api_exception.dart';
@@ -96,7 +97,36 @@ class SettingsRepository {
 
   Future<String> getSavedLanguage() async {
     final prefs = _prefs ?? await SharedPreferences.getInstance();
-    return prefs.getString(keyLanguage) ?? 'pt';
+    final saved = prefs.getString(keyLanguage);
+    if (saved != null && saved.isNotEmpty) {
+      return saved;
+    }
+
+    // Automatically detect PC / Operating System locale
+    try {
+      final systemLocale = ui.PlatformDispatcher.instance.locale;
+      final lang = systemLocale.languageCode.toLowerCase();
+      final script = systemLocale.scriptCode?.toLowerCase() ?? '';
+      final country = systemLocale.countryCode?.toLowerCase() ?? '';
+
+      if (lang == 'zh') {
+        if (script.contains('hant') || country == 'tw' || country == 'hk') {
+          return 'zh_hant';
+        }
+        return 'zh_hans';
+      }
+
+      const supported = [
+        'pt', 'en', 'es', 'ko', 'ja', 'fr', 'de', 'it', 'ru', 'vi',
+        'th', 'tr', 'id', 'hi', 'nl', 'pl', 'sv', 'fi', 'da', 'nb',
+        'et', 'lv', 'lt'
+      ];
+      if (supported.contains(lang)) {
+        return lang;
+      }
+    } catch (_) {}
+
+    return 'pt';
   }
 
   Future<void> saveLanguage(String languageCode) async {

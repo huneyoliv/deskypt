@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deskypt/features/ranks/widgets/heatmap_grid.dart';
 import 'package:deskypt/features/ranks/widgets/study_calendar.dart';
@@ -11,9 +12,11 @@ void main() {
       };
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: HeatmapGrid(hourlyLogs: hourlyLogs),
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: HeatmapGrid(hourlyLogs: hourlyLogs),
+            ),
           ),
         ),
       );
@@ -27,10 +30,12 @@ void main() {
       };
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: SingleChildScrollView(
-              child: StudyCalendar(dailyStudyTimeMs: dailyMs),
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: StudyCalendar(dailyStudyTimeMs: dailyMs),
+              ),
             ),
           ),
         ),

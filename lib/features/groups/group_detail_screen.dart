@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/localization/app_translation.dart';
 import '../../data/models/group_model.dart';
 import '../../data/models/group_member_model.dart';
 import '../../data/models/chat_message_model.dart';
@@ -47,11 +48,12 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
 
   Future<void> _sendSticker(Sticker sticker) async {
     setState(() => _showStickerPicker = false);
+    final user = ref.read(authStateProvider).user;
     final newMsg = ChatMessageModel(
       id: DateTime.now().millisecondsSinceEpoch,
-      senderId: 1,
-      senderName: 'Você',
-      studiconId: 377,
+      senderId: user?.id ?? 1,
+      senderName: user?.name ?? 'Você',
+      studiconId: user?.studiconId ?? 377,
       message: '',
       stickerUrl: sticker.url,
       type: 'sticker',
@@ -137,13 +139,14 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
   }
 
   Future<void> _shakeUser(GroupMemberModel member) async {
+    final t = ref.read(appTranslationProvider);
     try {
       final repo = ref.read(groupRepositoryProvider);
       await repo.shakeMember(groupId: widget.group.id, targetUserId: member.userId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Chacoalhada enviada para ${member.name}! 🔔'),
+            content: Text('${t.tr("shake_sent_to", fallback: "Chacoalhada enviada para")} ${member.name}! 🔔'),
             backgroundColor: AppColors.primary,
           ),
         );
@@ -152,7 +155,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Notificação enviada para ${member.name}!'),
+            content: Text('${t.tr("notification_sent_to", fallback: "Notificação enviada para")} ${member.name}!'),
             backgroundColor: AppColors.primary,
           ),
         );
@@ -258,19 +261,20 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
   }
 
   Future<void> _attachMedia() async {
+    final t = ref.read(appTranslationProvider);
     final controller = TextEditingController();
     final url = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: const Text('Anexar Imagem ao Chat', style: TextStyle(color: Colors.white)),
+        title: Text(t.tr('attach_image_chat', fallback: 'Anexar Imagem ao Chat'), style: const TextStyle(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Insira a URL da imagem ou captura de estudo:',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            Text(
+              t.tr('attach_image_desc', fallback: 'Insira a URL da imagem ou captura de estudo:'),
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -288,12 +292,12 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+            child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Enviar Foto', style: TextStyle(color: Colors.white)),
+            child: Text(t.tr('send_photo', fallback: 'Enviar Foto'), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -339,6 +343,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
   Widget build(BuildContext context) {
     final studyingMembers = _members.where((m) => m.isStudying).toList();
     final activeUser = ref.watch(authStateProvider).user;
+    final t = ref.watch(appTranslationProvider);
     final isLeader = activeUser != null &&
         (widget.group.leaderUserId == activeUser.id ||
             (widget.group.leaderName.isNotEmpty && widget.group.leaderName == activeUser.name));
@@ -351,7 +356,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
           children: [
             Text(widget.group.name, style: AppTextStyles.titleLarge),
             Text(
-              '${studyingMembers.length} estudando agora • Meta: ${widget.group.dailyGoalHours}h/dia',
+              '${studyingMembers.length} ${t.tr("studying_now", fallback: "estudando agora")} • ${t.tr("goal", fallback: "Meta")}: ${widget.group.dailyGoalHours}h/${t.tr("day", fallback: "dia")}',
               style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
           ],
@@ -360,7 +365,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
           if (isLeader)
             IconButton(
               icon: const Icon(Icons.admin_panel_settings, color: AppColors.primary),
-              tooltip: 'Menu do Líder',
+              tooltip: t.tr('leader_menu', fallback: 'Menu do Líder'),
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -379,10 +384,10 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
           indicatorColor: AppColors.primary,
           labelColor: Colors.white,
           unselectedLabelColor: AppColors.textSecondary,
-          tabs: const [
-            Tab(text: 'Estudando Agora'),
-            Tab(text: 'Chat do Grupo'),
-            Tab(text: 'Ranking Semanal'),
+          tabs: [
+            Tab(text: t.tr('studying_now', fallback: 'Estudando Agora')),
+            Tab(text: t.tr('group_chat', fallback: 'Chat do Grupo')),
+            Tab(text: t.tr('weekly_ranking', fallback: 'Ranking Semanal')),
           ],
         ),
       ),
@@ -392,7 +397,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
           // Tab 1: Studying Now Live Grid
           _isLoadingMembers
               ? const Center(child: CircularProgressIndicator())
-              : _buildMembersGridTab(),
+              : _buildMembersGridTab(t),
 
           // Tab 2: Group Chat
           Column(
@@ -520,7 +525,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                   children: [
                     IconButton(
                       icon: const Icon(Icons.attach_file_rounded, color: AppColors.textSecondary),
-                      tooltip: 'Anexar Imagem',
+                      tooltip: t.tr('attach_image', fallback: 'Anexar Imagem'),
                       onPressed: _attachMedia,
                     ),
                     IconButton(
@@ -528,7 +533,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                         Icons.emoji_emotions_outlined,
                         color: _showStickerPicker ? AppColors.primary : AppColors.textSecondary,
                       ),
-                      tooltip: 'Figurinhas',
+                      tooltip: t.tr('stickers', fallback: 'Figurinhas'),
                       onPressed: () {
                         setState(() => _showStickerPicker = !_showStickerPicker);
                       },
@@ -539,7 +544,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                         controller: _chatInputController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'Digite sua mensagem...',
+                          hintText: t.tr('type_message', fallback: 'Digite sua mensagem...'),
                           hintStyle: const TextStyle(color: AppColors.textMuted),
                           filled: true,
                           fillColor: AppColors.card,
@@ -574,7 +579,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                   child: Row(
                     children: [
                       ChoiceChip(
-                        label: const Text('Hoje'),
+                        label: Text(t.tr('today', fallback: 'Hoje')),
                         selected: _selectedGroupRankPeriod == 'day',
                         selectedColor: AppColors.primary,
                         backgroundColor: AppColors.card,
@@ -586,7 +591,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                       ),
                       const SizedBox(width: 8),
                       ChoiceChip(
-                        label: const Text('Esta Semana'),
+                        label: Text(t.tr('this_week', fallback: 'Esta Semana')),
                         selected: _selectedGroupRankPeriod == 'week',
                         selectedColor: AppColors.primary,
                         backgroundColor: AppColors.card,
@@ -598,7 +603,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                       ),
                       const SizedBox(width: 8),
                       ChoiceChip(
-                        label: const Text('Este Mês'),
+                        label: Text(t.tr('this_month', fallback: 'Este Mês')),
                         selected: _selectedGroupRankPeriod == 'month',
                         selectedColor: AppColors.primary,
                         backgroundColor: AppColors.card,
@@ -684,7 +689,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
     );
   }
 
-  Widget _buildMembersGridTab() {
+  Widget _buildMembersGridTab(AppTranslation t) {
     final studyingMembers = _members.where((m) => m.isStudying && !m.isPaused).toList()
       ..sort((a, b) {
         final cmp = b.studyMs.compareTo(a.studyMs);
@@ -700,10 +705,10 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
       });
 
     if (_members.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
-          'Nenhum membro no grupo ainda.',
-          style: TextStyle(color: AppColors.textMuted),
+          t.tr('no_group_members', fallback: 'Nenhum membro no grupo ainda.'),
+          style: const TextStyle(color: AppColors.textMuted),
         ),
       );
     }
@@ -726,7 +731,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Estudando Agora (${studyingMembers.length})',
+                    '${t.tr("studying_now", fallback: "Estudando Agora")} (${studyingMembers.length})',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -747,7 +752,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                 mainAxisSpacing: 16,
               ),
               delegate: SliverChildBuilderDelegate(
-                (context, index) => _buildMemberCard(studyingMembers[index]),
+                (context, index) => _buildMemberCard(studyingMembers[index], t),
                 childCount: studyingMembers.length,
               ),
             ),
@@ -769,7 +774,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Descansando / Inativos (${restingMembers.length})',
+                    '${t.tr("resting_inactive", fallback: "Descansando / Inativos")} (${restingMembers.length})',
                     style: const TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 16,
@@ -790,7 +795,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                 mainAxisSpacing: 16,
               ),
               delegate: SliverChildBuilderDelegate(
-                (context, index) => _buildMemberCard(restingMembers[index]),
+                (context, index) => _buildMemberCard(restingMembers[index], t),
                 childCount: restingMembers.length,
               ),
             ),
@@ -800,7 +805,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
     );
   }
 
-  Widget _buildMemberCard(GroupMemberModel member) {
+  Widget _buildMemberCard(GroupMemberModel member, AppTranslation t) {
     if (widget.group.isCamStudy) {
       return CamStudyMemberTile(
         member: member,
@@ -876,10 +881,10 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
           const SizedBox(height: 4),
           Text(
             isActivelyStudying
-                ? 'Estudando (${_formatMs(member.studyMs)})'
+                ? '${t.tr("studying", fallback: "Estudando")} (${_formatMs(member.studyMs)})'
                 : member.isPaused
-                    ? 'Pausado (${_formatMs(member.studyMs)})'
-                    : 'Descansando (${_formatMs(member.studyMs)})',
+                    ? '${t.tr("paused", fallback: "Pausado")} (${_formatMs(member.studyMs)})'
+                    : '${t.tr("resting", fallback: "Descansando")} (${_formatMs(member.studyMs)})',
             style: TextStyle(
               fontSize: 12,
               color: isActivelyStudying

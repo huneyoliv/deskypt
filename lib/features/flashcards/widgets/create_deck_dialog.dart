@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/localization/app_translation.dart';
 
-class CreateDeckDialog extends StatefulWidget {
+class CreateDeckDialog extends ConsumerStatefulWidget {
   final void Function(String title, int colorInt, String? description) onSave;
 
   const CreateDeckDialog({super.key, required this.onSave});
@@ -17,10 +19,10 @@ class CreateDeckDialog extends StatefulWidget {
   }
 
   @override
-  State<CreateDeckDialog> createState() => _CreateDeckDialogState();
+  ConsumerState<CreateDeckDialog> createState() => _CreateDeckDialogState();
 }
 
-class _CreateDeckDialogState extends State<CreateDeckDialog> {
+class _CreateDeckDialogState extends ConsumerState<CreateDeckDialog> {
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
   int _selectedColor = 4292557552;
@@ -43,11 +45,13 @@ class _CreateDeckDialogState extends State<CreateDeckDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(appTranslationProvider);
+
     return AlertDialog(
       backgroundColor: AppColors.card,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text('Novo Baralho de Flashcards',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+      title: Text(t.tr('new_deck', fallback: 'Novo Baralho de Flashcards'),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 400),
         child: Column(
@@ -58,26 +62,26 @@ class _CreateDeckDialogState extends State<CreateDeckDialog> {
               controller: _titleController,
               autofocus: true,
               style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Título do Baralho',
-                labelStyle: TextStyle(color: AppColors.textSecondary),
-                hintText: 'Ex: Vocabulário em Inglês',
-                hintStyle: TextStyle(color: AppColors.textMuted),
+              decoration: InputDecoration(
+                labelText: t.tr('deck_title', fallback: 'Título do Baralho'),
+                labelStyle: const TextStyle(color: AppColors.textSecondary),
+                hintText: t.tr('deck_title_hint', fallback: 'Ex: Vocabulário em Inglês'),
+                hintStyle: const TextStyle(color: AppColors.textMuted),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _descController,
               style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Descrição (opcional)',
-                labelStyle: TextStyle(color: AppColors.textSecondary),
-                hintText: 'Ex: Palavras mais frequentes',
-                hintStyle: TextStyle(color: AppColors.textMuted),
+              decoration: InputDecoration(
+                labelText: t.tr('description_optional', fallback: 'Descrição (opcional)'),
+                labelStyle: const TextStyle(color: AppColors.textSecondary),
+                hintText: t.tr('deck_desc_hint', fallback: 'Ex: Palavras mais frequentes'),
+                hintStyle: const TextStyle(color: AppColors.textMuted),
               ),
             ),
             const SizedBox(height: 20),
-            const Text('Cor do Baralho:', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+            Text(t.tr('deck_color', fallback: 'Cor do Baralho:'), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
             const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -108,7 +112,7 @@ class _CreateDeckDialogState extends State<CreateDeckDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+          child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
         ),
         ElevatedButton(
           onPressed: () {
@@ -119,7 +123,7 @@ class _CreateDeckDialogState extends State<CreateDeckDialog> {
             }
           },
           style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-          child: const Text('Criar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          child: Text(t.tr('create', fallback: 'Criar'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ],
     );

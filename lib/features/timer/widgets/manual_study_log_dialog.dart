@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/localization/app_translation.dart';
 import '../../../data/models/subject_model.dart';
 import '../timer_notifier.dart';
 
@@ -65,18 +66,19 @@ class _ManualStudyLogDialogState extends ConsumerState<ManualStudyLogDialog> {
   }
 
   Future<void> _handleSave() async {
+    final t = ref.read(appTranslationProvider);
     if (_selectedSubject == null) {
-      setState(() => _errorMessage = 'Selecione uma matéria.');
+      setState(() => _errorMessage = t.tr('select_subject', fallback: 'Selecione uma matéria.'));
       return;
     }
 
     if (_stopDateTime.isBefore(_startDateTime) || _stopDateTime == _startDateTime) {
-      setState(() => _errorMessage = 'O horário de término deve ser posterior ao início.');
+      setState(() => _errorMessage = t.tr('invalid_time_range', fallback: 'O horário de término deve ser posterior ao início.'));
       return;
     }
 
     if (_stopDateTime.isAfter(DateTime.now())) {
-      setState(() => _errorMessage = 'Não é permitido registrar estudos no futuro.');
+      setState(() => _errorMessage = t.tr('no_future_study', fallback: 'Não é permitido registrar estudos no futuro.'));
       return;
     }
 
@@ -98,13 +100,13 @@ class _ManualStudyLogDialogState extends ConsumerState<ManualStudyLogDialog> {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Estudo de ${_selectedSubject!.title} registrado com sucesso!'),
+            content: Text('${t.tr("study", fallback: "Estudo")} ${_selectedSubject!.title} ${t.tr("success", fallback: "registrado com sucesso!")}'),
             backgroundColor: AppColors.success,
           ),
         );
       } else {
         setState(() {
-          _errorMessage = 'Falha ao registrar estudo manual no servidor.';
+          _errorMessage = t.tr('manual_log_failed', fallback: 'Falha ao registrar estudo manual no servidor.');
         });
       }
     }
@@ -113,18 +115,19 @@ class _ManualStudyLogDialogState extends ConsumerState<ManualStudyLogDialog> {
   @override
   Widget build(BuildContext context) {
     final timerState = ref.watch(timerNotifierProvider);
+    final t = ref.watch(appTranslationProvider);
     final subjects = timerState.subjects;
 
     return AlertDialog(
       backgroundColor: AppColors.card,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
-        children: const [
-          Icon(Icons.edit_calendar_rounded, color: AppColors.primary),
-          SizedBox(width: 10),
+        children: [
+          const Icon(Icons.edit_calendar_rounded, color: AppColors.primary),
+          const SizedBox(width: 10),
           Text(
-            'Registro Manual de Estudo',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+            t.tr('manual_study_record', fallback: 'Registro Manual de Estudo'),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
           ),
         ],
       ),
@@ -152,7 +155,7 @@ class _ManualStudyLogDialogState extends ConsumerState<ManualStudyLogDialog> {
               ],
 
               // Subject Dropdown
-              const Text('Matéria:', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              Text(t.tr('subjects', fallback: 'Matéria:'), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
               const SizedBox(height: 6),
               DropdownButtonFormField<SubjectModel>(
                 value: _selectedSubject,
@@ -187,7 +190,7 @@ class _ManualStudyLogDialogState extends ConsumerState<ManualStudyLogDialog> {
               const SizedBox(height: 16),
 
               // Date Selector
-              const Text('Data do Estudo:', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              Text(t.tr('date', fallback: 'Data do Estudo:'), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
               const SizedBox(height: 6),
               InkWell(
                 onTap: () async {
@@ -230,7 +233,7 @@ class _ManualStudyLogDialogState extends ConsumerState<ManualStudyLogDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Início:', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                        Text(t.tr('start_time', fallback: 'Início:'), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                         const SizedBox(height: 6),
                         InkWell(
                           onTap: () async {
@@ -270,7 +273,7 @@ class _ManualStudyLogDialogState extends ConsumerState<ManualStudyLogDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Término:', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                        Text(t.tr('end_time', fallback: 'Término:'), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                         const SizedBox(height: 6),
                         InkWell(
                           onTap: () async {
@@ -320,7 +323,7 @@ class _ManualStudyLogDialogState extends ConsumerState<ManualStudyLogDialog> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Duração calculada:', style: TextStyle(color: AppColors.primaryLight, fontSize: 13)),
+                    Text(t.tr('calculated_duration', fallback: 'Duração calculada:'), style: const TextStyle(color: AppColors.primaryLight, fontSize: 13)),
                     Text(
                       _formatDuration(_calculatedDuration),
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
@@ -335,7 +338,7 @@ class _ManualStudyLogDialogState extends ConsumerState<ManualStudyLogDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+          child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _handleSave,
@@ -346,7 +349,7 @@ class _ManualStudyLogDialogState extends ConsumerState<ManualStudyLogDialog> {
                   height: 20,
                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                 )
-              : const Text('Registrar Estudo', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              : Text(t.tr('save', fallback: 'Registrar Estudo'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ],
     );
