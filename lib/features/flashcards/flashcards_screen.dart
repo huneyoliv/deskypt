@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/localization/app_translation.dart';
 import '../../data/models/flashcard_model.dart';
 import 'flashcard_notifier.dart';
 import 'flashcard_study_screen.dart';
@@ -14,18 +15,19 @@ class FlashcardsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(flashcardNotifierProvider);
     final notifier = ref.read(flashcardNotifierProvider.notifier);
+    final t = ref.watch(appTranslationProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Flashcards',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(t.tr('flashcards', fallback: 'Flashcards'),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.surface,
         elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.add_rounded, color: AppColors.primary, size: 28),
-            tooltip: 'Novo Baralho',
+            tooltip: t.tr('add_flashcards', fallback: 'Novo Baralho'),
             onPressed: () {
               CreateDeckDialog.show(
                 context,
@@ -41,26 +43,26 @@ class FlashcardsScreen extends ConsumerWidget {
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : state.decks.isEmpty
-              ? _buildEmptyState(context, notifier)
-              : _buildDeckGrid(context, ref, state.decks),
+              ? _buildEmptyState(context, ref, notifier, t)
+              : _buildDeckGrid(context, ref, state.decks, t),
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, FlashcardNotifier notifier) {
+  Widget _buildEmptyState(BuildContext context, WidgetRef ref, FlashcardNotifier notifier, AppTranslation t) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.style_outlined, size: 80, color: AppColors.textMuted),
           const SizedBox(height: 16),
-          const Text(
-            'Nenhum baralho criado ainda',
-            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          Text(
+            t.tr('no_flashcards', fallback: 'Nenhum baralho criado ainda'),
+            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Crie baralhos e adicione cartões para acelerar seus estudos.',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+          Text(
+            t.tr('flashcard_desc', fallback: 'Crie baralhos e adicione cartões para acelerar seus estudos.'),
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
@@ -73,8 +75,8 @@ class FlashcardsScreen extends ConsumerWidget {
               );
             },
             icon: const Icon(Icons.add, color: Colors.white),
-            label: const Text('Criar Primeiro Baralho',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            label: Text(t.tr('add_flashcards', fallback: 'Criar Baralho'),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -90,6 +92,7 @@ class FlashcardsScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     List<FlashcardDeckModel> decks,
+    AppTranslation t,
   ) {
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -106,7 +109,7 @@ class FlashcardsScreen extends ConsumerWidget {
             itemCount: decks.length,
             itemBuilder: (context, index) {
               final deck = decks[index];
-              return _buildDeckCard(context, ref, deck);
+              return _buildDeckCard(context, ref, deck, t);
             },
           );
         },
@@ -118,6 +121,7 @@ class FlashcardsScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     FlashcardDeckModel deck,
+    AppTranslation t,
   ) {
     final notifier = ref.read(flashcardNotifierProvider.notifier);
 
@@ -168,23 +172,23 @@ class FlashcardsScreen extends ConsumerWidget {
                   }
                 },
                 itemBuilder: (_) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'add',
                     child: Row(
                       children: [
-                        Icon(Icons.add_circle_outline, color: AppColors.primary, size: 18),
-                        SizedBox(width: 8),
-                        Text('Adicionar Cartão', style: TextStyle(color: Colors.white)),
+                        const Icon(Icons.add_circle_outline, color: AppColors.primary, size: 18),
+                        const SizedBox(width: 8),
+                        Text(t.tr('add_card', fallback: 'Adicionar Cartão'), style: const TextStyle(color: Colors.white)),
                       ],
                     ),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(Icons.delete_outline, color: AppColors.error, size: 18),
-                        SizedBox(width: 8),
-                        Text('Excluir Baralho', style: TextStyle(color: AppColors.error)),
+                        const Icon(Icons.delete_outline, color: AppColors.error, size: 18),
+                        const SizedBox(width: 8),
+                        Text(t.tr('delete', fallback: 'Excluir Baralho'), style: const TextStyle(color: AppColors.error)),
                       ],
                     ),
                   ),
@@ -206,7 +210,7 @@ class FlashcardsScreen extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${deck.cardCount} cartões',
+                '${deck.cardCount} ${t.tr("cards", fallback: "cartões")}',
                 style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
               ),
               ElevatedButton.icon(
@@ -219,8 +223,8 @@ class FlashcardsScreen extends ConsumerWidget {
                   }
                 },
                 icon: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 18),
-                label: const Text('Estudar',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                label: Text(t.tr('study', fallback: 'Estudar'),
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: deck.color,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),

@@ -78,6 +78,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
   }
 
   void _showAddTodoDialog() {
+    final t = ref.read(appTranslationProvider);
     bool isRecurring = false;
     Set<int> selectedDays = {1, 2, 3, 4, 5};
     DateTime endDate = _selectedDate.add(const Duration(days: 30));
@@ -97,7 +98,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: AppColors.card,
-          title: const Text('Nova Tarefa do Planner', style: TextStyle(color: Colors.white)),
+          title: Text(t.tr('alert_todo_add', fallback: 'Nova Tarefa do Planner'), style: const TextStyle(color: Colors.white)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -107,7 +108,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                   controller: _todoTitleController,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    hintText: 'Descrição da tarefa (ex: Revisar 20 questões)',
+                    hintText: 'Descrição da tarefa...',
                     hintStyle: const TextStyle(color: AppColors.textMuted),
                     filled: true,
                     fillColor: AppColors.surface,
@@ -183,7 +184,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+              child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -220,7 +221,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text('Adicionar', style: TextStyle(color: Colors.white)),
+              child: Text(t.tr('add', fallback: 'Adicionar'), style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -229,11 +230,12 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
   }
 
   void _showAddDDayDialog() {
+    final t = ref.read(appTranslationProvider);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: const Text('Novo D-Day', style: TextStyle(color: Colors.white)),
+        title: Text(t.tr('dday', fallback: 'Novo D-Day'), style: const TextStyle(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -241,7 +243,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
               controller: _ddayTitleController,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'Título do D-Day (ex: Prova ENEM)',
+                hintText: 'Título do D-Day...',
                 hintStyle: const TextStyle(color: AppColors.textMuted),
                 filled: true,
                 fillColor: AppColors.surface,
@@ -255,7 +257,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+            child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -263,7 +265,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
               _ddayTitleController.clear();
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Adicionar', style: TextStyle(color: Colors.white)),
+            child: Text(t.tr('add', fallback: 'Adicionar'), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -271,6 +273,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
   }
 
   Future<void> _showEditTodoDialog(TodoItemModel todo) async {
+    final t = ref.read(appTranslationProvider);
     final controller = TextEditingController(text: todo.title);
     bool applyToAllSeries = todo.isRecurring;
 
@@ -279,7 +282,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: AppColors.card,
-          title: const Text('Editar Tarefa', style: TextStyle(color: Colors.white)),
+          title: Text(t.tr('edit', fallback: 'Editar Tarefa'), style: const TextStyle(color: Colors.white)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,7 +322,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+              child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -337,7 +340,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text('Salvar', style: TextStyle(color: Colors.white)),
+              child: Text(t.tr('save', fallback: 'Salvar'), style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -346,6 +349,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
   }
 
   Future<void> _deleteTodo(TodoItemModel todo) async {
+    final t = ref.read(appTranslationProvider);
     bool deleteAllSeries = todo.isRecurring;
 
     showDialog(
@@ -353,14 +357,14 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: AppColors.card,
-          title: Text('Excluir "${todo.title}"?', style: const TextStyle(color: Colors.white)),
+          title: Text('${t.tr("delete", fallback: "Excluir")} "${todo.title}"?', style: const TextStyle(color: Colors.white)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Tem certeza que deseja excluir esta tarefa do planner?',
-                style: TextStyle(color: AppColors.textSecondary),
+              Text(
+                'Tem certeza que deseja excluir esta tarefa?',
+                style: const TextStyle(color: AppColors.textSecondary),
               ),
               if (todo.isRecurring) ...[
                 const SizedBox(height: 16),
@@ -387,7 +391,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+              child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -402,7 +406,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-              child: const Text('Excluir', style: TextStyle(color: Colors.white)),
+              child: Text(t.tr('delete', fallback: 'Excluir'), style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -438,349 +442,349 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
             Row(
               children: [
                 // Left Sidebar - Calendar & D-Days
-          Container(
-            width: 380,
-            decoration: const BoxDecoration(
-              color: AppColors.surface,
-              border: Border(right: BorderSide(color: AppColors.border)),
-            ),
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Seus D-Days', style: AppTextStyles.titleLarge),
-                    IconButton(
-                      icon: const Icon(Icons.add_circle_outline,
-                          color: AppColors.primary),
-                      onPressed: _showAddDDayDialog,
-                      tooltip: 'Novo D-Day',
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                // D-Days Horizontal List
-                SizedBox(
-                  height: 90,
-                  child: _ddays.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'Nenhum D-Day cadastrado',
-                            style: TextStyle(color: AppColors.textMuted, fontSize: 13),
-                          ),
-                        )
-                      : ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _ddays.length,
-                          itemBuilder: (context, index) {
-                            final dday = _ddays[index];
-                            return Container(
-                              width: 160,
-                              margin: const EdgeInsets.only(right: 12),
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: AppColors.card,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                    color: dday.color.withValues(alpha: 0.6)),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    dday.label,
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w900,
-                                      color: dday.color,
-                                    ),
-                                  ),
-                                  Text(
-                                    dday.title,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                ),
-                const SizedBox(height: 32),
-
-                const Text('Calendário de Estudos', style: AppTextStyles.titleLarge),
-                const SizedBox(height: 12),
-
-                // Mini Calendar View
-                CalendarDatePicker(
-                  initialDate: _selectedDate,
-                  firstDate: DateTime(2020),
-                  lastDate: DateTime(2030),
-                  onDateChanged: (date) {
-                    setState(() => _selectedDate = date);
-                    _loadData();
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          // Right Column - To-Do Checklist
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Container(
+                  width: 380,
+                  decoration: const BoxDecoration(
+                    color: AppColors.surface,
+                    border: Border(right: BorderSide(color: AppColors.border)),
+                  ),
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'Planner de Estudos (To-Do)',
-                            style: AppTextStyles.displayMedium,
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.arrow_back_ios_rounded, size: 16, color: AppColors.textMuted),
-                                onPressed: () {
-                                  setState(() => _selectedDate = _selectedDate.subtract(const Duration(days: 1)));
-                                  _loadData();
-                                },
-                              ),
-                              InkWell(
-                                onTap: () async {
-                                  final picked = await showDatePicker(
-                                    context: context,
-                                    initialDate: _selectedDate,
-                                    firstDate: DateTime(2020),
-                                    lastDate: DateTime(2030),
-                                  );
-                                  if (picked != null) {
-                                    setState(() => _selectedDate = picked);
-                                    _loadData();
-                                  }
-                                },
-                                child: Text(
-                                  DateFormat('EEEE, d MMMM yyyy').format(_selectedDate),
-                                  style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.textMuted),
-                                onPressed: () {
-                                  setState(() => _selectedDate = _selectedDate.add(const Duration(days: 1)));
-                                  _loadData();
-                                },
-                              ),
-                            ],
+                          Text(t.tr('dday', fallback: 'Seus D-Days'), style: AppTextStyles.titleLarge),
+                          IconButton(
+                            icon: const Icon(Icons.add_circle_outline,
+                                color: AppColors.primary),
+                            onPressed: _showAddDDayDialog,
+                            tooltip: t.tr('dday', fallback: 'Novo D-Day'),
                           ),
                         ],
                       ),
-                      ElevatedButton.icon(
-                        onPressed: _showAddTodoDialog,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        icon: const Icon(Icons.add, color: Colors.white),
-                        label: const Text('Nova Tarefa',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
+                      const SizedBox(height: 12),
 
-                  // Progress Bar Card
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppColors.card,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Progresso do Dia: $completedCount de $totalCount concluídas',
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                            Text(
-                              '${(progressPct * 100).toInt()}%',
-                              style: const TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w800),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: LinearProgressIndicator(
-                            value: progressPct,
-                            minHeight: 8,
-                            backgroundColor: AppColors.surface,
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                                AppColors.primary),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // To-Do Checklist Items
-                  Expanded(
-                    child: _isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : _todos.isEmpty
+                      // D-Days Horizontal List
+                      SizedBox(
+                        height: 90,
+                        child: _ddays.isEmpty
                             ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.check_circle_outline,
-                                        size: 48, color: AppColors.textMuted),
-                                    const SizedBox(height: 12),
-                                    const Text(
-                                      'Nenhuma tarefa agendada para este dia.',
-                                      style: TextStyle(color: AppColors.textSecondary),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    ElevatedButton(
-                                      onPressed: _showAddTodoDialog,
-                                      style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppColors.primary),
-                                      child: const Text('Adicionar Tarefa',
-                                          style: TextStyle(color: Colors.white)),
-                                    ),
-                                  ],
+                                child: Text(
+                                  t.tr('dday_empty', fallback: 'Nenhum D-Day cadastrado'),
+                                  style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
                                 ),
                               )
                             : ListView.builder(
-                                itemCount: _todos.length,
+                                scrollDirection: Axis.horizontal,
+                                itemCount: _ddays.length,
                                 itemBuilder: (context, index) {
-                                  final todo = _todos[index];
-
+                                  final dday = _ddays[index];
                                   return Container(
-                                    margin: const EdgeInsets.only(bottom: 12),
+                                    width: 160,
+                                    margin: const EdgeInsets.only(right: 12),
                                     padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
                                       color: AppColors.card,
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(14),
                                       border: Border.all(
-                                        color: todo.isCompleted
-                                            ? AppColors.border
-                                            : Color(todo.subjectColorInt)
-                                                .withValues(alpha: 0.5),
-                                      ),
+                                          color: dday.color.withValues(alpha: 0.6)),
                                     ),
-                                    child: Row(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Checkbox(
-                                          value: todo.isCompleted,
-                                          activeColor: AppColors.primary,
-                                          onChanged: (_) => _toggleTodo(todo),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          width: 10,
-                                          height: 10,
-                                          decoration: BoxDecoration(
-                                            color: Color(todo.subjectColorInt),
-                                            shape: BoxShape.circle,
+                                        Text(
+                                          dday.label,
+                                          style: TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w900,
+                                            color: dday.color,
                                           ),
                                         ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Flexible(
-                                                    child: Text(
-                                                      todo.title,
-                                                      style: TextStyle(
-                                                        color: todo.isCompleted
-                                                            ? AppColors.textMuted
-                                                            : Colors.white,
-                                                        fontSize: 15,
-                                                        fontWeight: FontWeight.w600,
-                                                        decoration: todo.isCompleted
-                                                            ? TextDecoration.lineThrough
-                                                            : null,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  if (todo.isRecurring)
-                                                    const Padding(
-                                                      padding: EdgeInsets.only(left: 6),
-                                                      child: Icon(Icons.sync_rounded,
-                                                          size: 15, color: AppColors.primary),
-                                                    ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 2),
-                                              Text(
-                                                todo.subjectTitle,
-                                                style: const TextStyle(
-                                                    color: AppColors.textMuted,
-                                                    fontSize: 12),
-                                              ),
-                                            ],
+                                        Text(
+                                          dday.title,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13,
                                           ),
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            IconButton(
-                                              icon: const Icon(Icons.edit, color: Colors.white70, size: 18),
-                                              tooltip: 'Editar Tarefa',
-                                              onPressed: () => _showEditTodoDialog(todo),
-                                            ),
-                                            IconButton(
-                                              icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 18),
-                                              tooltip: 'Excluir Tarefa',
-                                              onPressed: () => _deleteTodo(todo),
-                                            ),
-                                          ],
                                         ),
                                       ],
                                     ),
                                   );
                                 },
                               ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      Text(t.tr('calendar', fallback: 'Calendário de Estudos'), style: AppTextStyles.titleLarge),
+                      const SizedBox(height: 12),
+
+                      // Mini Calendar View
+                      CalendarDatePicker(
+                        initialDate: _selectedDate,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2030),
+                        onDateChanged: (date) {
+                          setState(() => _selectedDate = date);
+                          _loadData();
+                        },
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ),
+                ),
+
+                // Right Column - To-Do Checklist
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  t.tr('todo', fallback: 'Planner de Estudos (To-Do)'),
+                                  style: AppTextStyles.displayMedium,
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.arrow_back_ios_rounded, size: 16, color: AppColors.textMuted),
+                                      onPressed: () {
+                                        setState(() => _selectedDate = _selectedDate.subtract(const Duration(days: 1)));
+                                        _loadData();
+                                      },
+                                    ),
+                                    InkWell(
+                                      onTap: () async {
+                                        final picked = await showDatePicker(
+                                          context: context,
+                                          initialDate: _selectedDate,
+                                          firstDate: DateTime(2020),
+                                          lastDate: DateTime(2030),
+                                        );
+                                        if (picked != null) {
+                                          setState(() => _selectedDate = picked);
+                                          _loadData();
+                                        }
+                                      },
+                                      child: Text(
+                                        DateFormat('EEEE, d MMMM yyyy').format(_selectedDate),
+                                        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.textMuted),
+                                      onPressed: () {
+                                        setState(() => _selectedDate = _selectedDate.add(const Duration(days: 1)));
+                                        _loadData();
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            ElevatedButton.icon(
+                              onPressed: _showAddTodoDialog,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              icon: const Icon(Icons.add, color: Colors.white),
+                              label: Text(t.tr('add', fallback: 'Nova Tarefa'),
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Progress Bar Card
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: AppColors.card,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '${t.tr("today", fallback: "Progresso")}: $completedCount / $totalCount ${t.tr("done", fallback: "concluídas")}',
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                  Text(
+                                    '${(progressPct * 100).toInt()}%',
+                                    style: const TextStyle(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w800),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(6),
+                                child: LinearProgressIndicator(
+                                  value: progressPct,
+                                  minHeight: 8,
+                                  backgroundColor: AppColors.surface,
+                                  valueColor: const AlwaysStoppedAnimation<Color>(
+                                      AppColors.primary),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // To-Do Checklist Items
+                        Expanded(
+                          child: _isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : _todos.isEmpty
+                                  ? Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(Icons.check_circle_outline,
+                                              size: 48, color: AppColors.textMuted),
+                                          const SizedBox(height: 12),
+                                          Text(
+                                            t.tr('alert_todo_add_error', fallback: 'Nenhuma tarefa agendada para este dia.'),
+                                            style: const TextStyle(color: AppColors.textSecondary),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          ElevatedButton(
+                                            onPressed: _showAddTodoDialog,
+                                            style: ElevatedButton.styleFrom(
+                                                backgroundColor: AppColors.primary),
+                                            child: Text(t.tr('add', fallback: 'Adicionar Tarefa'),
+                                                style: const TextStyle(color: Colors.white)),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : ListView.builder(
+                                      itemCount: _todos.length,
+                                      itemBuilder: (context, index) {
+                                        final todo = _todos[index];
+
+                                        return Container(
+                                          margin: const EdgeInsets.only(bottom: 12),
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.card,
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: todo.isCompleted
+                                                  ? AppColors.border
+                                                  : Color(todo.subjectColorInt)
+                                                      .withValues(alpha: 0.5),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Checkbox(
+                                                value: todo.isCompleted,
+                                                activeColor: AppColors.primary,
+                                                onChanged: (_) => _toggleTodo(todo),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                width: 10,
+                                                height: 10,
+                                                decoration: BoxDecoration(
+                                                  color: Color(todo.subjectColorInt),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        Flexible(
+                                                          child: Text(
+                                                            todo.title,
+                                                            style: TextStyle(
+                                                              color: todo.isCompleted
+                                                                  ? AppColors.textMuted
+                                                                  : Colors.white,
+                                                              fontSize: 15,
+                                                              fontWeight: FontWeight.w600,
+                                                              decoration: todo.isCompleted
+                                                                  ? TextDecoration.lineThrough
+                                                                  : null,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        if (todo.isRecurring)
+                                                          const Padding(
+                                                            padding: EdgeInsets.only(left: 6),
+                                                            child: Icon(Icons.sync_rounded,
+                                                                size: 15, color: AppColors.primary),
+                                                          ),
+                                                      ],
+                                                    ),
+                                                    const SizedBox(height: 2),
+                                                    Text(
+                                                      todo.subjectTitle,
+                                                      style: const TextStyle(
+                                                          color: AppColors.textMuted,
+                                                          fontSize: 12),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  IconButton(
+                                                    icon: const Icon(Icons.edit, color: Colors.white70, size: 18),
+                                                    tooltip: t.tr('edit', fallback: 'Editar Tarefa'),
+                                                    onPressed: () => _showEditTodoDialog(todo),
+                                                  ),
+                                                  IconButton(
+                                                    icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 18),
+                                                    tooltip: t.tr('delete', fallback: 'Excluir Tarefa'),
+                                                    onPressed: () => _deleteTodo(todo),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
             const TimetableScreen(),

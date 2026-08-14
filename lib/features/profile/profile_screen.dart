@@ -22,17 +22,18 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   void _showEditNicknameDialog(BuildContext context, WidgetRef ref, String currentName) {
+    final t = ref.read(appTranslationProvider);
     final controller = TextEditingController(text: currentName);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: const Text('Alterar Apelido (Nickname)', style: TextStyle(color: Colors.white)),
+        title: Text(t.tr('edit', fallback: 'Alterar Apelido'), style: const TextStyle(color: Colors.white)),
         content: TextField(
           controller: controller,
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
-            hintText: 'Digite seu novo apelido',
+            hintText: t.tr('nickname', fallback: 'Digite seu novo apelido'),
             hintStyle: const TextStyle(color: AppColors.textMuted),
             filled: true,
             fillColor: AppColors.surface,
@@ -45,7 +46,7 @@ class ProfileScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+            child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -59,8 +60,8 @@ class ProfileScreen extends ConsumerWidget {
                     SnackBar(
                       content: Text(
                         success
-                            ? 'Apelido alterado com sucesso!'
-                            : 'Falha ao alterar apelido no servidor',
+                            ? t.tr('success', fallback: 'Apelido alterado com sucesso!')
+                            : t.tr('error', fallback: 'Falha ao alterar apelido no servidor'),
                       ),
                       backgroundColor: success ? AppColors.success : AppColors.error,
                     ),
@@ -69,7 +70,7 @@ class ProfileScreen extends ConsumerWidget {
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Salvar', style: TextStyle(color: Colors.white)),
+            child: Text(t.tr('save', fallback: 'Salvar'), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -77,17 +78,18 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   void _showEditStatusMsgDialog(BuildContext context, WidgetRef ref, String currentStatus) {
+    final t = ref.read(appTranslationProvider);
     final controller = TextEditingController(text: currentStatus);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: const Text('Alterar Mensagem de Status', style: TextStyle(color: Colors.white)),
+        title: Text(t.tr('edit', fallback: 'Alterar Mensagem de Status'), style: const TextStyle(color: Colors.white)),
         content: TextField(
           controller: controller,
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
-            hintText: 'Digite sua mensagem de status',
+            hintText: 'Digite sua mensagem de status...',
             hintStyle: const TextStyle(color: AppColors.textMuted),
             filled: true,
             fillColor: AppColors.surface,
@@ -100,7 +102,7 @@ class ProfileScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+            child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -113,8 +115,8 @@ class ProfileScreen extends ConsumerWidget {
                   SnackBar(
                     content: Text(
                       success
-                          ? 'Mensagem de status alterada!'
-                          : 'Falha ao atualizar status no servidor',
+                          ? t.tr('success', fallback: 'Mensagem de status alterada!')
+                          : t.tr('error', fallback: 'Falha ao atualizar status no servidor'),
                     ),
                     backgroundColor: success ? AppColors.success : AppColors.error,
                   ),
@@ -122,7 +124,7 @@ class ProfileScreen extends ConsumerWidget {
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Salvar', style: TextStyle(color: Colors.white)),
+            child: Text(t.tr('save', fallback: 'Salvar'), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -149,15 +151,15 @@ class ProfileScreen extends ConsumerWidget {
                 context: context,
                 builder: (context) => AlertDialog(
                   backgroundColor: AppColors.card,
-                  title: const Text('Sair do DeskYPT', style: TextStyle(color: Colors.white)),
-                  content: const Text(
-                    'Tem certeza que deseja encerrar sua sessão?',
-                    style: TextStyle(color: AppColors.textSecondary),
+                  title: Text(t.tr('logout', fallback: 'Sair do DeskYPT'), style: const TextStyle(color: Colors.white)),
+                  content: Text(
+                    t.tr('logout_confirm', fallback: 'Tem certeza que deseja encerrar sua sessão?'),
+                    style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+                      child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
                     ),
                     ElevatedButton(
                       onPressed: () {
@@ -165,7 +167,7 @@ class ProfileScreen extends ConsumerWidget {
                         ref.read(authStateProvider.notifier).logout();
                       },
                       style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-                      child: const Text('Sair', style: TextStyle(color: Colors.white)),
+                      child: Text(t.tr('logout', fallback: 'Sair'), style: const TextStyle(color: Colors.white)),
                     ),
                   ],
                 ),
@@ -209,7 +211,7 @@ class ProfileScreen extends ConsumerWidget {
                             ),
                             IconButton(
                               icon: const Icon(Icons.edit, size: 18, color: AppColors.primary),
-                              tooltip: 'Editar Apelido',
+                              tooltip: t.tr('edit', fallback: 'Editar Apelido'),
                               onPressed: () => _showEditNicknameDialog(
                                 context,
                                 ref,
@@ -236,7 +238,7 @@ class ProfileScreen extends ConsumerWidget {
                             IconButton(
                               icon: const Icon(Icons.mode_comment_outlined,
                                   size: 16, color: AppColors.textMuted),
-                              tooltip: 'Editar Mensagem de Status',
+                              tooltip: t.tr('edit', fallback: 'Editar Mensagem de Status'),
                               onPressed: () => _showEditStatusMsgDialog(
                                 context,
                                 ref,
@@ -289,8 +291,8 @@ class ProfileScreen extends ConsumerWidget {
                                   context: context,
                                   builder: (context) => SimpleDialog(
                                     backgroundColor: AppColors.card,
-                                    title: const Text('Selecionar Categoria / Objetivo',
-                                        style: TextStyle(color: Colors.white)),
+                                    title: Text(t.tr('category', fallback: 'Selecionar Categoria / Objetivo'),
+                                        style: const TextStyle(color: Colors.white)),
                                     children: categories.isEmpty
                                         ? [
                                             const Padding(
@@ -369,8 +371,8 @@ class ProfileScreen extends ConsumerWidget {
                               color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
-                        const Text('Estudados Hoje',
-                            style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                        Text(t.tr('today_total_study_time', fallback: 'Estudados Hoje'),
+                            style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                       ],
                     ),
                   ),
@@ -394,8 +396,8 @@ class ProfileScreen extends ConsumerWidget {
                               color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
-                        const Text('Matérias',
-                            style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                        Text(t.tr('subjects', fallback: 'Matérias'),
+                            style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                       ],
                     ),
                   ),
@@ -419,8 +421,8 @@ class ProfileScreen extends ConsumerWidget {
                               color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
-                        const Text('Meus Grupos',
-                            style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                        Text(t.tr('my_groups', fallback: 'Meus Grupos'),
+                            style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                       ],
                     ),
                   ),
@@ -463,7 +465,7 @@ class ProfileScreen extends ConsumerWidget {
                       leading: const Icon(Icons.public, color: AppColors.primary),
                       title: Text(t.tr('region', fallback: 'Região / País'), style: const TextStyle(color: Colors.white)),
                       subtitle: Text(
-                        '${country.name} (${country.code})',
+                        '${country.formattedName} (${country.code})',
                         style: const TextStyle(color: AppColors.textSecondary),
                       ),
                       trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
@@ -485,7 +487,7 @@ class ProfileScreen extends ConsumerWidget {
                       leading: const Icon(Icons.access_time, color: AppColors.primary),
                       title: Text(t.tr('timezone', fallback: 'Fuso Horário da Região'), style: const TextStyle(color: Colors.white)),
                       subtitle: Text(
-                        country.timezone,
+                        '${country.timezone} (${country.gmtDisplay})',
                         style: const TextStyle(color: AppColors.textSecondary),
                       ),
                     ),

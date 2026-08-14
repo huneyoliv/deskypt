@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/localization/app_translation.dart';
 import '../../../data/models/notification_model.dart';
 import '../../../data/repositories/notification_repository.dart';
 
@@ -33,7 +34,6 @@ class _NotificationPanelDialogState extends ConsumerState<NotificationPanelDialo
     setState(() => _isLoading = true);
     final repo = ref.read(notificationRepositoryProvider);
 
-    // Automatically mark all as read upon opening panel
     repo.markAllAsRead();
 
     final list = await repo.fetchNotifications();
@@ -66,6 +66,7 @@ class _NotificationPanelDialogState extends ConsumerState<NotificationPanelDialo
   @override
   Widget build(BuildContext context) {
     final df = DateFormat('dd/MM/yyyy HH:mm');
+    final t = ref.watch(appTranslationProvider);
 
     return AlertDialog(
       backgroundColor: AppColors.card,
@@ -80,12 +81,12 @@ class _NotificationPanelDialogState extends ConsumerState<NotificationPanelDialo
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
-            children: const [
-              Icon(Icons.notifications_active_rounded, color: AppColors.primaryLight, size: 22),
-              SizedBox(width: 10),
+            children: [
+              const Icon(Icons.notifications_active_rounded, color: AppColors.primaryLight, size: 22),
+              const SizedBox(width: 10),
               Text(
-                'Notificações',
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                t.tr('notifications', fallback: 'Notificações'),
+                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -94,7 +95,7 @@ class _NotificationPanelDialogState extends ConsumerState<NotificationPanelDialo
               if (_notifications.isNotEmpty)
                 IconButton(
                   icon: const Icon(Icons.delete_sweep_outlined, color: AppColors.error, size: 20),
-                  tooltip: 'Limpar todas',
+                  tooltip: t.tr('delete', fallback: 'Limpar todas'),
                   onPressed: _clearAll,
                 ),
               IconButton(
@@ -114,12 +115,12 @@ class _NotificationPanelDialogState extends ConsumerState<NotificationPanelDialo
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.notifications_off_outlined, size: 48, color: AppColors.textMuted),
-                        SizedBox(height: 12),
+                      children: [
+                        const Icon(Icons.notifications_off_outlined, size: 48, color: AppColors.textMuted),
+                        const SizedBox(height: 12),
                         Text(
-                          'Nenhuma notificação no momento',
-                          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                          t.tr('no_notifications', fallback: 'Nenhuma notificação no momento'),
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
                         ),
                       ],
                     ),
@@ -190,7 +191,7 @@ class _NotificationPanelDialogState extends ConsumerState<NotificationPanelDialo
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete_outline, color: AppColors.textMuted, size: 18),
-                              tooltip: 'Excluir',
+                              tooltip: t.tr('delete', fallback: 'Excluir'),
                               onPressed: () => _deleteNotification(notice),
                             ),
                           ],

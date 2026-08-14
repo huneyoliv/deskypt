@@ -31,6 +31,7 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
   List<RankEntryModel> _ranks = [];
   List<double> _weeklyHours = List.filled(7, 0.0);
   Map<String, double> _subjectDistribution = {};
+  Map<String, int> _monthlyStudyMs = {};
   bool _isLoadingRanks = true;
   bool _isLoadingStats = true;
 
@@ -66,8 +67,6 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
       });
     }
   }
-
-  Map<String, int> _monthlyStudyMs = {};
 
   Future<void> _loadUserStats() async {
     setState(() => _isLoadingStats = true);
@@ -224,14 +223,14 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('${t.tr('ranking', fallback: 'Rankings')} & ${t.tr('stats', fallback: 'Estatísticas')}', style: AppTextStyles.titleLarge),
+        title: Text(t.tr('ranks', fallback: 'Rankings & Estatísticas'), style: AppTextStyles.titleLarge),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
           labelColor: Colors.white,
           unselectedLabelColor: AppColors.textSecondary,
           tabs: [
-            Tab(text: t.tr('ranking', fallback: 'Rankings Globais')),
+            Tab(text: t.tr('ranks', fallback: 'Rankings Globais')),
             Tab(text: t.tr('stats', fallback: 'Estatísticas & Mapa 24h')),
             Tab(text: t.tr('calendar', fallback: 'Calendário Mensal')),
           ],
@@ -250,7 +249,7 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
                 child: Row(
                   children: [
                     ChoiceChip(
-                      label: const Text('Hoje'),
+                      label: Text(t.tr('today', fallback: 'Hoje')),
                       selected: _selectedPeriod == 'day',
                       selectedColor: AppColors.primary,
                       backgroundColor: AppColors.card,
@@ -262,7 +261,7 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
                     ),
                     const SizedBox(width: 8),
                     ChoiceChip(
-                      label: const Text('Esta Semana'),
+                      label: Text(t.tr('this_week', fallback: 'Esta Semana')),
                       selected: _selectedPeriod == 'week',
                       selectedColor: AppColors.primary,
                       backgroundColor: AppColors.card,
@@ -274,7 +273,7 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
                     ),
                     const SizedBox(width: 8),
                     ChoiceChip(
-                      label: const Text('Este Mês'),
+                      label: Text(t.tr('this_month', fallback: 'Este Mês')),
                       selected: _selectedPeriod == 'month',
                       selectedColor: AppColors.primary,
                       backgroundColor: AppColors.card,
@@ -294,7 +293,7 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
                           border: Border.all(color: AppColors.primary),
                         ),
                         child: Text(
-                          'Seu Ranking: #$_myRank',
+                          '${t.tr("ranking", fallback: "Seu Ranking")}: #$_myRank',
                           style: const TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
@@ -309,105 +308,98 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
                 child: _isLoadingRanks
                     ? const Center(child: CircularProgressIndicator())
                     : _ranks.isEmpty
-                        ? const Center(
-                            child: Text('Nenhum ranking disponível no momento.',
-                                style: TextStyle(color: AppColors.textSecondary)),
+                        ? Center(
+                            child: Text(t.tr('no_ranks', fallback: 'Nenhum ranking disponível no momento.'),
+                                style: const TextStyle(color: AppColors.textSecondary)),
                           )
                         : ListView(
                             padding: const EdgeInsets.all(32),
                             children: [
-                              // Podium Header (Top 1, Top 2, Top 3)
-                        if (_ranks.length >= 3)
-                          SizedBox(
-                            height: 260,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                // 2nd Place (Silver)
-                                _buildPodiumItem(
-                                  member: _ranks[1],
-                                  badgeImage: 'assets/images/ic_silver.png',
-                                  height: 110,
-                                  color: const Color(0xFFC0C0C0),
+                              if (_ranks.length >= 3)
+                                SizedBox(
+                                  height: 260,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      _buildPodiumItem(
+                                        member: _ranks[1],
+                                        badgeImage: 'assets/images/ic_silver.png',
+                                        height: 110,
+                                        color: const Color(0xFFC0C0C0),
+                                      ),
+                                      const SizedBox(width: 24),
+                                      _buildPodiumItem(
+                                        member: _ranks[0],
+                                        badgeImage: 'assets/images/ic_gold.png',
+                                        height: 140,
+                                        color: const Color(0xFFFFD700),
+                                      ),
+                                      const SizedBox(width: 24),
+                                      _buildPodiumItem(
+                                        member: _ranks[2],
+                                        badgeImage: 'assets/images/ic_bronze.png',
+                                        height: 90,
+                                        color: const Color(0xFFCD7F32),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(width: 24),
+                              const SizedBox(height: 32),
 
-                                // 1st Place (Gold)
-                                _buildPodiumItem(
-                                  member: _ranks[0],
-                                  badgeImage: 'assets/images/ic_gold.png',
-                                  height: 140,
-                                  color: const Color(0xFFFFD700),
-                                ),
-                                const SizedBox(width: 24),
+                              Text(t.tr('ranking', fallback: 'Top Estudantes'), style: AppTextStyles.titleMedium),
+                              const SizedBox(height: 12),
 
-                                // 3rd Place (Bronze)
-                                _buildPodiumItem(
-                                  member: _ranks[2],
-                                  badgeImage: 'assets/images/ic_bronze.png',
-                                  height: 90,
-                                  color: const Color(0xFFCD7F32),
-                                ),
-                              ],
-                            ),
-                          ),
-                        const SizedBox(height: 32),
-
-                        const Text('Top Estudantes', style: AppTextStyles.titleMedium),
-                        const SizedBox(height: 12),
-
-                        // Ranks List 4+
-                        ..._ranks.skip(3).map((rank) {
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            color: AppColors.card,
-                            child: ListTile(
-                              leading: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(
-                                    width: 32,
-                                    child: Text(
-                                      '#${rank.rank}',
+                              ..._ranks.skip(3).map((rank) {
+                                return Card(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  color: AppColors.card,
+                                  child: ListTile(
+                                    leading: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SizedBox(
+                                          width: 32,
+                                          child: Text(
+                                            '#${rank.rank}',
+                                            style: const TextStyle(
+                                              color: AppColors.textMuted,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        StudiconAvatar(
+                                          studiconId: rank.studiconId,
+                                          size: 36,
+                                        ),
+                                      ],
+                                    ),
+                                    title: Text(rank.userName,
+                                        style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600)),
+                                    subtitle: Text(rank.categoryName,
+                                        style: const TextStyle(
+                                            color: AppColors.textSecondary,
+                                            fontSize: 12)),
+                                    trailing: Text(
+                                      _formatMs(rank.studyMs),
                                       style: const TextStyle(
-                                        color: AppColors.textMuted,
-                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w800,
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  StudiconAvatar(
-                                    studiconId: rank.studiconId,
-                                    size: 36,
-                                  ),
-                                ],
-                              ),
-                              title: Text(rank.userName,
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600)),
-                              subtitle: Text(rank.categoryName,
-                                  style: const TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 12)),
-                              trailing: Text(
-                                _formatMs(rank.studyMs),
-                                style: const TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
+                                );
+                              }),
+                            ],
+                          ),
               ),
             ],
           ),
 
-          // Tab 2: Statistics & fl_chart Graphs (Real Data)
+          // Tab 2: Statistics & fl_chart Graphs
           _isLoadingStats
               ? const Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
@@ -430,8 +422,8 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Horas Estudadas na Semana',
+                                    Text(
+                                      t.tr('this_week', fallback: 'Horas Estudadas na Semana'),
                                       style: AppTextStyles.titleMedium,
                                     ),
                                     const SizedBox(height: 24),
@@ -508,17 +500,17 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Distribuição por Matéria',
+                                    Text(
+                                      t.tr('subject_distribution', fallback: 'Distribuição por Matéria'),
                                       style: AppTextStyles.titleMedium,
                                     ),
                                     const SizedBox(height: 24),
                                     Expanded(
                                       child: pieSections.isEmpty
-                                          ? const Center(
+                                          ? Center(
                                               child: Text(
-                                                'Nenhum dado registrado esta semana.',
-                                                style: TextStyle(
+                                                t.tr('no_data', fallback: 'Nenhum dado registrado esta semana.'),
+                                                style: const TextStyle(
                                                     color: AppColors.textSecondary),
                                               ),
                                             )

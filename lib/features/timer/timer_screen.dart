@@ -113,21 +113,21 @@ class TimerScreen extends ConsumerWidget {
                     children: [
                       // Focus Mode Distraction-Free Toggle
                       IconButton(
-                        tooltip: 'Modo Foco Sem Distrações',
+                        tooltip: t.tr('focus', fallback: 'Modo Foco Sem Distrações'),
                         icon: const Icon(Icons.fullscreen_rounded, color: AppColors.textSecondary),
                         onPressed: () => ref.read(focusModeProvider.notifier).toggleStrictFocus(),
                       ),
 
                       // Mini-Player Floating Window Toggle
                       IconButton(
-                        tooltip: 'Mini-Player Flutuante',
+                        tooltip: t.tr('mini_player', fallback: 'Mini-Player Flutuante'),
                         icon: const Icon(Icons.picture_in_picture_alt_rounded, color: AppColors.textSecondary),
                         onPressed: () => ref.read(focusModeProvider.notifier).toggleMiniPlayer(),
                       ),
 
                       // Manual Study Log Button
                       IconButton(
-                        tooltip: 'Registro Manual de Estudo',
+                        tooltip: t.tr('alert_planner_add_study_log', fallback: 'Registro Manual de Estudo'),
                         icon: const Icon(Icons.edit_calendar_rounded, color: AppColors.primaryLight),
                         onPressed: () => ManualStudyLogDialog.show(context),
                       ),
@@ -211,7 +211,7 @@ class TimerScreen extends ConsumerWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Ciclo ${timerState.currentPomodoroCycle} de ${timerState.totalPomodoroCycles} • $phaseLabel',
+                          '${timerState.currentPomodoroCycle}/${timerState.totalPomodoroCycles} • $phaseLabel',
                           style: TextStyle(
                             color: phaseColor,
                             fontWeight: FontWeight.bold,
@@ -226,7 +226,7 @@ class TimerScreen extends ConsumerWidget {
                           TextButton.icon(
                             onPressed: () => notifier.skipPomodoroPhase(),
                             icon: const Icon(Icons.skip_next, size: 18, color: AppColors.textSecondary),
-                            label: const Text('Pular Fase', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                            label: Text(t.tr('skip', fallback: 'Pular'), style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                           ),
                         IconButton(
                           icon: const Icon(Icons.settings_outlined, size: 20, color: AppColors.textSecondary),
@@ -264,7 +264,7 @@ class TimerScreen extends ConsumerWidget {
                             const Icon(Icons.cloud_off, color: AppColors.warning, size: 18),
                             const SizedBox(width: 8),
                             Text(
-                              '${syncState.pendingCount} sessão(ões) pendente(s) de envio',
+                              '${syncState.pendingCount} pendente(s)',
                               style: const TextStyle(color: AppColors.warning, fontSize: 13, fontWeight: FontWeight.w600),
                             ),
                           ],
@@ -279,7 +279,7 @@ class TimerScreen extends ConsumerWidget {
                                       SnackBar(
                                         content: Text(
                                           res.remaining == 0
-                                              ? 'Todas as sessões foram sincronizadas!'
+                                              ? 'Sincronizado!'
                                               : '${res.totalSynced} enviadas, ${res.remaining} pendentes.',
                                         ),
                                         backgroundColor: res.remaining == 0 ? AppColors.success : AppColors.warning,
@@ -293,9 +293,9 @@ class TimerScreen extends ConsumerWidget {
                                   height: 14,
                                   child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.warning),
                                 )
-                              : const Text(
-                                  'Sincronizar Agora',
-                                  style: TextStyle(color: AppColors.warning, fontWeight: FontWeight.bold, fontSize: 12),
+                              : Text(
+                                  t.tr('refresh', fallback: 'Sincronizar'),
+                                  style: const TextStyle(color: AppColors.warning, fontWeight: FontWeight.bold, fontSize: 12),
                                 ),
                         ),
                       ],
@@ -332,8 +332,8 @@ class TimerScreen extends ConsumerWidget {
                             icon: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28),
                             label: Text(
                               isPomodoro
-                                  ? 'INICIAR $phaseLabel'.toUpperCase()
-                                  : 'INICIAR (${timerState.currentSubject?.title ?? "Selecione"})',
+                                  ? '${t.tr("start", fallback: "INICIAR")} $phaseLabel'.toUpperCase()
+                                  : '${t.tr("start", fallback: "INICIAR")} (${timerState.currentSubject?.title ?? t.tr("study", fallback: "Estudo")})'.toUpperCase(),
                               style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w800,

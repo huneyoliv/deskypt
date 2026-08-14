@@ -70,7 +70,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
     }
   }
 
-  Widget _buildGroupCard(GroupModel group) {
+  Widget _buildGroupCard(GroupModel group, AppTranslation t) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       color: AppColors.card,
@@ -95,7 +95,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 6),
           child: Text(
-            'Categoria: ${group.category} • ${group.membersCount}/${group.maxCapacity} membros • Meta: ${group.dailyGoalHours}h/dia',
+            '${group.category} • ${group.membersCount}/${group.maxCapacity} ${t.tr("members", fallback: "membros")} • ${t.tr("goal", fallback: "Meta")}: ${group.dailyGoalHours}h/dia',
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 13,
@@ -113,7 +113,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
           ),
-          child: const Text('Entrar', style: TextStyle(color: Colors.white)),
+          child: Text(t.tr('join', fallback: 'Entrar'), style: const TextStyle(color: Colors.white)),
         ),
       ),
     );
@@ -135,28 +135,28 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
           unselectedLabelColor: AppColors.textSecondary,
           tabs: [
             Tab(text: t.tr('my_groups', fallback: 'Meus Grupos')),
-            Tab(text: t.tr('explore_groups', fallback: 'Explorar Grupos')),
+            Tab(text: t.tr('explore', fallback: 'Explorar Grupos')),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          // Tab 1: My Groups (Real API data from user state)
+          // Tab 1: My Groups
           myGroups.isEmpty
-              ? const Center(
+              ? Center(
                   child: Padding(
-                    padding: EdgeInsets.all(24.0),
+                    padding: const EdgeInsets.all(24.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.group_off_rounded,
+                        const Icon(Icons.group_off_rounded,
                             size: 48, color: AppColors.textMuted),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         Text(
-                          'Você não participa de nenhum grupo de estudos no momento.',
+                          t.tr('no_groups', fallback: 'Você não participa de nenhum grupo de estudos no momento.'),
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: AppColors.textSecondary),
+                          style: const TextStyle(color: AppColors.textSecondary),
                         ),
                       ],
                     ),
@@ -166,7 +166,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
                   padding: const EdgeInsets.all(24),
                   itemCount: myGroups.length,
                   itemBuilder: (context, index) {
-                    return _buildGroupCard(myGroups[index]);
+                    return _buildGroupCard(myGroups[index], t);
                   },
                 ),
 
@@ -182,7 +182,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
                         controller: _searchController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'Buscar grupos por nome ou categoria...',
+                          hintText: t.tr('search', fallback: 'Buscar grupos por nome ou categoria...'),
                           hintStyle:
                               const TextStyle(color: AppColors.textMuted),
                           filled: true,
@@ -205,8 +205,8 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 16),
                       ),
-                      child: const Text('Buscar',
-                          style: TextStyle(color: Colors.white)),
+                      child: Text(t.tr('search', fallback: 'Buscar'),
+                          style: const TextStyle(color: Colors.white)),
                     ),
                   ],
                 ),
@@ -215,17 +215,17 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
                   child: _isSearching
                       ? const Center(child: CircularProgressIndicator())
                       : _hasSearched && _searchResults.isEmpty
-                          ? const Center(
+                          ? Center(
                               child: Text(
-                                'Nenhum grupo encontrado para sua busca.',
+                                t.tr('no_results', fallback: 'Nenhum grupo encontrado para sua busca.'),
                                 style:
-                                    TextStyle(color: AppColors.textSecondary),
+                                    const TextStyle(color: AppColors.textSecondary),
                               ),
                             )
                           : ListView.builder(
                               itemCount: _searchResults.length,
                               itemBuilder: (context, index) {
-                                return _buildGroupCard(_searchResults[index]);
+                                return _buildGroupCard(_searchResults[index], t);
                               },
                             ),
                 ),

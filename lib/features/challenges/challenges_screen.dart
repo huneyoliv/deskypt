@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/localization/app_translation.dart';
 import '../../data/models/challenge_model.dart';
 import '../../data/repositories/challenge_repository.dart';
 
@@ -56,31 +57,32 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
   }
 
   Future<void> _joinChallenge(ChallengeModel challenge) async {
+    final t = ref.read(appTranslationProvider);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: Text('Participar: ${challenge.name}', style: const TextStyle(color: Colors.white)),
+        title: Text('${t.tr("join", fallback: "Participar")}: ${challenge.name}', style: const TextStyle(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(challenge.description, style: const TextStyle(color: AppColors.textSecondary)),
             const SizedBox(height: 12),
-            Text('Aposta de Entrada: 🔥 ${challenge.flameCost} Flames', style: const TextStyle(color: AppColors.flame, fontWeight: FontWeight.bold, fontSize: 15)),
+            Text('Aposta: 🔥 ${challenge.flameCost} Flames', style: const TextStyle(color: AppColors.flame, fontWeight: FontWeight.bold, fontSize: 15)),
             const SizedBox(height: 8),
-            Text('Regras de Sucesso: ${challenge.rules}', style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+            Text(challenge.rules, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+            child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Confirmar Aposta', style: TextStyle(color: Colors.white)),
+            child: Text(t.tr('confirm', fallback: 'Confirmar'), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -95,8 +97,8 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
           SnackBar(
             content: Text(
               success
-                  ? 'Inscrição confirmada! Boa sorte no Desafio! 🚀'
-                  : 'Falha ao inscrever no desafio. Verifique seu saldo de Flames.',
+                  ? '${t.tr("challenge_success", fallback: "Inscrição confirmada!")} 🚀'
+                  : t.tr("challenge_fail", fallback: "Falha ao inscrever no desafio."),
             ),
             backgroundColor: success ? AppColors.primary : AppColors.error,
           ),
@@ -107,15 +109,16 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
   }
 
   Future<void> _doCheckIn(ChallengeModel challenge) async {
+    final t = ref.read(appTranslationProvider);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Check-in do dia registrado com sucesso! Meta de hoje cumprida. 🔥'),
+      SnackBar(
+        content: Text('${t.tr("challenge_proof", fallback: "Check-in registrado com sucesso!")} 🔥'),
         backgroundColor: AppColors.success,
       ),
     );
   }
 
-  Widget _buildChallengeGrid(List<ChallengeModel> list, {bool isMyList = false}) {
+  Widget _buildChallengeGrid(List<ChallengeModel> list, AppTranslation t, {bool isMyList = false}) {
     if (list.isEmpty) {
       return Center(
         child: Column(
@@ -124,7 +127,9 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
             const Icon(Icons.emoji_events_outlined, size: 64, color: AppColors.textMuted),
             const SizedBox(height: 16),
             Text(
-              isMyList ? 'Você ainda não entrou em nenhum desafio.' : 'Nenhum desafio disponível no momento.',
+              isMyList
+                  ? t.tr('no_my_challenges', fallback: 'Você ainda não entrou em nenhum desafio.')
+                  : t.tr('no_challenges', fallback: 'Nenhum desafio disponível no momento.'),
               style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
             ),
           ],
@@ -170,7 +175,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        'Aposta: 🔥 ${challenge.flameCost} Flames',
+                        '🔥 ${challenge.flameCost} Flames',
                         style: const TextStyle(
                           color: AppColors.flame,
                           fontWeight: FontWeight.bold,
@@ -208,7 +213,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Progresso de Check-in', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                      Text(t.tr('checkin', fallback: 'Check-in'), style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
                       Text('${(progress * 100).toInt()}%', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11)),
                     ],
                   ),
@@ -238,7 +243,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                     const Icon(Icons.people_outline, size: 14, color: AppColors.textMuted),
                     const SizedBox(width: 4),
                     Text(
-                      '${challenge.participantCount} inscritos',
+                      '${challenge.participantCount}',
                       style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
                     ),
                   ],
@@ -253,14 +258,14 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                             backgroundColor: AppColors.success,
                           ),
                           icon: const Icon(Icons.check_circle, color: Colors.white, size: 18),
-                          label: const Text('Fazer Check-in Hoje', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          label: Text(t.tr('checkin', fallback: 'Fazer Check-in'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         )
                       : ElevatedButton(
                           onPressed: () => _joinChallenge(challenge),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                           ),
-                          child: const Text('Participar do Desafio', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          child: Text(t.tr('join', fallback: 'Participar do Desafio'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
                 ),
               ],
@@ -273,18 +278,20 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(appTranslationProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Desafios & Metas Yeolpumta', style: AppTextStyles.titleLarge),
+        title: Text(t.tr('challenges', fallback: 'Desafios & Metas'), style: AppTextStyles.titleLarge),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
           labelColor: Colors.white,
           unselectedLabelColor: AppColors.textSecondary,
-          tabs: const [
-            Tab(text: 'Desafios Disponíveis'),
-            Tab(text: 'Meus Desafios'),
+          tabs: [
+            Tab(text: t.tr('available_challenges', fallback: 'Desafios Disponíveis')),
+            Tab(text: t.tr('my_challenges', fallback: 'Meus Desafios')),
           ],
         ),
       ),
@@ -293,8 +300,8 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
           : TabBarView(
               controller: _tabController,
               children: [
-                _buildChallengeGrid(_available),
-                _buildChallengeGrid(_myChallenges, isMyList: true),
+                _buildChallengeGrid(_available, t),
+                _buildChallengeGrid(_myChallenges, t, isMyList: true),
               ],
             ),
     );

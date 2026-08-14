@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/localization/app_translation.dart';
 import '../../data/models/subject_model.dart';
 import '../../data/models/timetable_model.dart';
 import '../../data/repositories/subject_repository.dart';
@@ -63,10 +64,11 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
   }
 
   Future<void> _showAddBlockDialog({int? defaultDay, int? defaultStartHour}) async {
+    final t = ref.read(appTranslationProvider);
     if (_subjects.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Nenhuma matéria cadastrada. Crie uma matéria primeiro!'),
+        SnackBar(
+          content: Text(t.tr('alert_planner_add_study_log_error1', fallback: 'Nenhuma matéria cadastrada. Crie uma matéria primeiro!')),
           backgroundColor: AppColors.error,
         ),
       );
@@ -83,12 +85,12 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: AppColors.card,
-          title: const Text('Adicionar Horário de Aula', style: TextStyle(color: Colors.white)),
+          title: Text(t.tr('add_timetable', fallback: 'Adicionar Horário de Aula'), style: const TextStyle(color: Colors.white)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Matéria:', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              Text(t.tr('subject', fallback: 'Matéria:'), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
               const SizedBox(height: 6),
               DropdownButtonFormField<SubjectModel>(
                 value: selectedSubject,
@@ -120,7 +122,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              const Text('Dia da Semana:', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              Text(t.tr('day_of_week', fallback: 'Dia da Semana:'), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
               const SizedBox(height: 6),
               DropdownButtonFormField<int>(
                 value: selectedDay,
@@ -148,7 +150,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Início (h):', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                        Text(t.tr('start_time', fallback: 'Início:'), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                         const SizedBox(height: 6),
                         DropdownButtonFormField<int>(
                           value: startHour,
@@ -179,7 +181,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Fim (h):', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                        Text(t.tr('end_time', fallback: 'Fim:'), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                         const SizedBox(height: 6),
                         DropdownButtonFormField<int>(
                           value: endHour,
@@ -207,7 +209,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+              child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -225,7 +227,6 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                 if (block != null) {
                   setState(() => _blocks = [..._blocks, block]);
                 } else {
-                  // Fallback local block
                   final fallbackBlock = TimetableBlock(
                     id: DateTime.now().millisecondsSinceEpoch,
                     subjectId: selectedSubject.id,
@@ -239,7 +240,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text('Salvar', style: TextStyle(color: Colors.white)),
+              child: Text(t.tr('save', fallback: 'Salvar'), style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -248,24 +249,25 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
   }
 
   Future<void> _deleteBlock(TimetableBlock block) async {
+    final t = ref.read(appTranslationProvider);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: const Text('Excluir Horário', style: TextStyle(color: Colors.white)),
+        title: Text(t.tr('delete_timetable', fallback: 'Excluir Horário'), style: const TextStyle(color: Colors.white)),
         content: Text(
-          'Deseja remover "${block.subjectTitle}" de ${_days.firstWhere((d) => d['id'] == block.dayOfWeek)['name']}?',
+          'Deseja remover "${block.subjectTitle}"?',
           style: const TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+            child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Excluir', style: TextStyle(color: Colors.white)),
+            child: Text(t.tr('delete', fallback: 'Excluir'), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -282,6 +284,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(appTranslationProvider);
+
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator(color: AppColors.primary));
     }
@@ -290,24 +294,23 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // Header Bar
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             color: AppColors.surface,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Grade Horária Semanal', style: AppTextStyles.titleMedium),
-                    SizedBox(height: 2),
-                    Text('Organize seus horários de aulas e sessões fixas de estudo', style: AppTextStyles.labelSmall),
+                    Text(t.tr('timetable', fallback: 'Grade Horária Semanal'), style: AppTextStyles.titleMedium),
+                    const SizedBox(height: 2),
+                    Text(t.tr('timetable_desc', fallback: 'Organize seus horários de aulas e sessões de estudo'), style: AppTextStyles.labelSmall),
                   ],
                 ),
                 ElevatedButton.icon(
                   icon: const Icon(Icons.add, color: Colors.white, size: 18),
-                  label: const Text('Novo Horário', style: TextStyle(color: Colors.white)),
+                  label: Text(t.tr('add_timetable', fallback: 'Novo Horário'), style: const TextStyle(color: Colors.white)),
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
                   onPressed: () => _showAddBlockDialog(),
                 ),
@@ -321,7 +324,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
             color: AppColors.card,
             child: Row(
               children: [
-                const SizedBox(width: 60), // Time column spacer
+                const SizedBox(width: 60),
                 ..._days.map((day) => Expanded(
                       child: Center(
                         child: Text(
@@ -342,10 +345,9 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
           Expanded(
             child: SingleChildScrollView(
               child: SizedBox(
-                height: 24 * 50.0, // 50px per hour
+                height: 24 * 50.0,
                 child: Row(
                   children: [
-                    // Hours Column
                     SizedBox(
                       width: 60,
                       child: Column(
@@ -367,11 +369,9 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                       ),
                     ),
 
-                    // Grid Columns for 7 Days
                     Expanded(
                       child: Stack(
                         children: [
-                          // Grid Lines
                           Column(
                             children: List.generate(24, (index) {
                               return Container(
@@ -385,7 +385,6 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                             }),
                           ),
 
-                          // 7 Column Layout
                           Row(
                             children: List.generate(7, (dayIdx) {
                               final dayOfWeek = dayIdx + 1;
@@ -400,7 +399,6 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                   ),
                                   child: Stack(
                                     children: [
-                                      // Click empty grid slot to add
                                       ...List.generate(24, (hour) {
                                         return Positioned(
                                           top: hour * 50.0,
@@ -417,7 +415,6 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                         );
                                       }),
 
-                                      // Block Chips
                                       ...dayBlocks.map((block) {
                                         final top = block.startHour * 50.0;
                                         final height = (block.endHour - block.startHour) * 50.0;
@@ -436,13 +433,6 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                                 color: color.withValues(alpha: 0.85),
                                                 borderRadius: BorderRadius.circular(6),
                                                 border: Border.all(color: color, width: 1.5),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black.withValues(alpha: 0.3),
-                                                    blurRadius: 4,
-                                                    offset: const Offset(0, 2),
-                                                  ),
-                                                ],
                                               ),
                                               child: Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
