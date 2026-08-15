@@ -36,8 +36,8 @@ class UserModel {
     final groupsRaw = json['gs'];
     final List<GroupModel> groups = (groupsRaw is List)
         ? groupsRaw
-            .whereType<Map<String, dynamic>>()
-            .map((g) => GroupModel.fromJson(g))
+            .whereType<Map>()
+            .map((g) => GroupModel.fromJson(Map<String, dynamic>.from(g)))
             .toList()
         : const [];
 

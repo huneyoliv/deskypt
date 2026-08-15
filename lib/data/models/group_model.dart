@@ -1,3 +1,5 @@
+import '../../core/utils/json_utils.dart';
+
 class GroupModel {
   final int id;
   final String name;
@@ -27,17 +29,21 @@ class GroupModel {
 
   factory GroupModel.fromJson(Map<String, dynamic> json) {
     return GroupModel(
-      id: json['id'] as int? ?? json['groupID'] as int? ?? json['gd'] as int? ?? 0,
-      name: json['t'] as String? ?? json['n'] as String? ?? json['name'] as String? ?? 'Grupo',
-      category: json['c'] as String? ?? json['ct'] as String? ?? 'Geral',
-      dailyGoalHours: json['gt'] as int? ?? json['g'] as int? ?? 8,
-      membersCount: json['jc'] as int? ?? json['mc'] as int? ?? json['personnel'] as int? ?? 1,
-      maxCapacity: json['mc'] as int? ?? json['mp'] as int? ?? json['maxPersonnel'] as int? ?? 50,
-      isPrivate: json['ip'] as bool? ?? json['p'] as bool? ?? false,
-      leaderName: json['on'] as String? ?? json['ln'] as String? ?? json['leader'] as String? ?? '',
-      leaderUserId: json['ou'] as int? ?? json['oid'] as int? ?? json['leaderID'] as int? ?? json['uid'] as int? ?? 0,
-      notice: json['sn'] as String? ?? json['nt'] as String? ?? json['notice'] as String?,
-      isCamStudy: json['cam'] as bool? ?? json['isCam'] as bool? ?? json['isCamStudy'] as bool? ?? false,
+      id: safeInt(json['id'] ?? json['groupID'] ?? json['gd']),
+      name: safeString(json['t'] ?? json['n'] ?? json['name'], 'Grupo'),
+      category: safeString(json['c'] ?? json['ct'], 'Geral'),
+      dailyGoalHours: safeInt(json['gt'] ?? json['g'], 8),
+      membersCount: safeInt(json['jc'] ?? json['mc'] ?? json['personnel'], 1),
+      maxCapacity: safeInt(json['mc'] ?? json['mp'] ?? json['maxPersonnel'], 50),
+      isPrivate: safeBool(json['ip'] ?? json['p']),
+      leaderName: safeString(json['on'] ?? json['ln'] ?? json['leader']),
+      leaderUserId: safeInt(json['ou'] ?? json['oid'] ?? json['leaderID'] ?? json['uid']),
+      notice: json['sn'] != null
+          ? safeString(json['sn'])
+          : (json['nt'] != null
+              ? safeString(json['nt'])
+              : (json['notice'] != null ? safeString(json['notice']) : null)),
+      isCamStudy: safeBool(json['cam'] ?? json['isCam'] ?? json['isCamStudy']),
     );
   }
 }

@@ -109,6 +109,52 @@ void main() {
       expect(storedToken, equals('fake_jwt_token_123'));
     });
 
+    test('signInWithEmail handles error code 112 (wrong password)', () async {
+      final errorDio = Dio();
+      errorDio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            return handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {'s': false, 'c': '112'},
+              ),
+            );
+          },
+        ),
+      );
+      final repo = AuthRepository(apiClient: ApiClient(customDio: errorDio), storage: mockStorage);
+
+      expect(
+        () => repo.signInWithEmail(email: 'test@example.com', password: 'wrong'),
+        throwsA(predicate((e) => e.toString().contains('Senha incorreta'))),
+      );
+    });
+
+    test('signInWithEmail handles error code 113 (email not found)', () async {
+      final errorDio = Dio();
+      errorDio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            return handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {'s': false, 'c': '113'},
+              ),
+            );
+          },
+        ),
+      );
+      final repo = AuthRepository(apiClient: ApiClient(customDio: errorDio), storage: mockStorage);
+
+      expect(
+        () => repo.signInWithEmail(email: 'notfound@example.com', password: 'pass'),
+        throwsA(predicate((e) => e.toString().contains('E-mail não cadastrado'))),
+      );
+    });
+
     test('logout deletes stored JWT token', () async {
       await mockStorage.write(key: 'jwt_token', value: 'token_abc');
       await repository.logout();

@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/api/api_client.dart';
 import '../../core/api/api_exception.dart';
 import '../../core/api/auth_interceptor.dart';
@@ -14,6 +15,26 @@ class AuthRepository {
     FlutterSecureStorage? storage,
   })  : _apiClient = apiClient ?? ApiClient(),
         _storage = storage ?? const FlutterSecureStorage();
+
+  Future<void> _saveToken(String token) async {
+    try {
+      await _storage.write(key: AuthInterceptor.keyJwtToken, value: token);
+    } catch (_) {}
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(AuthInterceptor.keyJwtToken, token);
+    } catch (_) {}
+  }
+
+  Future<void> _deleteToken() async {
+    try {
+      await _storage.delete(key: AuthInterceptor.keyJwtToken);
+    } catch (_) {}
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(AuthInterceptor.keyJwtToken);
+    } catch (_) {}
+  }
 
   Future<UserModel> signInWithEmail({
     required String email,
@@ -33,9 +54,23 @@ class AuthRepository {
 
     final data = response.data;
     if (data is! Map<String, dynamic> || data['s'] != true) {
-      final msg = (data is Map && (data['m'] != null || data['message'] != null))
-          ? (data['m'] ?? data['message']).toString()
-          : 'E-mail ou senha incorretos';
+      String msg = 'E-mail ou senha incorretos';
+      if (data is Map) {
+        if (data['m'] != null || data['message'] != null) {
+          msg = (data['m'] ?? data['message']).toString();
+        } else if (data['c'] != null) {
+          final code = data['c'].toString();
+          if (code == '112') {
+            msg = 'Senha incorreta. Verifique sua senha e tente novamente.';
+          } else if (code == '113') {
+            msg = 'E-mail não cadastrado no Yeolpumta.';
+          } else if (code == '114') {
+            msg = 'Conta suspensa ou inativa.';
+          } else {
+            msg = 'Falha na autenticação (código $code)';
+          }
+        }
+      }
       throw ApiException(msg, statusCode: response.statusCode);
     }
 
@@ -44,7 +79,7 @@ class AuthRepository {
       throw const ApiException('Token JWT não foi retornado pelo servidor');
     }
 
-    await _storage.write(key: AuthInterceptor.keyJwtToken, value: token);
+    await _saveToken(token);
 
     try {
       await splashLogin();
@@ -85,7 +120,7 @@ class AuthRepository {
       throw ApiException('Token JWT via $provider não retornado pelo servidor');
     }
 
-    await _storage.write(key: AuthInterceptor.keyJwtToken, value: token);
+    await _saveToken(token);
 
     try {
       await splashLogin();
@@ -197,7 +232,7 @@ class AuthRepository {
     }
     final token = (data['jwt'] ?? '').toString();
     if (token.isNotEmpty) {
-      await _storage.write(key: AuthInterceptor.keyJwtToken, value: token);
+      await _saveToken(token);
     }
     return UserModel.fromJson(data, token);
   }
@@ -265,7 +300,7 @@ class AuthRepository {
 
     final token = (data['jwt'] ?? '').toString();
     if (token.isNotEmpty) {
-      await _storage.write(key: AuthInterceptor.keyJwtToken, value: token);
+      await _saveToken(token);
     }
 
     try {
@@ -276,7 +311,15 @@ class AuthRepository {
   }
 
   Future<String?> getStoredToken() async {
-    return _storage.read(key: AuthInterceptor.keyJwtToken);
+    try {
+      final token = await _storage.read(key: AuthInterceptor.keyJwtToken);
+      if (token != null && token.isNotEmpty) return token;
+    } catch (_) {}
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(AuthInterceptor.keyJwtToken);
+    } catch (_) {}
+    return null;
   }
 
   Future<bool> deleteAccount() async {
@@ -284,7 +327,7 @@ class AuthRepository {
     final data = response.data;
     final isSuccess = data is Map<String, dynamic> && data['s'] == true;
     if (isSuccess) {
-      await _storage.delete(key: AuthInterceptor.keyJwtToken);
+      await _deleteToken();
     }
     return isSuccess;
   }
@@ -293,6 +336,6 @@ class AuthRepository {
     try {
       await _apiClient.post('/user/logout', data: {'pushToken': ''});
     } catch (_) {}
-    await _storage.delete(key: AuthInterceptor.keyJwtToken);
+    await _deleteToken();
   }
 }

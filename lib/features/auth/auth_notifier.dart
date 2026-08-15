@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,6 +40,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   AuthNotifier(this._repository) : super(const AuthState());
 
+  String _formatError(dynamic e) {
+    if (e is DioException) {
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        return 'Tempo limite de conexão esgotado. Verifique sua internet.';
+      }
+      if (e.type == DioExceptionType.connectionError) {
+        return 'Falha de conexão com o servidor da TGC Lab / YPT.';
+      }
+      if (e.response?.data is Map) {
+        final data = e.response!.data as Map;
+        if (data['c'] == '112') return 'Senha incorreta. Verifique sua senha e tente novamente.';
+        if (data['c'] == '113') return 'E-mail não cadastrado no Yeolpumta.';
+        if (data['c'] == '114') return 'Conta suspensa ou inativa.';
+        if (data['m'] != null) return data['m'].toString();
+      }
+    }
+    return e.toString().replaceAll('Exception: ', '').replaceAll('ApiException: ', '');
+  }
+
   Future<void> signInWithEmail({
     required String email,
     required String password,
@@ -53,7 +75,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: _formatError(e),
       );
     }
   }
@@ -78,7 +100,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Não foi possível autenticar via Google: ${e.toString().replaceAll('Exception: ', '')}',
+        errorMessage: 'Login com Google no Desktop requer login por e-mail e senha. Se criou via Google, use "Esqueci minha senha" com seu Gmail.',
       );
     }
   }
@@ -107,7 +129,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Não foi possível autenticar via Apple: ${e.toString().replaceAll('Exception: ', '')}',
+        errorMessage: 'Login com Apple no Desktop requer login por e-mail e senha. Se criou via Apple, use "Esqueci minha senha" com seu e-mail Apple.',
       );
     }
   }
