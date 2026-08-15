@@ -4,6 +4,7 @@ import 'package:window_manager/window_manager.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/localization/app_translation.dart';
+import 'features/auth/auth_notifier.dart';
 import 'shared/widgets/app_title_bar.dart';
 
 void main() async {
@@ -33,11 +34,24 @@ void main() async {
   );
 }
 
-class DeskYptApp extends ConsumerWidget {
+class DeskYptApp extends ConsumerStatefulWidget {
   const DeskYptApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DeskYptApp> createState() => _DeskYptAppState();
+}
+
+class _DeskYptAppState extends ConsumerState<DeskYptApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(authStateProvider.notifier).checkAuthStatus();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
     final translation = ref.watch(appTranslationProvider);
 

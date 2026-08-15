@@ -61,6 +61,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
     return e.toString().replaceAll('Exception: ', '').replaceAll('ApiException: ', '');
   }
 
+  Future<void> checkAuthStatus() async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final user = await _repository.tryRestoreSession();
+      if (user != null) {
+        state = AuthState(user: user, isLoading: false);
+      } else {
+        state = const AuthState(isLoading: false);
+      }
+    } catch (_) {
+      state = const AuthState(isLoading: false);
+    }
+  }
+
   Future<void> signInWithEmail({
     required String email,
     required String password,

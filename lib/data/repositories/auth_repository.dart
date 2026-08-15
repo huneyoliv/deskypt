@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/api/api_client.dart';
@@ -9,6 +10,7 @@ import '../models/user_model.dart';
 class AuthRepository {
   final ApiClient _apiClient;
   final FlutterSecureStorage _storage;
+  static const String keyCachedUser = 'cached_user_profile';
 
   AuthRepository({
     ApiClient? apiClient,
@@ -33,6 +35,15 @@ class AuthRepository {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(AuthInterceptor.keyJwtToken);
+      await prefs.remove(keyCachedUser);
+    } catch (_) {}
+  }
+
+  Future<void> _cacheUserData(Map<String, dynamic> data, String token) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final user = UserModel.fromJson(data, token);
+      await prefs.setString(keyCachedUser, jsonEncode(user.toJson()));
     } catch (_) {}
   }
 
@@ -80,6 +91,7 @@ class AuthRepository {
     }
 
     await _saveToken(token);
+    await _cacheUserData(data, token);
 
     try {
       await splashLogin();
@@ -121,6 +133,7 @@ class AuthRepository {
     }
 
     await _saveToken(token);
+    await _cacheUserData(data, token);
 
     try {
       await splashLogin();
@@ -233,6 +246,7 @@ class AuthRepository {
     final token = (data['jwt'] ?? '').toString();
     if (token.isNotEmpty) {
       await _saveToken(token);
+      await _cacheUserData(data, token);
     }
     return UserModel.fromJson(data, token);
   }
@@ -301,6 +315,7 @@ class AuthRepository {
     final token = (data['jwt'] ?? '').toString();
     if (token.isNotEmpty) {
       await _saveToken(token);
+      await _cacheUserData(data, token);
     }
 
     try {
@@ -312,7 +327,9 @@ class AuthRepository {
 
   Future<String?> getStoredToken() async {
     try {
-      final token = await _storage.read(key: AuthInterceptor.keyJwtToken);
+      final token = await _storage
+          .read(key: AuthInterceptor.keyJwtToken)
+          .timeout(const Duration(seconds: 2), onTimeout: () => null);
       if (token != null && token.isNotEmpty) return token;
     } catch (_) {}
     try {
@@ -320,6 +337,47 @@ class AuthRepository {
       return prefs.getString(AuthInterceptor.keyJwtToken);
     } catch (_) {}
     return null;
+  }
+
+  Future<UserModel?> tryRestoreSession() async {
+    final token = await getStoredToken();
+    if (token == null || token.isEmpty) return null;
+
+    UserModel? user;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userStr = prefs.getString(keyCachedUser);
+      if (userStr != null && userStr.isNotEmpty) {
+        final decoded = jsonDecode(userStr);
+        if (decoded is Map<String, dynamic>) {
+          user = UserModel.fromJson(decoded, token);
+        }
+      }
+    } catch (_) {}
+
+    try {
+      final response = await _apiClient.post(
+        ApiConstants.reloadInfo,
+        data: {
+          'pv': user?.studiconId ?? 19,
+          'cd': {},
+        },
+      ).timeout(const Duration(seconds: 3));
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['s'] == true) {
+        if (user != null) {
+          final p = data['p'];
+          if (p is Map) {
+            user = user.copyWith(
+              statusMessage: (p['stm'] ?? user.statusMessage).toString(),
+              studiconId: (p['pv'] as int?) ?? user.studiconId,
+            );
+          }
+        }
+      }
+    } catch (_) {}
+
+    return user;
   }
 
   Future<bool> deleteAccount() async {

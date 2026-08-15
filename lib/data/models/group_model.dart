@@ -38,11 +38,9 @@ class GroupModel {
       isPrivate: safeBool(json['ip'] ?? json['p']),
       leaderName: safeString(json['on'] ?? json['ln'] ?? json['leader']),
       leaderUserId: safeInt(json['ou'] ?? json['oid'] ?? json['leaderID'] ?? json['uid']),
-      notice: json['sn'] != null
-          ? safeString(json['sn'])
-          : (json['nt'] != null
-              ? safeString(json['nt'])
-              : (json['notice'] != null ? safeString(json['notice']) : null)),
+      notice: json['sn'] != null || json['nt'] != null || json['notice'] != null
+          ? safeString(json['sn'] ?? json['nt'] ?? json['notice'])
+          : null,
       isCamStudy: safeBool(json['cam'] ?? json['isCam'] ?? json['isCamStudy']),
     );
   }
