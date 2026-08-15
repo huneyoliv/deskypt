@@ -108,7 +108,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                   controller: _todoTitleController,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    hintText: 'Descrição da tarefa...',
+                    hintText: t.tr('todo_desc_hint', fallback: 'Descrição da tarefa...'),
                     hintStyle: const TextStyle(color: AppColors.textMuted),
                     filled: true,
                     fillColor: AppColors.surface,
@@ -119,8 +119,8 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                 ),
                 const SizedBox(height: 16),
                 SwitchListTile(
-                  title: const Text('Repetir em vários dias', style: TextStyle(color: Colors.white, fontSize: 14)),
-                  subtitle: const Text('Criar em múltiplos dias consecutivamente', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                  title: Text(t.tr('repeat_multiple_days', fallback: 'Repetir em vários dias'), style: const TextStyle(color: Colors.white, fontSize: 14)),
+                  subtitle: Text(t.tr('repeat_multiple_days_desc', fallback: 'Criar em múltiplos dias consecutivamente'), style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                   value: isRecurring,
                   activeColor: AppColors.primary,
                   contentPadding: EdgeInsets.zero,
@@ -130,7 +130,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                 ),
                 if (isRecurring) ...[
                   const SizedBox(height: 12),
-                  const Text('Dias da Semana:', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                  Text(t.tr('weekdays', fallback: 'Dias da Semana:'), style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 6,
@@ -159,7 +159,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Repetir até:', style: TextStyle(color: Colors.white, fontSize: 13)),
+                      Text(t.tr('repeat_until', fallback: 'Repetir até:'), style: const TextStyle(color: Colors.white, fontSize: 13)),
                       TextButton.icon(
                         icon: const Icon(Icons.calendar_month, color: AppColors.primary, size: 18),
                         label: Text(DateFormat('dd/MM/yyyy').format(endDate), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
@@ -243,7 +243,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
               controller: _ddayTitleController,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'Título do D-Day...',
+                hintText: t.tr('dday_title_hint', fallback: 'Título do D-Day...'),
                 hintStyle: const TextStyle(color: AppColors.textMuted),
                 filled: true,
                 fillColor: AppColors.surface,
@@ -291,7 +291,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                 controller: controller,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  hintText: 'Título da tarefa',
+                  hintText: t.tr('todo_title', fallback: 'Título da tarefa'),
                   filled: true,
                   fillColor: AppColors.surface,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -299,9 +299,9 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
               ),
               if (todo.isRecurring) ...[
                 const SizedBox(height: 16),
-                const Text('Esta tarefa se repete em vários dias:', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                Text(t.tr('recurring_todo_desc', fallback: 'Esta tarefa se repete em vários dias:'), style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                 RadioListTile<bool>(
-                  title: const Text('Apenas esta tarefa', style: TextStyle(color: Colors.white, fontSize: 13)),
+                  title: Text(t.tr('only_this_todo', fallback: 'Apenas esta tarefa'), style: const TextStyle(color: Colors.white, fontSize: 13)),
                   value: false,
                   groupValue: applyToAllSeries,
                   activeColor: AppColors.primary,
@@ -309,7 +309,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                   onChanged: (val) => setDialogState(() => applyToAllSeries = val!),
                 ),
                 RadioListTile<bool>(
-                  title: const Text('Esta e todas as tarefas da série', style: TextStyle(color: Colors.white, fontSize: 13)),
+                  title: Text(t.tr('all_series_todos', fallback: 'Esta e todas as tarefas da série'), style: const TextStyle(color: Colors.white, fontSize: 13)),
                   value: true,
                   groupValue: applyToAllSeries,
                   activeColor: AppColors.primary,
@@ -363,14 +363,14 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Tem certeza que deseja excluir esta tarefa?',
+                t.tr('delete_todo_confirm', fallback: 'Tem certeza que deseja excluir esta tarefa?'),
                 style: const TextStyle(color: AppColors.textSecondary),
               ),
               if (todo.isRecurring) ...[
                 const SizedBox(height: 16),
-                const Text('Esta tarefa se repete em vários dias:', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                Text(t.tr('recurring_todo_desc', fallback: 'Esta tarefa se repete em vários dias:'), style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                 RadioListTile<bool>(
-                  title: const Text('Excluir apenas esta tarefa', style: TextStyle(color: Colors.white, fontSize: 13)),
+                  title: Text(t.tr('delete_only_this_todo', fallback: 'Excluir apenas esta tarefa'), style: const TextStyle(color: Colors.white, fontSize: 13)),
                   value: false,
                   groupValue: deleteAllSeries,
                   activeColor: AppColors.primary,
@@ -378,7 +378,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                   onChanged: (val) => setDialogState(() => deleteAllSeries = val!),
                 ),
                 RadioListTile<bool>(
-                  title: const Text('Excluir todas as tarefas da série', style: TextStyle(color: Colors.white, fontSize: 13)),
+                  title: Text(t.tr('delete_all_series_todos', fallback: 'Excluir todas as tarefas da série'), style: const TextStyle(color: Colors.white, fontSize: 13)),
                   value: true,
                   groupValue: deleteAllSeries,
                   activeColor: AppColors.primary,

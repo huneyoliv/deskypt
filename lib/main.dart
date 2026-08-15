@@ -4,6 +4,7 @@ import 'package:window_manager/window_manager.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/localization/app_translation.dart';
+import 'shared/widgets/app_title_bar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,31 +48,23 @@ class DeskYptApp extends ConsumerWidget {
       locale: Locale(translation.languageCode.split('-').first),
       routerConfig: router,
       builder: (context, child) {
-        return Column(
-          children: [
-            Container(
-              height: 32,
-              color: const Color(0xFF141418),
-              child: const WindowCaption(
-                brightness: Brightness.dark,
-                backgroundColor: Colors.transparent,
-                title: Row(
-                  children: [
-                    SizedBox(width: 8),
-                    Text(
-                      'DeskYPT',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Overlay(
+            initialEntries: [
+              OverlayEntry(
+                builder: (context) => Material(
+                  color: Colors.transparent,
+                  child: Column(
+                    children: [
+                      const AppTitleBar(title: 'DeskYPT'),
+                      Expanded(child: child ?? const SizedBox.shrink()),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Expanded(child: child ?? const SizedBox.shrink()),
-          ],
+            ],
+          ),
         );
       },
     );

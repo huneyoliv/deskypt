@@ -264,7 +264,7 @@ class TimerScreen extends ConsumerWidget {
                             const Icon(Icons.cloud_off, color: AppColors.warning, size: 18),
                             const SizedBox(width: 8),
                             Text(
-                              '${syncState.pendingCount} pendente(s)',
+                              '${syncState.pendingCount} ${t.tr("pending", fallback: "pendente(s)")}',
                               style: const TextStyle(color: AppColors.warning, fontSize: 13, fontWeight: FontWeight.w600),
                             ),
                           ],
@@ -279,8 +279,8 @@ class TimerScreen extends ConsumerWidget {
                                       SnackBar(
                                         content: Text(
                                           res.remaining == 0
-                                              ? 'Sincronizado!'
-                                              : '${res.totalSynced} enviadas, ${res.remaining} pendentes.',
+                                              ? t.tr('synchronized', fallback: 'Sincronizado!')
+                                              : '${res.totalSynced} ${t.tr("sent", fallback: "enviadas")}, ${res.remaining} ${t.tr("pending", fallback: "pendentes.")}',
                                         ),
                                         backgroundColor: res.remaining == 0 ? AppColors.success : AppColors.warning,
                                       ),

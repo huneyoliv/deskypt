@@ -69,7 +69,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
           children: [
             Text(challenge.description, style: const TextStyle(color: AppColors.textSecondary)),
             const SizedBox(height: 12),
-            Text('Aposta: 🔥 ${challenge.flameCost} Flames', style: const TextStyle(color: AppColors.flame, fontWeight: FontWeight.bold, fontSize: 15)),
+            Text('${t.tr("bet", fallback: "Aposta")}: 🔥 ${challenge.flameCost} Flames', style: const TextStyle(color: AppColors.flame, fontWeight: FontWeight.bold, fontSize: 15)),
             const SizedBox(height: 8),
             Text(challenge.rules, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
           ],
@@ -184,7 +184,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                       ),
                     ),
                     Text(
-                      'Meta: ${(challenge.successThreshold * 100).toInt()}%',
+                      '${t.tr("goal", fallback: "Meta")}: ${(challenge.successThreshold * 100).toInt()}%',
                       style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                     ),
                   ],
@@ -236,7 +236,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                     const Icon(Icons.calendar_today, size: 14, color: AppColors.textMuted),
                     const SizedBox(width: 6),
                     Text(
-                      '${df.format(challenge.startDate)} a ${df.format(challenge.endDate)}',
+                      '${df.format(challenge.startDate)} - ${df.format(challenge.endDate)}',
                       style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
                     ),
                     const Spacer(),

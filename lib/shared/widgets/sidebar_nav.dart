@@ -143,7 +143,7 @@ class SidebarNav extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            user?.name ?? 'Estudante',
+                            user?.name ?? t.tr('student', fallback: 'Estudante'),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -153,9 +153,9 @@ class SidebarNav extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          const Text(
-                            'Online',
-                            style: TextStyle(
+                          Text(
+                            t.tr('online', fallback: 'Online'),
+                            style: const TextStyle(
                               color: AppColors.success,
                               fontSize: 12,
                               fontWeight: FontWeight.w500,

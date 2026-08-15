@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/localization/app_translation.dart';
 import '../../features/timer/focus_mode_notifier.dart';
 import 'sidebar_nav.dart';
 
@@ -18,6 +19,7 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final focusState = ref.watch(focusModeProvider);
     final isFocusActive = focusState.isStrictFocus || focusState.isMiniPlayer;
+    final t = ref.watch(appTranslationProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -57,12 +59,12 @@ class AppShell extends ConsumerWidget {
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(Icons.close_fullscreen_rounded, size: 16, color: AppColors.textSecondary),
-                        SizedBox(width: 8),
+                      children: [
+                        const Icon(Icons.close_fullscreen_rounded, size: 16, color: AppColors.textSecondary),
+                        const SizedBox(width: 8),
                         Text(
-                          'Sair do Foco',
-                          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                          t.tr('exit_focus', fallback: 'Sair do Foco'),
+                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),

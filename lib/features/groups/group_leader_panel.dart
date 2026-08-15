@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/localization/app_translation.dart';
 import '../../data/models/group_member_model.dart';
 import '../../data/models/group_model.dart';
 import '../../data/repositories/group_admin_repository.dart';
@@ -239,20 +240,22 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(appTranslationProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Menu do Líder — ${widget.group.name}', style: AppTextStyles.titleLarge),
+        title: Text('${t.tr("leader_menu", fallback: "Menu do Líder")} — ${widget.group.name}', style: AppTextStyles.titleLarge),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
           labelColor: Colors.white,
           unselectedLabelColor: AppColors.textSecondary,
-          tabs: const [
-            Tab(text: 'Informações'),
-            Tab(text: 'Membros'),
-            Tab(text: 'Solicitações'),
-            Tab(text: 'Lista Negra'),
+          tabs: [
+            Tab(text: t.tr('info', fallback: 'Informações')),
+            Tab(text: t.tr('members', fallback: 'Membros')),
+            Tab(text: t.tr('requests', fallback: 'Solicitações')),
+            Tab(text: t.tr('blacklist', fallback: 'Lista Negra')),
           ],
         ),
       ),
@@ -268,10 +271,10 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Configurações Gerais', style: AppTextStyles.titleLarge),
+                    Text(t.tr('general_settings', fallback: 'Configurações Gerais'), style: AppTextStyles.titleLarge),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.rocket_launch, color: Colors.white, size: 18),
-                      label: const Text('Promover Grupo', style: TextStyle(color: Colors.white)),
+                      label: Text(t.tr('promote_group', fallback: 'Promover Grupo'), style: const TextStyle(color: Colors.white)),
                       style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
                       onPressed: _promoteGroup,
                     ),
@@ -283,8 +286,8 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
                 TextField(
                   controller: _nameController,
                   style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
-                    labelText: 'Nome do Grupo',
+                  decoration: InputDecoration(
+                    labelText: t.tr('group_name', fallback: 'Nome do Grupo'),
                     filled: true,
                     fillColor: AppColors.card,
                   ),
@@ -296,9 +299,9 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
                   controller: _noticeController,
                   style: const TextStyle(color: Colors.white),
                   maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'Aviso do Grupo (Notice Board)',
-                    hintText: 'Escreva regras e avisos do grupo...',
+                  decoration: InputDecoration(
+                    labelText: t.tr('group_notice', fallback: 'Aviso do Grupo (Notice Board)'),
+                    hintText: t.tr('group_notice_hint', fallback: 'Escreva regras e avisos do grupo...'),
                     filled: true,
                     fillColor: AppColors.card,
                   ),
@@ -313,8 +316,8 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
                         value: _capacity,
                         dropdownColor: AppColors.surface,
                         style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(labelText: 'Capacidade de Membros', filled: true, fillColor: AppColors.card),
-                        items: [5, 10, 20, 30, 50].map((c) => DropdownMenuItem(value: c, child: Text('$c membros'))).toList(),
+                        decoration: InputDecoration(labelText: t.tr('member_capacity', fallback: 'Capacidade de Membros'), filled: true, fillColor: AppColors.card),
+                        items: [5, 10, 20, 30, 50].map((c) => DropdownMenuItem(value: c, child: Text('$c ${t.tr("members", fallback: "membros")}'))).toList(),
                         onChanged: (val) { if (val != null) setState(() => _capacity = val); },
                       ),
                     ),
@@ -324,8 +327,8 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
                         value: _goalHours,
                         dropdownColor: AppColors.surface,
                         style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(labelText: 'Meta Diária (Horas)', filled: true, fillColor: AppColors.card),
-                        items: [2, 4, 6, 8, 10, 12].map((g) => DropdownMenuItem(value: g, child: Text('$g horas/dia'))).toList(),
+                        decoration: InputDecoration(labelText: t.tr('daily_goal_hours', fallback: 'Meta Diária (Horas)'), filled: true, fillColor: AppColors.card),
+                        items: [2, 4, 6, 8, 10, 12].map((g) => DropdownMenuItem(value: g, child: Text('$g h/${t.tr("today", fallback: "dia")}'))).toList(),
                         onChanged: (val) { if (val != null) setState(() => _goalHours = val); },
                       ),
                     ),
@@ -338,8 +341,8 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
                   controller: _passwordController,
                   obscureText: true,
                   style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
-                    labelText: 'Senha de Acesso (opcional - deixe em branco para público)',
+                  decoration: InputDecoration(
+                    labelText: t.tr('group_password_hint', fallback: 'Senha de Acesso (opcional - deixe em branco para público)'),
                     filled: true,
                     fillColor: AppColors.card,
                   ),
@@ -347,10 +350,10 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
                 const SizedBox(height: 24),
 
                 // Chat Permissions
-                const Text('Configurações de Chat', style: AppTextStyles.titleMedium),
+                Text(t.tr('chat_settings', fallback: 'Configurações de Chat'), style: AppTextStyles.titleMedium),
                 const SizedBox(height: 8),
                 SwitchListTile(
-                  title: const Text('Habilitar Chat do Grupo', style: TextStyle(color: Colors.white)),
+                  title: Text(t.tr('enable_group_chat', fallback: 'Habilitar Chat do Grupo'), style: const TextStyle(color: Colors.white)),
                   value: _chatEnabled,
                   activeColor: AppColors.primary,
                   onChanged: (val) => setState(() => _chatEnabled = val),
@@ -363,7 +366,7 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
                     backgroundColor: AppColors.primary,
                     minimumSize: const Size.fromHeight(48),
                   ),
-                  child: const Text('Salvar Alterações', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: Text(t.tr('save_changes', fallback: 'Salvar Alterações'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
 
                 const Divider(height: 48, color: AppColors.border),
@@ -371,7 +374,7 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
                 // Danger Zone
                 ElevatedButton.icon(
                   icon: const Icon(Icons.delete_forever, color: Colors.white),
-                  label: const Text('Dissolver Grupo Permanentemente', style: TextStyle(color: Colors.white)),
+                  label: Text(t.tr('disband_group', fallback: 'Dissolver Grupo Permanentemente'), style: const TextStyle(color: Colors.white)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.error,
                     minimumSize: const Size.fromHeight(48),
@@ -393,23 +396,23 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
                   title: Text(member.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  subtitle: Text(member.isStudying ? 'Estudando' : 'Inativo', style: TextStyle(color: member.isStudying ? AppColors.success : AppColors.textMuted)),
+                  subtitle: Text(member.isStudying ? t.tr('studying', fallback: 'Estudando') : t.tr('inactive', fallback: 'Inativo'), style: TextStyle(color: member.isStudying ? AppColors.success : AppColors.textMuted)),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
                         icon: const Icon(Icons.warning_amber_rounded, color: Colors.amber),
-                        tooltip: 'Advertir',
+                        tooltip: t.tr('warn', fallback: 'Advertir'),
                         onPressed: () => _warnMember(member),
                       ),
                       IconButton(
                         icon: const Icon(Icons.person_remove_outlined, color: Colors.orange),
-                        tooltip: 'Remover',
+                        tooltip: t.tr('remove', fallback: 'Remover'),
                         onPressed: () => _kickMember(member),
                       ),
                       IconButton(
                         icon: const Icon(Icons.block, color: AppColors.error),
-                        tooltip: 'Banir',
+                        tooltip: t.tr('ban', fallback: 'Banir'),
                         onPressed: () => _banMember(member),
                       ),
                     ],
@@ -423,7 +426,7 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
           _isLoadingRequests
               ? const Center(child: CircularProgressIndicator())
               : _joinRequests.isEmpty
-                  ? const Center(child: Text('Nenhuma solicitação de entrada pendente.', style: TextStyle(color: AppColors.textSecondary)))
+                  ? Center(child: Text(t.tr('no_results', fallback: 'Nenhuma solicitação de entrada pendente.'), style: const TextStyle(color: AppColors.textSecondary)))
                   : ListView.builder(
                       padding: const EdgeInsets.all(24),
                       itemCount: _joinRequests.length,
@@ -447,7 +450,7 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
                                     _loadAdminData();
                                   },
                                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-                                  child: const Text('Aprovar', style: TextStyle(color: Colors.white)),
+                                  child: Text(t.tr('approve', fallback: 'Aprovar'), style: const TextStyle(color: Colors.white)),
                                 ),
                                 const SizedBox(width: 8),
                                 ElevatedButton(
@@ -457,7 +460,7 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
                                     _loadAdminData();
                                   },
                                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-                                  child: const Text('Rejeitar', style: TextStyle(color: Colors.white)),
+                                  child: Text(t.tr('reject', fallback: 'Rejeitar'), style: const TextStyle(color: Colors.white)),
                                 ),
                               ],
                             ),
@@ -470,7 +473,7 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
           _isLoadingBanned
               ? const Center(child: CircularProgressIndicator())
               : _bannedList.isEmpty
-                  ? const Center(child: Text('Nenhum usuário na lista negra.', style: TextStyle(color: AppColors.textSecondary)))
+                  ? Center(child: Text(t.tr('no_results', fallback: 'Nenhum usuário na lista negra.'), style: const TextStyle(color: AppColors.textSecondary)))
                   : ListView.builder(
                       padding: const EdgeInsets.all(24),
                       itemCount: _bannedList.length,
@@ -491,7 +494,7 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
                                 _loadAdminData();
                               },
                               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-                              child: const Text('Desbanir', style: TextStyle(color: Colors.white)),
+                              child: Text(t.tr('unban', fallback: 'Desbanir'), style: const TextStyle(color: Colors.white)),
                             ),
                           ),
                         );

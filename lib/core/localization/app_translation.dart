@@ -74,17 +74,32 @@ class AppTranslation {
     'timetable': ['timetable', 'timetable_title'],
 
     // Challenge
-    'my_challenges': ['challenge_tabview_history'],
-    'available_challenges': ['challenge_group'],
-    'checkin': ['challenge_proof'],
+    'my_challenges': ['challenge_tabview_history', 'challenge_title'],
+    'available_challenges': ['challenge_group', 'challenge_title'],
+    'checkin': ['challenge_proof', 'challenge_title'],
     'success': ['challenge_success'],
     'failed': ['challenge_fail'],
     'ended': ['challenge_end'],
+    'bet': ['challenge_flame_cost'],
+    'goal': ['daily_goal_hour', 'goal'],
 
-    // Periods
-    'today': ['today', 'day'],
+    // Periods & Stats
+    'today': ['today', 'day', 'study_time_title'],
     'this_week': ['unit_this_week', 'analytics_stairs_info_this_week'],
     'this_month': ['analytics_stairs_info_this_month'],
+    'stats': ['analytics', 'statistics', 'graph'],
+
+    // General UI
+    'student': ['user_profile', 'profile_title'],
+    'online': ['active'],
+    'pending': ['offline_pending'],
+    'synchronized': ['offline_synced'],
+    'sent': ['offline_sent'],
+    'exit_focus': ['focus_exit'],
+    'day_of_week': ['calendar_repeat_cycle_day_of_week'],
+    'start_time': ['calendar_event_start_time'],
+    'end_time': ['calendar_event_end_time'],
+    'subject_distribution': ['analytics_pie_chart_title'],
   };
 
   // Multilingual fallback map for core app terms when JSON missing

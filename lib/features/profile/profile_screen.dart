@@ -89,7 +89,7 @@ class ProfileScreen extends ConsumerWidget {
           controller: controller,
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
-            hintText: 'Digite sua mensagem de status...',
+            hintText: t.tr('status_msg_hint', fallback: 'Digite sua mensagem de status...'),
             hintStyle: const TextStyle(color: AppColors.textMuted),
             filled: true,
             fillColor: AppColors.surface,
@@ -227,7 +227,7 @@ class ProfileScreen extends ConsumerWidget {
                               child: Text(
                                 user?.statusMessage.isNotEmpty == true
                                     ? '"${user!.statusMessage}"'
-                                    : 'Sem mensagem de status',
+                                    : t.tr('no_status_msg', fallback: 'Sem mensagem de status'),
                                 style: const TextStyle(
                                   color: AppColors.textSecondary,
                                   fontSize: 13,
@@ -281,7 +281,7 @@ class ProfileScreen extends ConsumerWidget {
                               label: Text(
                                 user?.categoryName.isNotEmpty == true
                                     ? user!.categoryName
-                                    : 'Graduação',
+                                    : t.tr('graduation', fallback: 'Graduação'),
                                 style: const TextStyle(color: Colors.white, fontSize: 12),
                               ),
                               onPressed: () {
@@ -295,12 +295,12 @@ class ProfileScreen extends ConsumerWidget {
                                         style: const TextStyle(color: Colors.white)),
                                     children: categories.isEmpty
                                         ? [
-                                            const Padding(
-                                              padding: EdgeInsets.all(16),
+                                            Padding(
+                                              padding: const EdgeInsets.all(16),
                                               child: Center(
                                                 child: Text(
-                                                  'Carregando categorias da região...',
-                                                  style: TextStyle(color: AppColors.textMuted),
+                                                  t.tr('loading_categories', fallback: 'Carregando categorias da região...'),
+                                                  style: const TextStyle(color: AppColors.textMuted),
                                                 ),
                                               ),
                                             ),
@@ -317,8 +317,8 @@ class ProfileScreen extends ConsumerWidget {
                                                     SnackBar(
                                                       content: Text(
                                                         ok
-                                                            ? 'Categoria alterada para ${cat.title}'
-                                                            : 'Falha ao atualizar categoria',
+                                                            ? '${t.tr("category_changed_to", fallback: "Categoria alterada para")} ${cat.title}'
+                                                            : t.tr('category_change_fail', fallback: 'Falha ao atualizar categoria'),
                                                       ),
                                                       backgroundColor:
                                                           ok ? AppColors.success : AppColors.error,

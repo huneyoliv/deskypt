@@ -256,7 +256,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
         backgroundColor: AppColors.card,
         title: Text(t.tr('delete_timetable', fallback: 'Excluir Horário'), style: const TextStyle(color: Colors.white)),
         content: Text(
-          'Deseja remover "${block.subjectTitle}"?',
+          '${t.tr("delete", fallback: "Excluir")} "${block.subjectTitle}"?',
           style: const TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
