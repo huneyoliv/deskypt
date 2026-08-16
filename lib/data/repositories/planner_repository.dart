@@ -23,6 +23,41 @@ class PlannerRepository {
     return [];
   }
 
+  Future<DDayModel?> createDDay({
+    required String title,
+    required DateTime targetDate,
+    required int colorInt,
+  }) async {
+    try {
+      final response = await _apiClient.post(
+        '/planner/dday',
+        data: {
+          'title': title,
+          'targetDate': targetDate.toIso8601String(),
+          'color': colorInt,
+        },
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic> && (data['s'] == true || data['id'] != null)) {
+        final raw = data['dday'] ?? data;
+        if (raw is Map<String, dynamic>) {
+          return DDayModel.fromJson(raw);
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<bool> deleteDDay(int ddayId) async {
+    try {
+      final response = await _apiClient.delete('/planner/dday/$ddayId');
+      final data = response.data;
+      return data is Map<String, dynamic> && data['s'] == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<List<TodoItemModel>> fetchTodos(String dateYmd) async {
     try {
       final response = await _apiClient.get(

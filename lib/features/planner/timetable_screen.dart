@@ -295,19 +295,33 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
       body: Column(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             color: AppColors.surface,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(t.tr('timetable', fallback: 'Grade Horária Semanal'), style: AppTextStyles.titleMedium),
-                    const SizedBox(height: 2),
-                    Text(t.tr('timetable_desc', fallback: 'Organize seus horários de aulas e sessões de estudo'), style: AppTextStyles.labelSmall),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        t.tr('timetable', fallback: 'Grade Horária Semanal'),
+                        style: AppTextStyles.titleMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        t.tr('timetable_desc', fallback: 'Organize seus horários de aulas e sessões de estudo'),
+                        style: AppTextStyles.labelSmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 12),
                 ElevatedButton.icon(
                   icon: const Icon(Icons.add, color: Colors.white, size: 18),
                   label: Text(t.tr('add_timetable', fallback: 'Novo Horário'), style: const TextStyle(color: Colors.white)),

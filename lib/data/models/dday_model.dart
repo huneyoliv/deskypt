@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/utils/color_utils.dart';
+import '../../core/utils/study_date_helper.dart';
 
 class DDayModel {
   final int id;
@@ -18,7 +19,7 @@ class DDayModel {
 
   int get daysRemaining {
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final today = StudyDateHelper.getStudyDate(now);
     final target = DateTime(targetDate.year, targetDate.month, targetDate.day);
     return target.difference(today).inDays;
   }

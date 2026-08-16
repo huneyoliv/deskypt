@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/localization/app_translation.dart';
+import '../../core/utils/study_date_helper.dart';
 import '../../data/models/dday_model.dart';
 import '../../data/models/todo_item_model.dart';
 import '../../data/repositories/planner_repository.dart';
@@ -21,7 +22,7 @@ class PlannerScreen extends ConsumerStatefulWidget {
 }
 
 class _PlannerScreenState extends ConsumerState<PlannerScreen> {
-  DateTime _selectedDate = DateTime.now();
+  DateTime _selectedDate = StudyDateHelper.getStudyDate();
   List<DDayModel> _ddays = [];
   List<TodoItemModel> _todos = [];
   bool _isLoading = true;
@@ -45,7 +46,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     final repo = ref.read(plannerRepositoryProvider);
-    final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    final dateStr = StudyDateHelper.getStudyDateString(_selectedDate);
 
     final results = await Future.wait([
       repo.fetchDDays(),
@@ -58,6 +59,17 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
         _todos = results[1] as List<TodoItemModel>;
         _isLoading = false;
       });
+    }
+  }
+
+  String _formatDate(DateTime date, AppTranslation t) {
+    try {
+      final locale = t.languageCode == 'zh-cn'
+          ? 'zh_CN'
+          : (t.languageCode == 'zh-tw' ? 'zh_TW' : t.languageCode);
+      return DateFormat('EEEE, d MMMM yyyy', locale).format(date);
+    } catch (_) {
+      return DateFormat('yyyy-MM-dd').format(date);
     }
   }
 
@@ -448,93 +460,95 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                     color: AppColors.surface,
                     border: Border(right: BorderSide(color: AppColors.border)),
                   ),
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(t.tr('dday', fallback: 'Seus D-Days'), style: AppTextStyles.titleLarge),
-                          IconButton(
-                            icon: const Icon(Icons.add_circle_outline,
-                                color: AppColors.primary),
-                            onPressed: _showAddDDayDialog,
-                            tooltip: t.tr('dday', fallback: 'Novo D-Day'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(t.tr('dday', fallback: 'Seus D-Days'), style: AppTextStyles.titleLarge),
+                            IconButton(
+                              icon: const Icon(Icons.add_circle_outline,
+                                  color: AppColors.primary),
+                              onPressed: _showAddDDayDialog,
+                              tooltip: t.tr('dday', fallback: 'Novo D-Day'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
 
-                      // D-Days Horizontal List
-                      SizedBox(
-                        height: 90,
-                        child: _ddays.isEmpty
-                            ? Center(
-                                child: Text(
-                                  t.tr('dday_empty', fallback: 'Nenhum D-Day cadastrado'),
-                                  style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+                        // D-Days Horizontal List
+                        SizedBox(
+                          height: 100,
+                          child: _ddays.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    t.tr('dday_empty', fallback: 'Nenhum D-Day cadastrado'),
+                                    style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+                                  ),
+                                )
+                              : ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: _ddays.length,
+                                  itemBuilder: (context, index) {
+                                    final dday = _ddays[index];
+                                    return Container(
+                                      width: 160,
+                                      margin: const EdgeInsets.only(right: 12),
+                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.card,
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(
+                                            color: dday.color.withValues(alpha: 0.6)),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            dday.label,
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w900,
+                                              color: dday.color,
+                                            ),
+                                          ),
+                                          Text(
+                                            dday.title,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
                                 ),
-                              )
-                            : ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: _ddays.length,
-                                itemBuilder: (context, index) {
-                                  final dday = _ddays[index];
-                                  return Container(
-                                    width: 160,
-                                    margin: const EdgeInsets.only(right: 12),
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.card,
-                                      borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(
-                                          color: dday.color.withValues(alpha: 0.6)),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          dday.label,
-                                          style: TextStyle(
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.w900,
-                                            color: dday.color,
-                                          ),
-                                        ),
-                                        Text(
-                                          dday.title,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                      ),
-                      const SizedBox(height: 32),
+                        ),
+                        const SizedBox(height: 32),
 
-                      Text(t.tr('calendar', fallback: 'Calendário de Estudos'), style: AppTextStyles.titleLarge),
-                      const SizedBox(height: 12),
+                        Text(t.tr('calendar', fallback: 'Calendário de Estudos'), style: AppTextStyles.titleLarge),
+                        const SizedBox(height: 12),
 
-                      // Mini Calendar View
-                      CalendarDatePicker(
-                        initialDate: _selectedDate,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime(2030),
-                        onDateChanged: (date) {
-                          setState(() => _selectedDate = date);
-                          _loadData();
-                        },
-                      ),
-                    ],
+                        // Mini Calendar View
+                        CalendarDatePicker(
+                          initialDate: _selectedDate,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2030),
+                          onDateChanged: (date) {
+                            setState(() => _selectedDate = date);
+                            _loadData();
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 
@@ -548,70 +562,71 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  t.tr('todo', fallback: 'Planner de Estudos (To-Do)'),
-                                  style: AppTextStyles.displayMedium,
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.arrow_back_ios_rounded, size: 16, color: AppColors.textMuted),
-                                      onPressed: () {
-                                        setState(() => _selectedDate = _selectedDate.subtract(const Duration(days: 1)));
-                                        _loadData();
-                                      },
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    t.tr('todo', fallback: 'Planner de Estudos (To-Do)'),
+                                    style: AppTextStyles.displayMedium,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.arrow_back_ios_rounded, size: 16, color: AppColors.textMuted),
+                                          onPressed: () {
+                                            setState(() => _selectedDate = _selectedDate.subtract(const Duration(days: 1)));
+                                            _loadData();
+                                          },
+                                        ),
+                                        InkWell(
+                                          onTap: () async {
+                                            final picked = await showDatePicker(
+                                              context: context,
+                                              initialDate: _selectedDate,
+                                              firstDate: DateTime(2020),
+                                              lastDate: DateTime(2030),
+                                            );
+                                            if (picked != null) {
+                                              setState(() => _selectedDate = picked);
+                                              _loadData();
+                                            }
+                                          },
+                                          child: Text(
+                                            _formatDate(_selectedDate, t),
+                                            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.textMuted),
+                                          onPressed: () {
+                                            setState(() => _selectedDate = _selectedDate.add(const Duration(days: 1)));
+                                            _loadData();
+                                          },
+                                        ),
+                                      ],
                                     ),
-                                    InkWell(
-                                      onTap: () async {
-                                        final picked = await showDatePicker(
-                                          context: context,
-                                          initialDate: _selectedDate,
-                                          firstDate: DateTime(2020),
-                                          lastDate: DateTime(2030),
-                                        );
-                                        if (picked != null) {
-                                          setState(() => _selectedDate = picked);
-                                          _loadData();
-                                        }
-                                      },
-                                      child: Text(
-                                        DateFormat(
-                                          'EEEE, d MMMM yyyy',
-                                          t.languageCode == 'zh-cn'
-                                              ? 'zh_CN'
-                                              : (t.languageCode == 'zh-tw'
-                                                  ? 'zh_TW'
-                                                  : t.languageCode),
-                                        ).format(_selectedDate),
-                                        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.textMuted),
-                                      onPressed: () {
-                                        setState(() => _selectedDate = _selectedDate.add(const Duration(days: 1)));
-                                        _loadData();
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                  ),
+                                ],
+                              ),
                             ),
+                            const SizedBox(width: 12),
                             ElevatedButton.icon(
                               onPressed: _showAddTodoDialog,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 14),
+                                    horizontal: 16, vertical: 12),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                              icon: const Icon(Icons.add, color: Colors.white),
+                              icon: const Icon(Icons.add, color: Colors.white, size: 18),
                               label: Text(t.tr('add', fallback: 'Nova Tarefa'),
                                   style: const TextStyle(
                                       color: Colors.white,
@@ -635,12 +650,17 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    '${t.tr("today", fallback: "Progresso")}: $completedCount / $totalCount ${t.tr("done", fallback: "concluídas")}',
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600),
+                                  Expanded(
+                                    child: Text(
+                                      '${t.tr("today", fallback: "Progresso")}: $completedCount / $totalCount ${t.tr("done", fallback: "concluídas")}',
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
+                                  const SizedBox(width: 8),
                                   Text(
                                     '${(progressPct * 100).toInt()}%',
                                     style: const TextStyle(
