@@ -1,5 +1,6 @@
 import '../../core/api/api_client.dart';
 import '../../core/api/api_exception.dart';
+import '../../core/constants/api_constants.dart';
 import '../models/flashcard_model.dart';
 
 class FlashcardRepository {
@@ -8,10 +9,12 @@ class FlashcardRepository {
   FlashcardRepository({ApiClient? apiClient})
       : _apiClient = apiClient ?? ApiClient();
 
-  Future<List<FlashcardDeckModel>> fetchDecks() async {
+  Future<List<FlashcardDeckModel>> fetchDecks({
+    String language = ApiConstants.defaultLanguage,
+  }) async {
     final response = await _apiClient.post(
       '/card/book/list',
-      data: {'language': 'pt'},
+      data: {'language': language},
     );
 
     final data = response.data;

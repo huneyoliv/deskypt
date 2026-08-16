@@ -57,6 +57,8 @@ class TimerRepository {
     required String subjectTitle,
     required DateTime startAt,
     required DateTime stopAt,
+    String language = ApiConstants.defaultLanguage,
+    String deviceModel = ApiConstants.defaultDeviceModel,
   }) async {
     final studyMs = stopAt.difference(startAt).inMilliseconds;
     if (studyMs <= 0) {
@@ -71,8 +73,8 @@ class TimerRepository {
         'startedAt': startAt.millisecondsSinceEpoch,
         'stopAt': stopAt.millisecondsSinceEpoch,
         'study_ms': studyMs,
-        'deviceModel': 'Desktop',
-        'language': 'pt',
+        'deviceModel': deviceModel,
+        'language': language,
       },
     );
 

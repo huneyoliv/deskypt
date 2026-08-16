@@ -11,7 +11,7 @@ class RankRepository {
   Future<List<RankEntryModel>> fetchGlobalRanks({
     String period = 'day',
     int categoryId = 0,
-    int countryId = 23,
+    int countryId = ApiConstants.defaultCountryId,
     int page = 1,
   }) async {
     try {
@@ -42,7 +42,7 @@ class RankRepository {
 
   Future<int?> fetchMyCategoryRank({
     int categoryId = 0,
-    int countryId = 23,
+    int countryId = ApiConstants.defaultCountryId,
   }) async {
     try {
       final response = await _apiClient.get(

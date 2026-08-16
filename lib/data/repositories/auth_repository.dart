@@ -51,6 +51,7 @@ class AuthRepository {
   Future<UserModel> signInWithEmail({
     required String email,
     required String password,
+    String language = ApiConstants.defaultLanguage,
   }) async {
     final response = await _apiClient.post(
       ApiConstants.signInJwt,
@@ -60,7 +61,7 @@ class AuthRepository {
         'loginProvider': 'Email',
         'new': true,
         'getx': true,
-        'language': 'pt',
+        'language': language,
       },
     );
 
@@ -94,7 +95,7 @@ class AuthRepository {
     await _saveToken(token);
 
     try {
-      final splashData = await splashLogin();
+      final splashData = await splashLogin(language: language);
       if (splashData != null && splashData['gs'] != null) {
         data['gs'] = splashData['gs'];
       }
@@ -109,6 +110,7 @@ class AuthRepository {
     required String socialId,
     required String email,
     required String name,
+    String language = ApiConstants.defaultLanguage,
   }) async {
     final response = await _apiClient.post(
       ApiConstants.signInJwt,
@@ -119,7 +121,7 @@ class AuthRepository {
         'loginProvider': provider,
         'new': true,
         'getx': true,
-        'language': 'pt',
+        'language': language,
       },
     );
 
@@ -139,7 +141,7 @@ class AuthRepository {
     await _saveToken(token);
 
     try {
-      final splashData = await splashLogin();
+      final splashData = await splashLogin(language: language);
       if (splashData != null && splashData['gs'] != null) {
         data['gs'] = splashData['gs'];
       }
@@ -149,19 +151,23 @@ class AuthRepository {
     return UserModel.fromJson(data, token);
   }
 
-  Future<Map<String, dynamic>?> splashLogin() async {
+  Future<Map<String, dynamic>?> splashLogin({
+    String language = ApiConstants.defaultLanguage,
+    String timezone = ApiConstants.defaultTimezone,
+    int version = ApiConstants.defaultVersion,
+  }) async {
     try {
       final response = await _apiClient.post(
         ApiConstants.splashLogin,
         data: {
-          'version': 810041,
+          'version': version,
           'pushToken': '',
-          'timezone': 'America/Sao_Paulo',
-          'deviceType': 'WIN',
+          'timezone': timezone,
+          'deviceType': ApiConstants.defaultDeviceType,
           'osVersion': 10,
-          'deviceModel': 'Desktop',
+          'deviceModel': ApiConstants.defaultDeviceModel,
           'pv': 19,
-          'language': 'pt',
+          'language': language,
         },
       );
       final data = response.data;
@@ -210,12 +216,15 @@ class AuthRepository {
     return null;
   }
 
-  Future<bool> sendPasswordResetCode(String email) async {
+  Future<bool> sendPasswordResetCode(
+    String email, {
+    String language = ApiConstants.defaultLanguage,
+  }) async {
     final response = await _apiClient.post(
       '/user/v2/send-password-reset-code',
       data: {
         'email': email,
-        'language': 'pt',
+        'language': language,
       },
     );
     final data = response.data;
@@ -265,12 +274,15 @@ class AuthRepository {
     return UserModel.fromJson(data, token);
   }
 
-  Future<bool> sendSignUpVerificationCode(String email) async {
+  Future<bool> sendSignUpVerificationCode(
+    String email, {
+    String language = ApiConstants.defaultLanguage,
+  }) async {
     final response = await _apiClient.post(
       '/user/auth/check-email',
       data: {
         'email': email,
-        'language': 'pt',
+        'language': language,
       },
     );
     final data = response.data;
@@ -305,6 +317,7 @@ class AuthRepository {
     required String nickname,
     required int categoryId,
     required int countryId,
+    String language = ApiConstants.defaultLanguage,
   }) async {
     final response = await _apiClient.post(
       '/user/auth/join',
@@ -314,7 +327,7 @@ class AuthRepository {
         'nickname': nickname,
         'category_id': categoryId,
         'country_id': countryId,
-        'language': 'pt',
+        'language': language,
       },
     );
 
@@ -333,7 +346,7 @@ class AuthRepository {
     }
 
     try {
-      await splashLogin();
+      await splashLogin(language: language);
     } catch (_) {}
 
     return UserModel.fromJson(data, token);

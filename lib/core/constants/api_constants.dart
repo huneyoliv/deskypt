@@ -20,6 +20,7 @@ class ApiConstants {
   // Timer & Study
   static const String studyStart = '/study/start';
   static const String studyStop = '/study/stop';
+  static const String studyBreak = '/study/study-plan/rest';
   static const String timeSync = '/time/';
 
   // Groups
@@ -27,7 +28,13 @@ class ApiConstants {
   static const String groupShake = '/group/push/shake';
   static const String groupChatMessages = '/chat/group/messages';
 
-  // Default Headers
+  // Default Headers & App Configuration Defaults
   static const String userAgent = 'Dart/3.11 (dart:io)';
   static const String jwtPrefix = 'JWT ';
+  static const int defaultCountryId = 23;
+  static const int defaultVersion = 810041;
+  static const String defaultLanguage = 'pt';
+  static const String defaultTimezone = 'America/Sao_Paulo';
+  static const String defaultDeviceModel = 'Desktop';
+  static const String defaultDeviceType = 'WIN';
 }

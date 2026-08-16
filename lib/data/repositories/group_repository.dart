@@ -10,10 +10,14 @@ class GroupRepository {
   GroupRepository({ApiClient? apiClient})
       : _apiClient = apiClient ?? ApiClient();
 
-  Future<List<GroupMemberModel>> fetchMembers(int groupId) async {
+  Future<List<GroupMemberModel>> fetchMembers(
+    int groupId, {
+    int countryId = ApiConstants.defaultCountryId,
+    int version = ApiConstants.defaultVersion,
+  }) async {
     try {
       final response = await _apiClient.get(
-        '/logs/group/members/v2?groupID=$groupId&countryID=23&isLooking=false&version=810041',
+        '${ApiConstants.groupMembers}?groupID=$groupId&countryID=$countryId&isLooking=false&version=$version',
       );
 
       final data = response.data as Map<String, dynamic>;
@@ -41,12 +45,17 @@ class GroupRepository {
     return [];
   }
 
-  Future<List<GroupMemberModel>> fetchGroupRanks(int groupId, {String period = 'week'}) async {
+  Future<List<GroupMemberModel>> fetchGroupRanks(
+    int groupId, {
+    String period = 'week',
+    int countryId = ApiConstants.defaultCountryId,
+    int categoryId = 0,
+  }) async {
     try {
       final now = DateTime.now();
       final dateStr = '${now.year}-${now.month}-${now.day}';
       final response = await _apiClient.get(
-        '/logs/group/member/ranks?type=$period&countryID=23&categoryID=0&groupID=$groupId&isCam=false&date=$dateStr&page=1',
+        '/logs/group/member/ranks?type=$period&countryID=$countryId&categoryID=$categoryId&groupID=$groupId&isCam=false&date=$dateStr&page=1',
       );
 
       final data = response.data;
@@ -65,7 +74,12 @@ class GroupRepository {
     return [];
   }
 
-  Future<List<GroupMemberModel>> fetchWeeklyRanks(int groupId) => fetchGroupRanks(groupId, period: 'week');
+  Future<List<GroupMemberModel>> fetchWeeklyRanks(
+    int groupId, {
+    int countryId = ApiConstants.defaultCountryId,
+    int categoryId = 0,
+  }) =>
+      fetchGroupRanks(groupId, period: 'week', countryId: countryId, categoryId: categoryId);
 
   Future<bool> shakeMember({required int groupId, required int targetUserId}) async {
     try {

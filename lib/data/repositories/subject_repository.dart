@@ -40,19 +40,23 @@ class SubjectRepository {
     return SubjectModel.fromJson(data['subject'] ?? data);
   }
 
-  Future<SubjectFetchResult> fetchSubjectsData() async {
+  Future<SubjectFetchResult> fetchSubjectsData({
+    String language = ApiConstants.defaultLanguage,
+    String timezone = ApiConstants.defaultTimezone,
+    int version = ApiConstants.defaultVersion,
+  }) async {
     try {
       final response = await _apiClient.post(
         ApiConstants.splashLogin,
         data: {
-          'version': 810041,
+          'version': version,
           'pushToken': '',
-          'timezone': 'America/Sao_Paulo',
-          'deviceType': 'WIN',
+          'timezone': timezone,
+          'deviceType': ApiConstants.defaultDeviceType,
           'osVersion': 10,
-          'deviceModel': 'Desktop',
+          'deviceModel': ApiConstants.defaultDeviceModel,
           'pv': 24,
-          'language': 'pt',
+          'language': language,
         },
       );
       final data = response.data as Map<String, dynamic>;
