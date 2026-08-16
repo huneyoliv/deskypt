@@ -1,4 +1,4 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/auth_notifier.dart';
@@ -11,6 +11,7 @@ import '../../features/store/store_screen.dart';
 import '../../features/flashcards/flashcards_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/challenges/challenges_screen.dart';
+import '../../features/notifications/notifications_screen.dart';
 import '../../shared/widgets/app_shell.dart';
 
 class _RouterNotifier extends ChangeNotifier {
@@ -81,6 +82,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/challenges',
             builder: (context, state) => const ChallengesScreen(),
+          ),
+          GoRoute(
+            path: '/notifications',
+            builder: (context, state) => const NotificationsScreen(),
           ),
         ],
       ),
