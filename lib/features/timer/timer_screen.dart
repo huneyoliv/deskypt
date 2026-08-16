@@ -5,6 +5,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/localization/app_translation.dart';
 import 'timer_notifier.dart';
 import 'widgets/timer_display.dart';
+import 'widgets/progress_ring_painter.dart';
 import 'widgets/subject_management_dialog.dart';
 import 'widgets/pomodoro_config_dialog.dart';
 import 'widgets/manual_study_log_dialog.dart';
@@ -26,6 +27,14 @@ class TimerScreen extends ConsumerWidget {
       return '${m}m ${s}s';
     }
     return '${s}s';
+  }
+
+  String _formatRestTime(int ms) {
+    final totalSecs = ms ~/ 1000;
+    final h = (totalSecs ~/ 3600).toString().padLeft(2, '0');
+    final m = ((totalSecs % 3600) ~/ 60).toString().padLeft(2, '0');
+    final s = (totalSecs % 60).toString().padLeft(2, '0');
+    return '$h:$m:$s';
   }
 
   @override
@@ -52,137 +61,184 @@ class TimerScreen extends ConsumerWidget {
       PomodoroPhase.longBreak => AppColors.warning,
     };
 
+    double ringProgress = 0.0;
+    if (isPomodoro) {
+      final totalPhaseMs = switch (timerState.pomodoroPhase) {
+        PomodoroPhase.focus => timerState.pomodoroFocusMinutes * 60 * 1000,
+        PomodoroPhase.shortBreak => timerState.pomodoroShortBreakMinutes * 60 * 1000,
+        PomodoroPhase.longBreak => timerState.pomodoroLongBreakMinutes * 60 * 1000,
+      };
+      if (totalPhaseMs > 0) {
+        ringProgress = (1.0 - (timerState.pomodoroRemainingMs / totalPhaseMs)).clamp(0.0, 1.0);
+      }
+    } else {
+      final goalMs = timerState.dailyGoalMinutes * 60 * 1000;
+      if (goalMs > 0) {
+        ringProgress = (timerState.todayTotalMs / goalMs).clamp(0.0, 1.0);
+      }
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
-            // Top Header - Total Today & Currently Selected Subject Badge
+            // Top Header - Study Time & Rest Time & Mode Switcher
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               color: AppColors.surface,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(t.tr('today_total_study_time', fallback: 'Total Estudado Hoje'), style: AppTextStyles.labelSmall),
-                      const SizedBox(height: 2),
-                      Text(
-                        _formatTotalTime(timerState.todayTotalMs),
-                        style: const TextStyle(
-                          fontFamily: AppTextStyles.fontPretendard,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // Mode Switcher Tabs
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: AppColors.card,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        _buildModeTab(
-                          label: t.tr('bottom_home', fallback: 'Cronômetro'),
-                          isSelected: !isPomodoro,
-                          onTap: timerState.isRunning
-                              ? null
-                              : () => notifier.setTimerMode(TimerMode.stopwatch),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(t.tr('today_total_study_time', fallback: 'Tempo de Estudo'), style: AppTextStyles.labelSmall),
+                            const SizedBox(height: 2),
+                            Text(
+                              _formatTotalTime(timerState.todayTotalMs),
+                              style: const TextStyle(
+                                fontFamily: AppTextStyles.fontPretendard,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
-                        _buildModeTab(
-                          label: t.tr('timer_options_pomodoro', fallback: 'Pomodoro'),
-                          isSelected: isPomodoro,
-                          onTap: timerState.isRunning
-                              ? null
-                              : () => notifier.setTimerMode(TimerMode.pomodoro),
+                        const SizedBox(width: 20),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(t.tr('study_rest_label', fallback: 'Tempo de Descanso'), style: AppTextStyles.labelSmall),
+                            const SizedBox(height: 2),
+                            Text(
+                              _formatTotalTime(timerState.todayRestMs),
+                              style: const TextStyle(
+                                fontFamily: AppTextStyles.fontPretendard,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.resting,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ),
+                    const SizedBox(width: 24),
 
-                  Row(
-                    children: [
-                      // Focus Mode Distraction-Free Toggle
-                      IconButton(
-                        tooltip: t.tr('focus', fallback: 'Modo Foco Sem Distrações'),
-                        icon: const Icon(Icons.fullscreen_rounded, color: AppColors.textSecondary),
-                        onPressed: () => ref.read(focusModeProvider.notifier).toggleStrictFocus(),
+                    // Mode Switcher Tabs
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: AppColors.card,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: AppColors.border),
                       ),
-
-                      // Mini-Player Floating Window Toggle
-                      IconButton(
-                        tooltip: t.tr('mini_player', fallback: 'Mini-Player Flutuante'),
-                        icon: const Icon(Icons.picture_in_picture_alt_rounded, color: AppColors.textSecondary),
-                        onPressed: () => ref.read(focusModeProvider.notifier).toggleMiniPlayer(),
-                      ),
-
-                      // Manual Study Log Button
-                      IconButton(
-                        tooltip: t.tr('alert_planner_add_study_log', fallback: 'Registro Manual de Estudo'),
-                        icon: const Icon(Icons.edit_calendar_rounded, color: AppColors.primaryLight),
-                        onPressed: () => ManualStudyLogDialog.show(context),
-                      ),
-                      const SizedBox(width: 8),
-
-                      // Subject Selector Badge
-                      InkWell(
-                        onTap: () {
-                          SubjectManagementDialog.show(
-                            context,
-                            subjects: timerState.subjects,
-                            selectedSubject: timerState.currentSubject,
-                            onSelectSubject: (subject) => notifier.selectSubject(subject),
-                            onCreateSubject: (title, colorInt) => notifier.createSubject(title, colorInt),
-                            onUpdateSubject: (subject) => notifier.updateSubject(subject),
-                            onArchiveSubject: (id, archive) => notifier.archiveSubject(id, archive),
-                            onDeleteSubject: (id) => notifier.deleteSubject(id),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: currentSubjectColor.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: currentSubjectColor, width: 1.5),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildModeTab(
+                            label: t.tr('bottom_home', fallback: 'Cronômetro'),
+                            isSelected: !isPomodoro,
+                            onTap: timerState.isRunning
+                                ? null
+                                : () => notifier.setTimerMode(TimerMode.stopwatch),
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 10,
-                                height: 10,
-                                decoration: BoxDecoration(
-                                  color: currentSubjectColor,
-                                  shape: BoxShape.circle,
+                          _buildModeTab(
+                            label: t.tr('timer_options_pomodoro', fallback: 'Pomodoro'),
+                            isSelected: isPomodoro,
+                            onTap: timerState.isRunning
+                                ? null
+                                : () => notifier.setTimerMode(TimerMode.pomodoro),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Focus Mode Distraction-Free Toggle
+                        IconButton(
+                          tooltip: t.tr('focus', fallback: 'Modo Foco Sem Distrações'),
+                          icon: const Icon(Icons.fullscreen_rounded, color: AppColors.textSecondary),
+                          onPressed: () => ref.read(focusModeProvider.notifier).toggleStrictFocus(),
+                        ),
+
+                        // Mini-Player Floating Window Toggle
+                        IconButton(
+                          tooltip: t.tr('mini_player', fallback: 'Mini-Player Flutuante'),
+                          icon: const Icon(Icons.picture_in_picture_alt_rounded, color: AppColors.textSecondary),
+                          onPressed: () => ref.read(focusModeProvider.notifier).toggleMiniPlayer(),
+                        ),
+
+                        // Manual Study Log Button
+                        IconButton(
+                          tooltip: t.tr('alert_planner_add_study_log', fallback: 'Registro Manual de Estudo'),
+                          icon: const Icon(Icons.edit_calendar_rounded, color: AppColors.primaryLight),
+                          onPressed: () => ManualStudyLogDialog.show(context),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Subject Selector Badge
+                        InkWell(
+                          onTap: () {
+                            SubjectManagementDialog.show(
+                              context,
+                              subjects: timerState.subjects,
+                              selectedSubject: timerState.currentSubject,
+                              onSelectSubject: (subject) => notifier.selectSubject(subject),
+                              onCreateSubject: (title, colorInt) => notifier.createSubject(title, colorInt),
+                              onUpdateSubject: (subject) => notifier.updateSubject(subject),
+                              onArchiveSubject: (id, archive) => notifier.archiveSubject(id, archive),
+                              onDeleteSubject: (id) => notifier.deleteSubject(id),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: currentSubjectColor.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: currentSubjectColor, width: 1.5),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: currentSubjectColor,
+                                    shape: BoxShape.circle,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                timerState.currentSubject?.title ?? t.tr('timer_study_subject', fallback: 'Selecionar Matéria'),
-                                style: TextStyle(
-                                  color: currentSubjectColor,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
+                                const SizedBox(width: 6),
+                                Text(
+                                  timerState.currentSubject?.title ?? t.tr('timer_study_subject', fallback: 'Selecionar Matéria'),
+                                  style: TextStyle(
+                                    color: currentSubjectColor,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 6),
-                              Icon(Icons.keyboard_arrow_down_rounded, color: currentSubjectColor, size: 18),
-                            ],
+                                const SizedBox(width: 4),
+                                Icon(Icons.keyboard_arrow_down_rounded, color: currentSubjectColor, size: 16),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -311,11 +367,58 @@ class TimerScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    TimerDisplay(
-                      elapsedMs: displayMs,
-                      fontSize: 64,
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        CustomPaint(
+                          size: const Size(280, 280),
+                          painter: ProgressRingPainter(
+                            progress: ringProgress,
+                            activeColor: phaseColor,
+                            backgroundColor: AppColors.card,
+                            strokeWidth: 10,
+                          ),
+                        ),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TimerDisplay(
+                              elapsedMs: displayMs,
+                              fontSize: 54,
+                            ),
+                            if (timerState.isPaused) ...[
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.resting.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '${t.tr("study_rest_label", fallback: "Descanso")}: ${_formatRestTime(timerState.sessionRestMs)}',
+                                  style: const TextStyle(
+                                    color: AppColors.resting,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            ] else if (timerState.currentSubject != null) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                timerState.currentSubject!.title,
+                                style: TextStyle(
+                                  color: currentSubjectColor,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 36),
 
                     // Timer Action Buttons
                     Row(

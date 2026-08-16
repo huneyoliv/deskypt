@@ -1,6 +1,7 @@
 import '../../core/api/api_client.dart';
 import '../../core/api/api_exception.dart';
 import '../../core/constants/api_constants.dart';
+import '../../core/utils/study_date_helper.dart';
 
 class TimerRepository {
   final ApiClient _apiClient;
@@ -52,6 +53,29 @@ class TimerRepository {
     return null;
   }
 
+  Future<bool> recordRest({
+    required DateTime startAt,
+    required DateTime stopAt,
+    required int restMs,
+    String deviceModel = ApiConstants.defaultDeviceModel,
+  }) async {
+    try {
+      final response = await _apiClient.post(
+        ApiConstants.studyBreak,
+        data: {
+          'startedAt': startAt.millisecondsSinceEpoch,
+          'stopAt': stopAt.millisecondsSinceEpoch,
+          'rest_ms': restMs,
+          'deviceModel': deviceModel,
+        },
+      );
+      final data = response.data;
+      return data is Map<String, dynamic> && data['s'] == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<Map<String, dynamic>?> logManualStudy({
     required int subjectId,
     required String subjectTitle,
@@ -90,7 +114,7 @@ class TimerRepository {
 
   Future<Map<String, dynamic>?> fetchDailyLog(DateTime date) async {
     try {
-      final dateStr = '${date.year}-${date.month}-${date.day}';
+      final dateStr = StudyDateHelper.getStudyDateString(date);
       final response = await _apiClient.get('/logs/day?date=$dateStr');
       final data = response.data;
       if (data is Map<String, dynamic> && data['s'] == true) {
