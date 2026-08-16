@@ -54,12 +54,13 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
     });
 
     final repo = ref.read(storeRepositoryProvider);
+    final t = ref.read(appTranslationProvider);
     await repo.equipStudicon(item.id);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Studicon "${item.name}" equipado com sucesso! 🎉'),
+          content: Text('${t.tr("studicon", fallback: "Studicon")} "${item.name}" ${t.tr("equipped_success", fallback: "equipado com sucesso!")} 🎉'),
           backgroundColor: AppColors.primary,
         ),
       );

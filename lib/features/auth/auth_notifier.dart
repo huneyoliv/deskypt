@@ -232,6 +232,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<void> refreshUserGroups() async {
+    try {
+      final groups = await _repository.fetchUserGroups();
+      if (state.user != null && groups.isNotEmpty) {
+        final updatedUser = state.user!.copyWith(userGroups: groups);
+        state = state.copyWith(user: updatedUser);
+        await _repository.cacheUser(updatedUser);
+      }
+    } catch (_) {}
+  }
+
   Future<void> logout() async {
     await _repository.logout();
     state = const AuthState();

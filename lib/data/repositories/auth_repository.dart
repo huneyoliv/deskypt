@@ -6,6 +6,7 @@ import '../../core/api/api_exception.dart';
 import '../../core/api/auth_interceptor.dart';
 import '../../core/constants/api_constants.dart';
 import '../models/user_model.dart';
+import '../models/group_model.dart';
 
 class AuthRepository {
   final ApiClient _apiClient;
@@ -91,12 +92,15 @@ class AuthRepository {
     }
 
     await _saveToken(token);
-    await _cacheUserData(data, token);
 
     try {
-      await splashLogin();
+      final splashData = await splashLogin();
+      if (splashData != null && splashData['gs'] != null) {
+        data['gs'] = splashData['gs'];
+      }
     } catch (_) {}
 
+    await _cacheUserData(data, token);
     return UserModel.fromJson(data, token);
   }
 
@@ -133,29 +137,39 @@ class AuthRepository {
     }
 
     await _saveToken(token);
-    await _cacheUserData(data, token);
 
     try {
-      await splashLogin();
+      final splashData = await splashLogin();
+      if (splashData != null && splashData['gs'] != null) {
+        data['gs'] = splashData['gs'];
+      }
     } catch (_) {}
 
+    await _cacheUserData(data, token);
     return UserModel.fromJson(data, token);
   }
 
-  Future<void> splashLogin() async {
-    await _apiClient.post(
-      ApiConstants.splashLogin,
-      data: {
-        'version': 810041,
-        'pushToken': '',
-        'timezone': 'America/Sao_Paulo',
-        'deviceType': 'WIN',
-        'osVersion': 10,
-        'deviceModel': 'Desktop',
-        'pv': 19,
-        'language': 'pt',
-      },
-    );
+  Future<Map<String, dynamic>?> splashLogin() async {
+    try {
+      final response = await _apiClient.post(
+        ApiConstants.splashLogin,
+        data: {
+          'version': 810041,
+          'pushToken': '',
+          'timezone': 'America/Sao_Paulo',
+          'deviceType': 'WIN',
+          'osVersion': 10,
+          'deviceModel': 'Desktop',
+          'pv': 19,
+          'language': 'pt',
+        },
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['s'] == true) {
+        return data;
+      }
+    } catch (_) {}
+    return null;
   }
 
   Future<bool> changeNickname(String nickname) async {
@@ -339,6 +353,29 @@ class AuthRepository {
     return null;
   }
 
+  Future<void> cacheUser(UserModel user) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(keyCachedUser, jsonEncode(user.toJson()));
+    } catch (_) {}
+  }
+
+  Future<List<GroupModel>> fetchUserGroups() async {
+    try {
+      final splashData = await splashLogin();
+      if (splashData != null) {
+        final groupsRaw = splashData['gs'] ?? splashData['groups'] ?? splashData['userGroups'];
+        if (groupsRaw is List) {
+          return groupsRaw
+              .whereType<Map<String, dynamic>>()
+              .map((g) => GroupModel.fromJson(g))
+              .toList();
+        }
+      }
+    } catch (_) {}
+    return [];
+  }
+
   Future<UserModel?> tryRestoreSession() async {
     final token = await getStoredToken();
     if (token == null || token.isEmpty) return null;
@@ -352,6 +389,32 @@ class AuthRepository {
         if (decoded is Map<String, dynamic>) {
           user = UserModel.fromJson(decoded, token);
         }
+      }
+    } catch (_) {}
+
+    try {
+      final splashData = await splashLogin().timeout(const Duration(seconds: 4));
+      if (splashData != null) {
+        final groupsRaw = splashData['gs'] ?? splashData['groups'] ?? splashData['userGroups'];
+        List<GroupModel>? groups;
+        if (groupsRaw is List) {
+          groups = groupsRaw
+              .whereType<Map<String, dynamic>>()
+              .map((g) => GroupModel.fromJson(g))
+              .toList();
+        }
+
+        if (user != null) {
+          user = user.copyWith(
+            userGroups: groups ?? user.userGroups,
+            statusMessage: splashData['stm']?.toString() ?? user.statusMessage,
+            studiconId: (splashData['pv'] as int?) ?? user.studiconId,
+            flamesBalance: (splashData['fl'] as int?) ?? user.flamesBalance,
+          );
+        } else {
+          user = UserModel.fromJson(splashData, token);
+        }
+        await cacheUser(user);
       }
     } catch (_) {}
 
@@ -372,6 +435,7 @@ class AuthRepository {
               statusMessage: (p['stm'] ?? user.statusMessage).toString(),
               studiconId: (p['pv'] as int?) ?? user.studiconId,
             );
+            await cacheUser(user);
           }
         }
       }

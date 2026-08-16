@@ -28,14 +28,14 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
   List<SubjectModel> _subjects = [];
   bool _isLoading = true;
 
-  final _days = [
-    {'id': 1, 'name': 'Segunda'},
-    {'id': 2, 'name': 'Terça'},
-    {'id': 3, 'name': 'Quarta'},
-    {'id': 4, 'name': 'Quinta'},
-    {'id': 5, 'name': 'Sexta'},
-    {'id': 6, 'name': 'Sábado'},
-    {'id': 7, 'name': 'Domingo'},
+  List<Map<String, dynamic>> _getDays(AppTranslation t) => [
+    {'id': 1, 'name': t.tr('monday', fallback: 'Segunda-feira'), 'short': t.tr('monday_short', fallback: 'Seg')},
+    {'id': 2, 'name': t.tr('tuesday', fallback: 'Terça-feira'), 'short': t.tr('tuesday_short', fallback: 'Ter')},
+    {'id': 3, 'name': t.tr('wednesday', fallback: 'Quarta-feira'), 'short': t.tr('wednesday_short', fallback: 'Qua')},
+    {'id': 4, 'name': t.tr('thursday', fallback: 'Quinta-feira'), 'short': t.tr('thursday_short', fallback: 'Qui')},
+    {'id': 5, 'name': t.tr('friday', fallback: 'Sexta-feira'), 'short': t.tr('friday_short', fallback: 'Sex')},
+    {'id': 6, 'name': t.tr('saturday', fallback: 'Sábado'), 'short': t.tr('saturday_short', fallback: 'Sáb')},
+    {'id': 7, 'name': t.tr('sunday', fallback: 'Domingo'), 'short': t.tr('sunday_short', fallback: 'Dom')},
   ];
 
   @override
@@ -133,7 +133,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                   fillColor: AppColors.surface,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                items: _days.map((d) {
+                items: _getDays(t).map((d) {
                   return DropdownMenuItem(
                     value: d['id'] as int,
                     child: Text(d['name'] as String),
@@ -325,7 +325,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
             child: Row(
               children: [
                 const SizedBox(width: 60),
-                ..._days.map((day) => Expanded(
+                ..._getDays(t).map((day) => Expanded(
                       child: Center(
                         child: Text(
                           day['name'] as String,

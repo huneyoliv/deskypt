@@ -1,8 +1,0 @@
-{
-  "email": "user@example.com",
-  "password": "SecretPassword123",
-  "loginProvider": "Email",
-  "new": true,
-  "getx": true,
-  "language": "pt"
-}

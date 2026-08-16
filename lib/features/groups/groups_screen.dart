@@ -28,11 +28,17 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
   bool _isSearching = false;
   bool _hasSearched = false;
 
+  List<GroupModel> _exploreGroups = [];
+  bool _isLoadingExplore = false;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _performSearch();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(authStateProvider.notifier).refreshUserGroups();
+    });
+    _loadExploreGroups();
   }
 
   @override
@@ -42,9 +48,40 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
     super.dispose();
   }
 
+  Future<void> _loadExploreGroups() async {
+    setState(() {
+      _isLoadingExplore = true;
+    });
+
+    try {
+      final repo = ref.read(groupRepoProvider);
+      final results = await repo.fetchExploreGroups();
+      if (mounted) {
+        setState(() {
+          _exploreGroups = results;
+          _isLoadingExplore = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _exploreGroups = [];
+          _isLoadingExplore = false;
+        });
+      }
+    }
+  }
+
   Future<void> _performSearch() async {
     final query = _searchController.text.trim();
-    if (query.isEmpty) return;
+    if (query.isEmpty) {
+      setState(() {
+        _hasSearched = false;
+        _searchResults = [];
+      });
+      _loadExploreGroups();
+      return;
+    }
 
     setState(() {
       _isSearching = true;
@@ -70,7 +107,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
     }
   }
 
-  Widget _buildGroupCard(GroupModel group, AppTranslation t) {
+  Widget _buildGroupCard(GroupModel group, AppTranslation t, {bool isMyGroup = false}) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       color: AppColors.card,
@@ -95,7 +132,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 6),
           child: Text(
-            '${group.category} • ${group.membersCount}/${group.maxCapacity} ${t.tr("members", fallback: "membros")} • ${t.tr("goal", fallback: "Meta")}: ${group.dailyGoalHours}h/dia',
+            '${group.category} • ${group.membersCount}/${group.maxCapacity} ${t.tr("members", fallback: "membros")} • ${t.tr("goal", fallback: "Meta")}: ${group.dailyGoalHours}h/${t.tr("today", fallback: "dia")}',
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 13,
@@ -103,17 +140,26 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
           ),
         ),
         trailing: ElevatedButton(
-          onPressed: () {
-            Navigator.of(context).push(
+          onPressed: () async {
+            await Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => GroupDetailScreen(group: group),
               ),
             );
+            if (mounted) {
+              ref.read(authStateProvider.notifier).refreshUserGroups();
+            }
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
+            backgroundColor: isMyGroup ? AppColors.surface : AppColors.primary,
+            side: isMyGroup ? const BorderSide(color: AppColors.border) : null,
           ),
-          child: Text(t.tr('join', fallback: 'Entrar'), style: const TextStyle(color: Colors.white)),
+          child: Text(
+            isMyGroup
+                ? t.tr('open', fallback: 'Abrir')
+                : t.tr('join', fallback: 'Entrar'),
+            style: const TextStyle(color: Colors.white),
+          ),
         ),
       ),
     );
@@ -128,6 +174,19 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(t.tr('groups', fallback: 'Grupos de Estudo'), style: AppTextStyles.titleLarge),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: t.tr('refresh', fallback: 'Atualizar'),
+            onPressed: () {
+              ref.read(authStateProvider.notifier).refreshUserGroups();
+              if (_tabController.index == 1) {
+                _performSearch();
+              }
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
@@ -162,74 +221,108 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
                     ),
                   ),
                 )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(24),
-                  itemCount: myGroups.length,
-                  itemBuilder: (context, index) {
-                    return _buildGroupCard(myGroups[index], t);
+              : RefreshIndicator(
+                  onRefresh: () async {
+                    await ref.read(authStateProvider.notifier).refreshUserGroups();
                   },
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(24),
+                    itemCount: myGroups.length,
+                    itemBuilder: (context, index) {
+                      return _buildGroupCard(myGroups[index], t, isMyGroup: true);
+                    },
+                  ),
                 ),
 
           // Tab 2: Browse & Search
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: t.tr('search', fallback: 'Buscar grupos por nome ou categoria...'),
-                          hintStyle:
-                              const TextStyle(color: AppColors.textMuted),
-                          filled: true,
-                          fillColor: AppColors.card,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          prefixIcon: const Icon(Icons.search,
-                              color: AppColors.textSecondary),
-                        ),
-                        onSubmitted: (_) => _performSearch(),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    ElevatedButton(
-                      onPressed: _performSearch,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 16),
-                      ),
-                      child: Text(t.tr('search', fallback: 'Buscar'),
-                          style: const TextStyle(color: Colors.white)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Expanded(
-                  child: _isSearching
-                      ? const Center(child: CircularProgressIndicator())
-                      : _hasSearched && _searchResults.isEmpty
-                          ? Center(
-                              child: Text(
-                                t.tr('no_results', fallback: 'Nenhum grupo encontrado para sua busca.'),
-                                style:
-                                    const TextStyle(color: AppColors.textSecondary),
-                              ),
-                            )
-                          : ListView.builder(
-                              itemCount: _searchResults.length,
-                              itemBuilder: (context, index) {
-                                return _buildGroupCard(_searchResults[index], t);
-                              },
+          RefreshIndicator(
+            onRefresh: () async {
+              if (_hasSearched) {
+                await _performSearch();
+              } else {
+                await _loadExploreGroups();
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText: t.tr('search', fallback: 'Buscar grupos por nome ou categoria...'),
+                            hintStyle: const TextStyle(color: AppColors.textMuted),
+                            filled: true,
+                            fillColor: AppColors.card,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
                             ),
-                ),
-              ],
+                            prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear, color: AppColors.textMuted),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      _performSearch();
+                                    },
+                                  )
+                                : null,
+                          ),
+                          onSubmitted: (_) => _performSearch(),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: _performSearch,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        ),
+                        child: Text(t.tr('search', fallback: 'Buscar'), style: const TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: (_isSearching || _isLoadingExplore)
+                        ? const Center(child: CircularProgressIndicator())
+                        : _hasSearched
+                            ? _searchResults.isEmpty
+                                ? Center(
+                                    child: Text(
+                                      t.tr('no_results', fallback: 'Nenhum grupo encontrado para sua busca.'),
+                                      style: const TextStyle(color: AppColors.textSecondary),
+                                    ),
+                                  )
+                                : ListView.builder(
+                                    itemCount: _searchResults.length,
+                                    itemBuilder: (context, index) {
+                                      final isMine = myGroups.any((g) => g.id == _searchResults[index].id);
+                                      return _buildGroupCard(_searchResults[index], t, isMyGroup: isMine);
+                                    },
+                                  )
+                            : _exploreGroups.isEmpty
+                                ? Center(
+                                    child: Text(
+                                      t.tr('no_groups_found', fallback: 'Nenhum grupo disponível para explorar no momento.'),
+                                      style: const TextStyle(color: AppColors.textSecondary),
+                                    ),
+                                  )
+                                : ListView.builder(
+                                    itemCount: _exploreGroups.length,
+                                    itemBuilder: (context, index) {
+                                      final isMine = myGroups.any((g) => g.id == _exploreGroups[index].id);
+                                      return _buildGroupCard(_exploreGroups[index], t, isMyGroup: isMine);
+                                    },
+                                  ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

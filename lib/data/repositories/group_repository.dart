@@ -161,32 +161,37 @@ class GroupRepository {
     return false;
   }
 
-  Future<List<GroupModel>> searchGroups(String query) async {
+  Future<List<GroupModel>> fetchExploreGroups({
+    int categoryId = 0,
+    String orderType = 'promotedAt',
+    int page = 1,
+    int countryId = 23,
+    String? query,
+  }) async {
     try {
-      final response = await _apiClient.post(
-        '/group/search-info/v2',
-        data: {'query': query},
-      );
-      final data = response.data as Map<String, dynamic>;
-      final list = data['groups'] ?? data['g'] ?? data['list'];
-      if (list != null && list is List) {
-        return list
-            .map((g) => GroupModel.fromJson(g as Map<String, dynamic>))
-            .toList();
+      final queryParams = <String, String>{
+        'category_id': categoryId.toString(),
+        'order_type': orderType,
+        'only_available': 'false',
+        'only_open': 'false',
+        'only_cam': 'false',
+        'page': page.toString(),
+        'country_id': countryId.toString(),
+        'p': 'true',
+      };
+      if (query != null && query.trim().isNotEmpty) {
+        queryParams['q'] = query.trim();
       }
-    } catch (_) {}
 
-    try {
-      final response = await _apiClient.post(
-        '/group/list-new-2',
-        data: {'q': query},
-      );
+      final queryString = Uri(queryParameters: queryParams).query;
+      final response = await _apiClient.get('/group/list-new-2?$queryString');
 
       final data = response.data as Map<String, dynamic>;
-      final list = data['groups'] ?? data['g'];
+      final list = data['g'] ?? data['groups'] ?? data['list'];
       if (list != null && list is List) {
         return list
-            .map((g) => GroupModel.fromJson(g as Map<String, dynamic>))
+            .whereType<Map<String, dynamic>>()
+            .map((g) => GroupModel.fromJson(g))
             .toList();
       }
     } catch (_) {}
@@ -194,11 +199,43 @@ class GroupRepository {
     return [];
   }
 
-  Future<bool> joinGroup(int groupId) async {
+  Future<List<GroupModel>> searchGroups(String query, {int countryId = 23}) async {
+    return fetchExploreGroups(query: query, countryId: countryId);
+  }
+
+  Future<bool> joinGroup(
+    int groupId, {
+    String? nickname,
+    int? studiconId,
+    String? password,
+  }) async {
+    try {
+      final payload = <String, dynamic>{
+        'id': groupId,
+        'release': true,
+        'canCam': true,
+        'studiconID': studiconId,
+        'nickname': nickname ?? 'Usuário',
+        'p': true,
+      };
+      if (password != null && password.isNotEmpty) {
+        payload['pw'] = password;
+      }
+
+      final response = await _apiClient.post(
+        '/group/join/v2',
+        data: payload,
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['s'] == true) {
+        return true;
+      }
+    } catch (_) {}
+
     try {
       final response = await _apiClient.post(
         '/group/join/v2',
-        data: {'group_id': groupId},
+        data: {'group_id': groupId, 'id': groupId},
       );
       final data = response.data;
       return data is Map<String, dynamic> && data['s'] == true;
@@ -210,7 +247,7 @@ class GroupRepository {
     try {
       final response = await _apiClient.post(
         '/group/leave/v2',
-        data: {'group_id': groupId},
+        data: {'id': groupId, 'group_id': groupId},
       );
       final data = response.data;
       return data is Map<String, dynamic> && data['s'] == true;

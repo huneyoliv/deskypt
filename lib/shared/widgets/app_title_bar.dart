@@ -58,16 +58,6 @@ class _AppTitleBarState extends ConsumerState<AppTitleBar> with WindowListener {
   }
 
   @override
-  void onWindowResize() {
-    _checkMaximized();
-  }
-
-  @override
-  void onWindowMove() {
-    _checkMaximized();
-  }
-
-  @override
   void onWindowDocked() {
     _checkMaximized();
   }
@@ -194,25 +184,21 @@ class _TitleBarButtonState extends State<_TitleBarButton> {
   Widget build(BuildContext context) {
     final effectiveHoverColor = widget.hoverColor ?? Colors.white.withValues(alpha: 0.08);
 
-    return Tooltip(
-      message: widget.tooltip,
-      waitDuration: const Duration(milliseconds: 600),
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _isHovered = true),
-        onExit: (_) => setState(() => _isHovered = false),
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: widget.onTap,
-          behavior: HitTestBehavior.opaque,
-          child: Container(
-            width: 46,
-            height: 32,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: _isHovered ? effectiveHoverColor : Colors.transparent,
-            ),
-            child: widget.child,
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          width: 46,
+          height: 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: _isHovered ? effectiveHoverColor : Colors.transparent,
           ),
+          child: widget.child,
         ),
       ),
     );

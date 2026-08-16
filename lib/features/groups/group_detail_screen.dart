@@ -49,10 +49,11 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
   Future<void> _sendSticker(Sticker sticker) async {
     setState(() => _showStickerPicker = false);
     final user = ref.read(authStateProvider).user;
+    final t = ref.read(appTranslationProvider);
     final newMsg = ChatMessageModel(
       id: DateTime.now().millisecondsSinceEpoch,
       senderId: user?.id ?? 1,
-      senderName: user?.name ?? 'Você',
+      senderName: user?.name ?? t.tr('you', fallback: 'Você'),
       studiconId: user?.studiconId ?? 377,
       message: '',
       stickerUrl: sticker.url,
@@ -68,6 +69,73 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
       final repo = ref.read(groupRepositoryProvider);
       await repo.sendMessage(groupId: widget.group.id, stickerUrl: sticker.url);
     } catch (_) {}
+  }
+
+  Future<void> _joinGroup() async {
+    final t = ref.read(appTranslationProvider);
+    final repo = ref.read(groupRepositoryProvider);
+    final success = await repo.joinGroup(widget.group.id);
+    if (success) {
+      await ref.read(authStateProvider.notifier).refreshUserGroups();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(t.tr('joined_group_success', fallback: 'Você entrou no grupo com sucesso!')),
+            backgroundColor: AppColors.primary,
+          ),
+        );
+        _loadGroupData();
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(t.tr('joined_group_failed', fallback: 'Não foi possível entrar no grupo.')),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _leaveGroup() async {
+    final t = ref.read(appTranslationProvider);
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.card,
+        title: Text(t.tr('leave_group', fallback: 'Sair do Grupo'), style: const TextStyle(color: Colors.white)),
+        content: Text(
+          t.tr('leave_group_confirm', fallback: 'Tem certeza que deseja sair deste grupo?'),
+          style: const TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: Text(t.tr('leave', fallback: 'Sair'), style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final repo = ref.read(groupRepositoryProvider);
+      final success = await repo.leaveGroup(widget.group.id);
+      if (success) {
+        await ref.read(authStateProvider.notifier).refreshUserGroups();
+        if (mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(t.tr('left_group_success', fallback: 'Você saiu do grupo.'))),
+          );
+        }
+      }
+    }
   }
 
   Timer? _chatTimer;
@@ -168,11 +236,12 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
     if (text.isEmpty) return;
 
     final user = ref.read(authStateProvider).user;
+    final t = ref.read(appTranslationProvider);
     _chatInputController.clear();
     final newMsg = ChatMessageModel(
       id: DateTime.now().millisecondsSinceEpoch,
       senderId: user?.id ?? 1,
-      senderName: user?.name ?? 'Você',
+      senderName: user?.name ?? t.tr('you', fallback: 'Você'),
       studiconId: user?.studiconId ?? 377,
       message: text,
       sentAt: DateTime.now(),
@@ -280,9 +349,9 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
             TextField(
               controller: controller,
               style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: 'https://exemplo.com/estudo.jpg',
-                hintStyle: TextStyle(color: AppColors.textMuted),
+              decoration: InputDecoration(
+                hintText: t.tr('image_url_hint', fallback: 'https://exemplo.com/estudo.jpg'),
+                hintStyle: const TextStyle(color: AppColors.textMuted),
                 filled: true,
                 fillColor: AppColors.surface,
               ),
@@ -308,9 +377,9 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
       final newMsg = ChatMessageModel(
         id: DateTime.now().millisecondsSinceEpoch,
         senderId: user?.id ?? 1,
-        senderName: user?.name ?? 'Você',
+        senderName: user?.name ?? t.tr('you', fallback: 'Você'),
         studiconId: user?.studiconId ?? 377,
-        message: 'Photo',
+        message: t.tr('photo', fallback: 'Foto'),
         imageUrl: url,
         type: 'image',
         sentAt: DateTime.now(),
@@ -347,6 +416,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
     final isLeader = activeUser != null &&
         (widget.group.leaderUserId == activeUser.id ||
             (widget.group.leaderName.isNotEmpty && widget.group.leaderName == activeUser.name));
+    final isMember = activeUser != null && activeUser.userGroups.any((g) => g.id == widget.group.id);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -356,7 +426,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
           children: [
             Text(widget.group.name, style: AppTextStyles.titleLarge),
             Text(
-              '${studyingMembers.length} ${t.tr("studying_now", fallback: "estudando agora")} • ${t.tr("goal", fallback: "Meta")}: ${widget.group.dailyGoalHours}h/${t.tr("day", fallback: "dia")}',
+              '${studyingMembers.length} ${t.tr("studying_now", fallback: "estudando agora")} • ${t.tr("goal", fallback: "Meta")}: ${widget.group.dailyGoalHours}h/${t.tr("today", fallback: "dia")}',
               style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
           ],
@@ -376,6 +446,18 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                   ),
                 );
               },
+            )
+          else if (isMember)
+            IconButton(
+              icon: const Icon(Icons.exit_to_app, color: AppColors.error),
+              tooltip: t.tr('leave_group', fallback: 'Sair do Grupo'),
+              onPressed: _leaveGroup,
+            )
+          else
+            TextButton.icon(
+              icon: const Icon(Icons.group_add, color: AppColors.primary),
+              label: Text(t.tr('join', fallback: 'Entrar'), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              onPressed: _joinGroup,
             ),
           const SizedBox(width: 8),
         ],
@@ -412,8 +494,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                     final activeUser = ref.read(authStateProvider).user;
                     final isMe = (activeUser != null && msg.senderId == activeUser.id) ||
                         (activeUser != null && msg.senderName == activeUser.name) ||
-                        msg.senderId == 1 ||
-                        msg.senderName == 'Você';
+                        (msg.senderName == t.tr('you', fallback: 'Você'));
 
                     return Align(
                       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -905,9 +986,9 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                   color: AppColors.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text(
-                  '🔔 Shake',
-                  style: TextStyle(
+                child: Text(
+                  '🔔 ${t.tr("shake", fallback: "Shake")}',
+                  style: const TextStyle(
                     color: AppColors.primary,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,

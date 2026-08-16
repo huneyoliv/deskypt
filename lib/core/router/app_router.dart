@@ -1,3 +1,4 @@
+﻿import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/auth_notifier.dart';
@@ -12,23 +13,30 @@ import '../../features/profile/profile_screen.dart';
 import '../../features/challenges/challenges_screen.dart';
 import '../../shared/widgets/app_shell.dart';
 
+class _RouterNotifier extends ChangeNotifier {
+  _RouterNotifier(this._ref) {
+    _ref.listen<AuthState>(authStateProvider, (_, __) => notifyListeners());
+  }
+
+  final Ref _ref;
+
+  String? redirect(_, GoRouterState state) {
+    final isAuthenticated = _ref.read(authStateProvider).isAuthenticated;
+    final isLoggingIn = state.matchedLocation == '/login';
+
+    if (!isAuthenticated && !isLoggingIn) return '/login';
+    if (isAuthenticated && isLoggingIn) return '/home';
+    return null;
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
+  final notifier = _RouterNotifier(ref);
 
   return GoRouter(
     initialLocation: '/login',
-    redirect: (context, state) {
-      final isAuthenticated = authState.isAuthenticated;
-      final isLoggingIn = state.matchedLocation == '/login';
-
-      if (!isAuthenticated && !isLoggingIn) {
-        return '/login';
-      }
-      if (isAuthenticated && isLoggingIn) {
-        return '/home';
-      }
-      return null;
-    },
+    refreshListenable: notifier,
+    redirect: notifier.redirect,
     routes: [
       GoRoute(
         path: '/login',

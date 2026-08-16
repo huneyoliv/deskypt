@@ -85,6 +85,7 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
 
   Future<void> _updateSettings() async {
     final repo = ref.read(groupAdminRepoProvider);
+    final t = ref.read(appTranslationProvider);
     final newName = _nameController.text.trim();
     final newNotice = _noticeController.text.trim();
     final newPassword = _passwordController.text.trim();
@@ -107,8 +108,8 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Configurações atualizadas com sucesso!'),
+        SnackBar(
+          content: Text(t.tr('settings_updated_success', fallback: 'Configurações atualizadas com sucesso!')),
           backgroundColor: AppColors.primary,
         ),
       );
@@ -117,6 +118,7 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
 
   Future<void> _promoteGroup() async {
     final repo = ref.read(groupAdminRepoProvider);
+    final t = ref.read(appTranslationProvider);
     final success = await repo.promoteGroup(widget.group.id);
 
     if (mounted) {
@@ -124,8 +126,8 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
         SnackBar(
           content: Text(
             success
-                ? 'Grupo promovido ao topo da busca! 🚀'
-                : 'Promoção disponível apenas após 1 hora da última promoção.',
+                ? t.tr('group_promoted_success', fallback: 'Grupo promovido ao topo da busca! 🚀')
+                : t.tr('group_promoted_wait', fallback: 'Promoção disponível apenas após 1 hora da última promoção.'),
           ),
           backgroundColor: success ? AppColors.primary : AppColors.error,
         ),
@@ -135,11 +137,12 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
 
   Future<void> _warnMember(GroupMemberModel member) async {
     final repo = ref.read(groupAdminRepoProvider);
+    final t = ref.read(appTranslationProvider);
     await repo.warnMember(widget.group.id, member.userId);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Cartão de advertência emitido para ${member.name}.'),
+          content: Text('${t.tr("warning_issued_to", fallback: "Cartão de advertência emitido para")} ${member.name}.'),
           backgroundColor: AppColors.primary,
         ),
       );
@@ -147,18 +150,25 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
   }
 
   Future<void> _kickMember(GroupMemberModel member) async {
+    final t = ref.read(appTranslationProvider);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: const Text('Remover Membro', style: TextStyle(color: Colors.white)),
-        content: Text('Remover ${member.name} do grupo?', style: const TextStyle(color: AppColors.textSecondary)),
+        title: Text(t.tr('remove_member', fallback: 'Remover Membro'), style: const TextStyle(color: Colors.white)),
+        content: Text(
+          '${t.tr("remove_member_confirm", fallback: "Remover")} ${member.name} ${t.tr("from_group_q", fallback: "do grupo?")}',
+          style: const TextStyle(color: AppColors.textSecondary),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(t.tr('cancel', fallback: 'Cancelar')),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Remover', style: TextStyle(color: Colors.white)),
+            child: Text(t.tr('remove', fallback: 'Remover'), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -169,25 +179,32 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
       await repo.kickMember(widget.group.id, member.userId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${member.name} foi removido do grupo.')),
+          SnackBar(content: Text('${member.name} ${t.tr("member_removed_msg", fallback: "foi removido do grupo.")}')),
         );
       }
     }
   }
 
   Future<void> _banMember(GroupMemberModel member) async {
+    final t = ref.read(appTranslationProvider);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: const Text('Banir Membro', style: TextStyle(color: Colors.white)),
-        content: Text('Banir ${member.name} do grupo? O usuário entrará na lista negra.', style: const TextStyle(color: AppColors.textSecondary)),
+        title: Text(t.tr('ban_member', fallback: 'Banir Membro'), style: const TextStyle(color: Colors.white)),
+        content: Text(
+          '${t.tr("ban_member_confirm", fallback: "Banir")} ${member.name} ${t.tr("ban_member_blacklist_desc", fallback: "do grupo? O usuário entrará na lista negra.")}',
+          style: const TextStyle(color: AppColors.textSecondary),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(t.tr('cancel', fallback: 'Cancelar')),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Banir', style: TextStyle(color: Colors.white)),
+            child: Text(t.tr('ban', fallback: 'Banir'), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -199,28 +216,32 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
       _loadAdminData();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${member.name} foi banido.')),
+          SnackBar(content: Text('${member.name} ${t.tr("member_banned_msg", fallback: "foi banido.")}')),
         );
       }
     }
   }
 
   Future<void> _disbandGroup() async {
+    final t = ref.read(appTranslationProvider);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: const Text('Dissolver Grupo', style: TextStyle(color: Colors.white)),
+        title: Text(t.tr('disband_group', fallback: 'Dissolver Grupo'), style: const TextStyle(color: Colors.white)),
         content: Text(
-          'Tem certeza que deseja dissolver o grupo "${widget.group.name}"? Esta ação é irreversível.',
+          '${t.tr("disband_group_confirm_prefix", fallback: "Tem certeza que deseja dissolver o grupo")} "${widget.group.name}"? ${t.tr("action_irreversible", fallback: "Esta ação é irreversível.")}',
           style: const TextStyle(color: AppColors.error),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(t.tr('cancel', fallback: 'Cancelar')),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Dissolver Permanentemente', style: TextStyle(color: Colors.white)),
+            child: Text(t.tr('disband_permanently', fallback: 'Dissolver Permanentemente'), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -232,7 +253,7 @@ class _GroupLeaderPanelState extends ConsumerState<GroupLeaderPanel>
       if (mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('O grupo foi dissolvido.')),
+          SnackBar(content: Text(t.tr('group_disbanded_msg', fallback: 'O grupo foi dissolvido.'))),
         );
       }
     }

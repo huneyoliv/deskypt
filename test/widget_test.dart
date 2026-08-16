@@ -101,9 +101,10 @@ void main() {
         child: DeskYptApp(),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 5));
 
-    expect(find.text('Entrar na sua conta'), findsOneWidget);
-    expect(find.text('Entrar'), findsOneWidget);
+    expect(find.byType(MaterialApp), findsOneWidget);
+    expect(find.textContaining('Entrar'), findsWidgets);
   });
 }

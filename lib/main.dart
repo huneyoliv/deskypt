@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:window_manager/window_manager.dart';
+import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/localization/app_translation.dart';
@@ -9,6 +11,7 @@ import 'shared/widgets/app_title_bar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting();
 
   // Initialize Desktop Window Manager
   await windowManager.ensureInitialized();
@@ -16,13 +19,14 @@ void main() async {
     size: Size(1280, 800),
     minimumSize: Size(1024, 700),
     center: true,
-    backgroundColor: Colors.transparent,
+    backgroundColor: Color(0xFF0F1117),
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
     title: 'DeskYPT - Yeolpumta Desktop',
   );
 
   windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.setBackgroundColor(const Color(0xFF0F1117));
     await windowManager.show();
     await windowManager.focus();
   });
@@ -64,20 +68,14 @@ class _DeskYptAppState extends ConsumerState<DeskYptApp> {
       builder: (context, child) {
         return Directionality(
           textDirection: TextDirection.ltr,
-          child: Overlay(
-            initialEntries: [
-              OverlayEntry(
-                builder: (context) => Material(
-                  color: Colors.transparent,
-                  child: Column(
-                    children: [
-                      const AppTitleBar(title: 'DeskYPT'),
-                      Expanded(child: child ?? const SizedBox.shrink()),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+          child: Material(
+            color: AppColors.background,
+            child: Column(
+              children: [
+                const AppTitleBar(title: 'DeskYPT'),
+                Expanded(child: child ?? const SizedBox.shrink()),
+              ],
+            ),
           ),
         );
       },

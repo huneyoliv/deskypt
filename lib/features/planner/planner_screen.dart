@@ -579,7 +579,14 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                                         }
                                       },
                                       child: Text(
-                                        DateFormat('EEEE, d MMMM yyyy').format(_selectedDate),
+                                        DateFormat(
+                                          'EEEE, d MMMM yyyy',
+                                          t.languageCode == 'zh-cn'
+                                              ? 'zh_CN'
+                                              : (t.languageCode == 'zh-tw'
+                                                  ? 'zh_TW'
+                                                  : t.languageCode),
+                                        ).format(_selectedDate),
                                         style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
                                       ),
                                     ),

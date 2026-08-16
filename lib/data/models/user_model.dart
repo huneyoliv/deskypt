@@ -33,7 +33,7 @@ class UserModel {
     final studiconId = safeInt(json['pv'] ?? json['st'] ?? json['studiconId'], 0);
     final hasCustomAvatar = safeBool(json['hasCustomAvatar']);
 
-    final groupsRaw = json['gs'];
+    final groupsRaw = json['gs'] ?? json['groups'] ?? json['userGroups'];
     final List<GroupModel> groups = (groupsRaw is List)
         ? groupsRaw
             .whereType<Map<String, dynamic>>()
@@ -69,6 +69,7 @@ class UserModel {
       'pv': studiconId,
       'jwtToken': jwtToken,
       'fl': flamesBalance,
+      'gs': userGroups.map((g) => g.toJson()).toList(),
     };
   }
 

@@ -33,8 +33,8 @@ class GroupModel {
       name: safeString(json['t'] ?? json['n'] ?? json['name'], 'Grupo'),
       category: safeString(json['c'] ?? json['ct'], 'Geral'),
       dailyGoalHours: safeInt(json['gt'] ?? json['g'], 8),
-      membersCount: safeInt(json['jc'] ?? json['mc'] ?? json['personnel'], 1),
-      maxCapacity: safeInt(json['mc'] ?? json['mp'] ?? json['maxPersonnel'], 50),
+      membersCount: safeInt(json['jc'] ?? json['personnel'], 1),
+      maxCapacity: safeInt(json['mp'] ?? json['maxPersonnel'] ?? json['mc'], 50),
       isPrivate: safeBool(json['ip'] ?? json['p']),
       leaderName: safeString(json['on'] ?? json['ln'] ?? json['leader']),
       leaderUserId: safeInt(json['ou'] ?? json['oid'] ?? json['leaderID'] ?? json['uid']),
@@ -43,5 +43,21 @@ class GroupModel {
           : null,
       isCamStudy: safeBool(json['cam'] ?? json['isCam'] ?? json['isCamStudy']),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'n': name,
+      'c': category,
+      'gt': dailyGoalHours,
+      'jc': membersCount,
+      'mp': maxCapacity,
+      'ip': isPrivate,
+      'on': leaderName,
+      'ou': leaderUserId,
+      'sn': notice,
+      'cam': isCamStudy,
+    };
   }
 }

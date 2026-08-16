@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/cdn/cdn_resolver.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/localization/app_translation.dart';
 import '../../../data/models/group_member_model.dart';
 import '../../../shared/widgets/studicon_avatar.dart';
 
-class CamStudyMemberTile extends StatelessWidget {
+class CamStudyMemberTile extends ConsumerWidget {
   final GroupMemberModel member;
   final VoidCallback? onShake;
 
@@ -24,7 +26,8 @@ class CamStudyMemberTile extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = ref.watch(appTranslationProvider);
     final dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
     final camUrl = CdnResolver.camStudyUrl(dateStr, member.userId);
 
@@ -91,7 +94,7 @@ class CamStudyMemberTile extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    member.isStudying ? 'CAM AO VIVO' : 'PAUSA',
+                    member.isStudying ? t.tr('cam_live', fallback: 'CAM AO VIVO') : t.tr('paused', fallback: 'PAUSA'),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 10,
@@ -151,7 +154,7 @@ class CamStudyMemberTile extends StatelessWidget {
                       icon: const Icon(Icons.notifications_active,
                           color: AppColors.primary, size: 18),
                       onPressed: onShake,
-                      tooltip: 'Chacoalhar',
+                      tooltip: t.tr('shake', fallback: 'Chacoalhar'),
                     ),
                 ],
               ),

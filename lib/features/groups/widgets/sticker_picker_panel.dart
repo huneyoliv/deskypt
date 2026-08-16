@@ -4,6 +4,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../data/models/sticker_model.dart';
 import '../../../data/repositories/chat_media_repository.dart';
 
+import '../../../core/localization/app_translation.dart';
+
 final chatMediaRepoProvider = Provider<ChatMediaRepository>((ref) {
   return ChatMediaRepository();
 });
@@ -47,6 +49,8 @@ class _StickerPickerPanelState extends ConsumerState<StickerPickerPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(appTranslationProvider);
+
     return Container(
       height: 280,
       decoration: const BoxDecoration(
@@ -65,9 +69,9 @@ class _StickerPickerPanelState extends ConsumerState<StickerPickerPanel> {
                   color: AppColors.card,
                   child: Row(
                     children: [
-                      const Text(
-                        'Figurinhas YPT',
-                        style: TextStyle(
+                      Text(
+                        t.tr('ypt_stickers', fallback: 'Figurinhas YPT'),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -108,10 +112,10 @@ class _StickerPickerPanelState extends ConsumerState<StickerPickerPanel> {
                 // Stickers Grid
                 Expanded(
                   child: _selectedSet == null || _selectedSet!.stickers.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Text(
-                            'Nenhuma figurinha disponível.',
-                            style: TextStyle(color: AppColors.textMuted),
+                            t.tr('no_stickers_available', fallback: 'Nenhuma figurinha disponível.'),
+                            style: const TextStyle(color: AppColors.textMuted),
                           ),
                         )
                       : GridView.builder(
