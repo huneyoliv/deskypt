@@ -317,7 +317,7 @@ class _RanksScreenState extends ConsumerState<RanksScreen>
                             children: [
                               if (_ranks.length >= 3)
                                 SizedBox(
-                                  height: 260,
+                                  height: 290,
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     crossAxisAlignment: CrossAxisAlignment.end,

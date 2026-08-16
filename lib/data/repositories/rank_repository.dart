@@ -1,5 +1,6 @@
 import '../../core/api/api_client.dart';
 import '../../core/constants/api_constants.dart';
+import '../../core/utils/study_date_helper.dart';
 import '../models/rank_entry_model.dart';
 
 class RankRepository {
@@ -15,8 +16,7 @@ class RankRepository {
     int page = 1,
   }) async {
     try {
-      final now = DateTime.now();
-      final dateStr = '${now.year}-${now.month}-${now.day}';
+      final dateStr = StudyDateHelper.getStudyDateString();
 
       final response = await _apiClient.get(
         '${ApiConstants.metadataCdnUrl}/logs/category/member/ranks?date=$dateStr&categoryID=$categoryId&countryID=$countryId&page=$page&type=$period',

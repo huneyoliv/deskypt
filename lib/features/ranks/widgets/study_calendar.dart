@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/localization/app_translation.dart';
+import '../../../core/utils/study_date_helper.dart';
 
 class StudyCalendar extends ConsumerWidget {
   final Map<String, int> dailyStudyTimeMs; // Key: 'yyyy-MM-dd', Value: ms
@@ -30,7 +31,7 @@ class StudyCalendar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final now = DateTime.now();
+    final now = StudyDateHelper.getStudyDate();
     final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
     final firstDayWeekday = DateTime(now.year, now.month, 1).weekday; // 1=Mon...7=Sun
     final t = ref.watch(appTranslationProvider);
