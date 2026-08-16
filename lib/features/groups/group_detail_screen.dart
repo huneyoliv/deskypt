@@ -828,7 +828,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
             sliver: SliverGrid(
               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                 maxCrossAxisExtent: 220,
-                childAspectRatio: 1.05,
+                childAspectRatio: 0.82,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
               ),
@@ -871,7 +871,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
             sliver: SliverGrid(
               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                 maxCrossAxisExtent: 220,
-                childAspectRatio: 1.05,
+                childAspectRatio: 0.82,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
               ),
@@ -905,7 +905,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(12),

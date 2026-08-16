@@ -1,5 +1,6 @@
 import '../../core/api/api_client.dart';
 import '../../core/constants/api_constants.dart';
+import '../../core/utils/study_date_helper.dart';
 import '../models/group_model.dart';
 import '../models/group_member_model.dart';
 import '../models/chat_message_model.dart';
@@ -52,8 +53,7 @@ class GroupRepository {
     int categoryId = 0,
   }) async {
     try {
-      final now = DateTime.now();
-      final dateStr = '${now.year}-${now.month}-${now.day}';
+      final dateStr = StudyDateHelper.getStudyDateString();
       final response = await _apiClient.get(
         '/logs/group/member/ranks?type=$period&countryID=$countryId&categoryID=$categoryId&groupID=$groupId&isCam=false&date=$dateStr&page=1',
       );
