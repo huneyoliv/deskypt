@@ -138,12 +138,12 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
     }
 
     return GridView.builder(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 380,
-        childAspectRatio: 0.9,
-        crossAxisSpacing: 20,
-        mainAxisSpacing: 20,
+        maxCrossAxisExtent: 420,
+        childAspectRatio: 0.85,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
       ),
       itemCount: list.length,
       itemBuilder: (context, index) {
@@ -161,7 +161,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -183,9 +183,13 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen>
                         ),
                       ),
                     ),
-                    Text(
-                      '${t.tr("goal", fallback: "Meta")}: ${(challenge.successThreshold * 100).toInt()}%',
-                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        '${t.tr("goal", fallback: "Meta")}: ${(challenge.successThreshold * 100).toInt()}%',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                      ),
                     ),
                   ],
                 ),
