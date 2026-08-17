@@ -234,8 +234,20 @@ class GroupAdminRepository {
         '/group/setting/breakup?groupID=$groupId',
       );
       final data = response.data;
+      if (data is Map<String, dynamic> && data['s'] == true) {
+        return true;
+      }
+    } catch (_) {}
+
+    try {
+      final response = await _apiClient.post(
+        '/group/setting/breakup',
+        data: {'groupID': groupId},
+      );
+      final data = response.data;
       return data is Map<String, dynamic> && data['s'] == true;
     } catch (_) {}
+
     return false;
   }
 }
