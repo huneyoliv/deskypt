@@ -5,6 +5,7 @@ import '../../core/localization/app_translation.dart';
 import '../../data/models/flashcard_model.dart';
 import 'flashcard_notifier.dart';
 import 'flashcard_study_screen.dart';
+import '../../core/services/smartbook_window_service.dart';
 import 'widgets/create_deck_dialog.dart';
 import 'widgets/create_card_dialog.dart';
 
@@ -25,6 +26,13 @@ class FlashcardsScreen extends ConsumerWidget {
         backgroundColor: AppColors.surface,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.menu_book_rounded, color: Colors.white70, size: 24),
+            tooltip: 'Abrir SmartBook (PDF)',
+            onPressed: () {
+              SmartBookWindowService.open(context);
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.add_rounded, color: AppColors.primary, size: 28),
             tooltip: t.tr('add_flashcards', fallback: 'Novo Baralho'),

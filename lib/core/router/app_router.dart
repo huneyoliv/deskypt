@@ -9,6 +9,7 @@ import '../../features/planner/planner_screen.dart';
 import '../../features/ranks/ranks_screen.dart';
 import '../../features/store/store_screen.dart';
 import '../../features/flashcards/flashcards_screen.dart';
+import '../../features/smartbook/smartbook_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/challenges/challenges_screen.dart';
 import '../../features/notifications/notifications_screen.dart';
@@ -74,6 +75,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/flashcards',
             builder: (context, state) => const FlashcardsScreen(),
+          ),
+          GoRoute(
+            path: '/smartbook',
+            builder: (context, state) => const SmartBookScreen(),
           ),
           GoRoute(
             path: '/profile',

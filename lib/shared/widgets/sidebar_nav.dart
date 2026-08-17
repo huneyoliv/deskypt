@@ -75,6 +75,12 @@ class SidebarNav extends ConsumerWidget {
       fallbackIcon: Icons.storefront,
     ),
     SidebarNavItemData(
+      keyName: 'smartbook',
+      defaultTitle: 'SmartBook',
+      route: '/smartbook',
+      fallbackIcon: Icons.menu_book_rounded,
+    ),
+    SidebarNavItemData(
       keyName: 'challenge',
       defaultTitle: 'Desafios',
       route: '/challenges',
