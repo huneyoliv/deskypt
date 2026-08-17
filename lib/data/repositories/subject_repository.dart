@@ -166,4 +166,21 @@ class SubjectRepository {
     } catch (_) {}
     return false;
   }
+
+  Future<bool> reorderSubjects(List<int> subjectIds) async {
+    try {
+      final orders = [
+        for (int i = 0; i < subjectIds.length; i++)
+          {'id': subjectIds[i], 'order': i + 1}
+      ];
+      final response = await _apiClient.post(
+        '/user/subject/orders',
+        data: {'orders': orders},
+      );
+      final data = response.data;
+      return data is Map<String, dynamic> && data['s'] == true;
+    } catch (_) {}
+    return false;
+  }
 }
+
