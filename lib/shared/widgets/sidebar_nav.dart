@@ -81,6 +81,12 @@ class SidebarNav extends ConsumerWidget {
       fallbackIcon: Icons.menu_book_rounded,
     ),
     SidebarNavItemData(
+      keyName: 'timelapse',
+      defaultTitle: 'Timelapse',
+      route: '/timelapse',
+      fallbackIcon: Icons.slow_motion_video_rounded,
+    ),
+    SidebarNavItemData(
       keyName: 'challenge',
       defaultTitle: 'Desafios',
       route: '/challenges',
