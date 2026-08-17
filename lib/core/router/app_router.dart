@@ -11,6 +11,7 @@ import '../../features/store/store_screen.dart';
 import '../../features/flashcards/flashcards_screen.dart';
 import '../../features/smartbook/smartbook_screen.dart';
 import '../../features/timelapse/timelapse_gallery_screen.dart';
+import '../../features/focus/focus_mode_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/challenges/challenges_screen.dart';
 import '../../features/notifications/notifications_screen.dart';
@@ -84,6 +85,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/timelapse',
             builder: (context, state) => const TimelapseGalleryScreen(),
+          ),
+          GoRoute(
+            path: '/focus',
+            builder: (context, state) => const FocusModeScreen(),
           ),
           GoRoute(
             path: '/profile',

@@ -87,6 +87,12 @@ class SidebarNav extends ConsumerWidget {
       fallbackIcon: Icons.slow_motion_video_rounded,
     ),
     SidebarNavItemData(
+      keyName: 'focus',
+      defaultTitle: 'Modo Foco',
+      route: '/focus',
+      fallbackIcon: Icons.shield_rounded,
+    ),
+    SidebarNavItemData(
       keyName: 'challenge',
       defaultTitle: 'Desafios',
       route: '/challenges',

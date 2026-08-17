@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/localization/app_translation.dart';
 import '../../features/timer/focus_mode_notifier.dart';
+import '../../features/focus/widgets/distraction_alert_overlay.dart';
 import 'sidebar_nav.dart';
 
 class AppShell extends ConsumerWidget {
@@ -35,7 +36,12 @@ class AppShell extends ConsumerWidget {
                 ),
               ],
               Expanded(
-                child: child,
+                child: Column(
+                  children: [
+                    const DistractionAlertOverlay(),
+                    Expanded(child: child),
+                  ],
+                ),
               ),
             ],
           ),
