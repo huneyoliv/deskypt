@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/app_translation.dart';
 import '../focus_mode_notifier.dart';
 
 class DistractionAlertOverlay extends ConsumerWidget {
@@ -9,6 +10,7 @@ class DistractionAlertOverlay extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(focusModeNotifierProvider);
     final notifier = ref.read(focusModeNotifierProvider.notifier);
+    final t = ref.watch(appTranslationProvider);
 
     if (state.activeDistractions.isEmpty) {
       return const SizedBox.shrink();
@@ -26,7 +28,7 @@ class DistractionAlertOverlay extends ConsumerWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Modo Foco DeskYPT: Aplicativo distrator detectado em execução ($detected). Mantenha o foco em seus estudos!',
+              '${t.tr('focus_mode', fallback: 'Modo Foco DeskYPT')}: ${t.tr('distraction_detected', fallback: 'Aplicativo distrator detectado em execução')} ($detected). ${t.tr('keep_studying', fallback: 'Mantenha o foco em seus estudos!')}',
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
             ),
           ),
@@ -37,7 +39,7 @@ class DistractionAlertOverlay extends ConsumerWidget {
               backgroundColor: Colors.white24,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             ),
-            child: const Text('Dispensar', style: TextStyle(color: Colors.white, fontSize: 12)),
+            child: Text(t.tr('dismiss', fallback: 'Dispensar'), style: const TextStyle(color: Colors.white, fontSize: 12)),
           ),
         ],
       ),

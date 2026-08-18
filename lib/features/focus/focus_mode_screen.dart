@@ -86,9 +86,9 @@ class _FocusModeScreenState extends ConsumerState<FocusModeScreen> {
                                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                                   ),
                                   const SizedBox(height: 2),
-                                  const Text(
-                                    'Detecta aplicativos distratores durante cronômetro ativo',
-                                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                                  Text(
+                                    t.tr('focus_blocker_desc', fallback: 'Detecta aplicativos distratores durante cronômetro ativo'),
+                                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
                                   ),
                                 ],
                               ),
@@ -111,15 +111,15 @@ class _FocusModeScreenState extends ConsumerState<FocusModeScreen> {
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
-                              'Modo Estrito (Desktop)',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),
+                              t.tr('strict_mode', fallback: 'Modo Estrito (Desktop)'),
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),
                             ),
-                            SizedBox(height: 2),
+                            const SizedBox(height: 2),
                             Text(
-                              'Exibe alertas bloqueantes ao abrir apps restritos',
-                              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                              t.tr('strict_mode_desc', fallback: 'Exibe alertas bloqueantes ao abrir apps restritos'),
+                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
                             ),
                           ],
                         ),
@@ -136,14 +136,14 @@ class _FocusModeScreenState extends ConsumerState<FocusModeScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Aplicativos Bloqueados',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+            Text(
+              t.tr('blocked_apps', fallback: 'Aplicativos Bloqueados'),
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Adicione executáveis de jogos ou redes sociais que devem ser monitorados.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            Text(
+              t.tr('blocked_apps_hint', fallback: 'Adicione executáveis de jogos ou redes sociais que devem ser monitorados.'),
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 16),
             Row(
@@ -153,7 +153,7 @@ class _FocusModeScreenState extends ConsumerState<FocusModeScreen> {
                     controller: _customAppController,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                     decoration: InputDecoration(
-                      hintText: 'Ex: league of legends, riotclient, netflix',
+                      hintText: t.tr('app_input_example', fallback: 'Ex: league of legends, riotclient, netflix'),
                       hintStyle: const TextStyle(color: AppColors.textMuted),
                       filled: true,
                       fillColor: AppColors.surface,
@@ -170,7 +170,7 @@ class _FocusModeScreenState extends ConsumerState<FocusModeScreen> {
                 ElevatedButton.icon(
                   onPressed: () => _addCustomApp(notifier),
                   icon: const Icon(Icons.add, color: Colors.white),
-                  label: const Text('Adicionar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  label: Text(t.tr('add', fallback: 'Adicionar'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
