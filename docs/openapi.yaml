@@ -54,26 +54,6 @@ tags:
 - name: Configurações Globais
   description: Configurações do sistema e serviços
 paths:
-  /ai/user-api-key/:
-    get:
-      tags:
-      - Configurações Globais
-      summary: Endpoint GET /ai/user-api-key/
-      description: 'Servidor: `https://pi.tgclab.com`. Processado a partir do tráfego
-        capturado.'
-      operationId: get_ai_user_api_key
-      security:
-      - JWTAuth: []
-      responses:
-        '200':
-          description: Operação realizada com sucesso
-          content:
-            application/json:
-              example:
-                s: true
-                key: Y-QxhWND2
-                premium_status: inactive
-                upgrade_message: premium unlocks all date ranges
   /black:
     get:
       tags:
