@@ -13,6 +13,9 @@ import '../settings/widgets/privacy_policy_dialog.dart';
 import '../settings/widgets/terms_of_service_dialog.dart';
 import '../settings/widgets/faq_help_dialog.dart';
 import '../settings/widgets/open_source_licenses_dialog.dart';
+import '../settings/widgets/change_password_dialog.dart';
+import '../settings/widgets/study_preferences_dialog.dart';
+import '../settings/widgets/blocked_users_dialog.dart';
 import 'widgets/delete_account_dialog.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -513,6 +516,86 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               );
             }),
+            const SizedBox(height: 32),
+
+            // Study & Routine Preferences Section
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                t.tr('study_preferences', fallback: 'Preferências de Estudo & Rotina'),
+                style: AppTextStyles.titleMedium,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.tune_rounded, color: AppColors.primary),
+                    title: Text(t.tr('study_preferences', fallback: 'Ajustes de Estudo e Alertas'),
+                        style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(
+                      t.tr('study_pref_subtitle', fallback: 'Horário de reset do dia, exibição de descanso e notificações'),
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                    trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                    onTap: () => StudyPreferencesDialog.show(context),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Account Security Section
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                t.tr('account_security', fallback: 'Segurança da Conta'),
+                style: AppTextStyles.titleMedium,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.lock_reset_rounded, color: AppColors.primary),
+                    title: Text(t.tr('drawer_settings_reset_password_title', fallback: 'Alterar Senha'),
+                        style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(
+                      t.tr('change_password_subtitle', fallback: 'Atualizar sua credencial de acesso'),
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                    trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                    onTap: () => ChangePasswordDialog.show(context),
+                  ),
+                  const Divider(color: AppColors.border, height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.block_rounded, color: AppColors.error),
+                    title: Text(t.tr('drawer_settings_block_user_title', fallback: 'Usuários Bloqueados'),
+                        style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(
+                      t.tr('blocked_users_subtitle', fallback: 'Gerenciar lista de usuários bloqueados'),
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                    trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                    onTap: () => BlockedUsersDialog.show(context),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 32),
 
             // Legal & Support Section

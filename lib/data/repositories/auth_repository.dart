@@ -274,6 +274,30 @@ class AuthRepository {
     return UserModel.fromJson(data, token);
   }
 
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await _apiClient.post(
+        '/user/password',
+        data: {
+          'currentPassword': currentPassword,
+          'newPassword': newPassword,
+          'password': newPassword,
+        },
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['s'] == false) {
+        throw ApiException(data['m']?.toString() ?? 'Senha atual incorreta');
+      }
+      return true;
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      return true;
+    }
+  }
+
   Future<bool> sendSignUpVerificationCode(
     String email, {
     String language = ApiConstants.defaultLanguage,

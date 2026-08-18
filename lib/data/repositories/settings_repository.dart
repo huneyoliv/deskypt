@@ -21,6 +21,11 @@ class SettingsRepository {
   static const String keyCountryName = 'selected_country_name';
   static const String keyTimezone = 'selected_timezone';
   static const String keyLanguage = 'selected_language';
+  static const String keyDayResetHour = 'day_reset_hour';
+  static const String keyShowRestTime = 'show_rest_time';
+  static const String keyWakeNotifications = 'wake_notifications';
+  static const String keySoundEffects = 'sound_effects';
+  static const String keyBlockedUsers = 'blocked_users_list';
 
   static const CountryModel defaultCountry = CountryModel(
     id: 23,
@@ -132,5 +137,55 @@ class SettingsRepository {
   Future<void> saveLanguage(String languageCode) async {
     final prefs = _prefs ?? await SharedPreferences.getInstance();
     await prefs.setString(keyLanguage, languageCode);
+  }
+
+  Future<int> getDayResetHour() async {
+    final prefs = _prefs ?? await SharedPreferences.getInstance();
+    return prefs.getInt(keyDayResetHour) ?? 5;
+  }
+
+  Future<void> saveDayResetHour(int hour) async {
+    final prefs = _prefs ?? await SharedPreferences.getInstance();
+    await prefs.setInt(keyDayResetHour, hour);
+  }
+
+  Future<bool> getShowRestTime() async {
+    final prefs = _prefs ?? await SharedPreferences.getInstance();
+    return prefs.getBool(keyShowRestTime) ?? true;
+  }
+
+  Future<void> saveShowRestTime(bool value) async {
+    final prefs = _prefs ?? await SharedPreferences.getInstance();
+    await prefs.setBool(keyShowRestTime, value);
+  }
+
+  Future<bool> getWakeNotifications() async {
+    final prefs = _prefs ?? await SharedPreferences.getInstance();
+    return prefs.getBool(keyWakeNotifications) ?? true;
+  }
+
+  Future<void> saveWakeNotifications(bool value) async {
+    final prefs = _prefs ?? await SharedPreferences.getInstance();
+    await prefs.setBool(keyWakeNotifications, value);
+  }
+
+  Future<bool> getSoundEffects() async {
+    final prefs = _prefs ?? await SharedPreferences.getInstance();
+    return prefs.getBool(keySoundEffects) ?? true;
+  }
+
+  Future<void> saveSoundEffects(bool value) async {
+    final prefs = _prefs ?? await SharedPreferences.getInstance();
+    await prefs.setBool(keySoundEffects, value);
+  }
+
+  Future<List<String>> getBlockedUsers() async {
+    final prefs = _prefs ?? await SharedPreferences.getInstance();
+    return prefs.getStringList(keyBlockedUsers) ?? [];
+  }
+
+  Future<void> saveBlockedUsers(List<String> users) async {
+    final prefs = _prefs ?? await SharedPreferences.getInstance();
+    await prefs.setStringList(keyBlockedUsers, users);
   }
 }

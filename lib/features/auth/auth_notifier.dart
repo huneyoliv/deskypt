@@ -183,6 +183,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
     return false;
   }
 
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    return _repository.changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
+  }
+
   Future<bool> signUp({
     required String email,
     required String password,

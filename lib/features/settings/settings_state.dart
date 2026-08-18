@@ -10,6 +10,11 @@ class SettingsState {
   final bool isLoadingCountries;
   final bool isLoadingCategories;
   final String? errorMessage;
+  final int dayResetHour;
+  final bool showRestTime;
+  final bool wakeNotifications;
+  final bool soundEffects;
+  final List<String> blockedUsers;
 
   const SettingsState({
     this.selectedCountry = SettingsRepository.defaultCountry,
@@ -19,6 +24,11 @@ class SettingsState {
     this.isLoadingCountries = false,
     this.isLoadingCategories = false,
     this.errorMessage,
+    this.dayResetHour = 5,
+    this.showRestTime = true,
+    this.wakeNotifications = true,
+    this.soundEffects = true,
+    this.blockedUsers = const [],
   });
 
   SettingsState copyWith({
@@ -29,6 +39,11 @@ class SettingsState {
     bool? isLoadingCountries,
     bool? isLoadingCategories,
     String? errorMessage,
+    int? dayResetHour,
+    bool? showRestTime,
+    bool? wakeNotifications,
+    bool? soundEffects,
+    List<String>? blockedUsers,
   }) {
     return SettingsState(
       selectedCountry: selectedCountry ?? this.selectedCountry,
@@ -38,6 +53,11 @@ class SettingsState {
       isLoadingCountries: isLoadingCountries ?? this.isLoadingCountries,
       isLoadingCategories: isLoadingCategories ?? this.isLoadingCategories,
       errorMessage: errorMessage,
+      dayResetHour: dayResetHour ?? this.dayResetHour,
+      showRestTime: showRestTime ?? this.showRestTime,
+      wakeNotifications: wakeNotifications ?? this.wakeNotifications,
+      soundEffects: soundEffects ?? this.soundEffects,
+      blockedUsers: blockedUsers ?? this.blockedUsers,
     );
   }
 }
