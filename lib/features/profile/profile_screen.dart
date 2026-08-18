@@ -9,6 +9,10 @@ import '../settings/settings_notifier.dart';
 import '../settings/widgets/select_country_dialog.dart';
 import '../settings/widgets/select_language_dialog.dart';
 import '../timer/timer_notifier.dart';
+import '../settings/widgets/privacy_policy_dialog.dart';
+import '../settings/widgets/terms_of_service_dialog.dart';
+import '../settings/widgets/faq_help_dialog.dart';
+import '../settings/widgets/open_source_licenses_dialog.dart';
 import 'widgets/delete_account_dialog.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -509,6 +513,76 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               );
             }),
+            const SizedBox(height: 32),
+
+            // Legal & Support Section
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '${t.tr('drawer_helps_title', fallback: 'Ajuda')} & ${t.tr('legal', fallback: 'Legal')}',
+                style: AppTextStyles.titleMedium,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.privacy_tip_outlined, color: AppColors.primary),
+                    title: Text(t.tr('drawer_settings_pallo_privacy_title', fallback: 'Política de Privacidade'),
+                        style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(
+                      t.tr('privacy_subtitle', fallback: 'Como protegemos seus dados e logs de estudo'),
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                    trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                    onTap: () => PrivacyPolicyDialog.show(context),
+                  ),
+                  const Divider(color: AppColors.border, height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.description_outlined, color: AppColors.primary),
+                    title: Text(t.tr('drawer_settings_pallo_terms_title', fallback: 'Termos de Uso'),
+                        style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(
+                      t.tr('terms_subtitle', fallback: 'Condições de serviço e regras da comunidade'),
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                    trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                    onTap: () => TermsOfServiceDialog.show(context),
+                  ),
+                  const Divider(color: AppColors.border, height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.help_outline_rounded, color: AppColors.primary),
+                    title: Text('${t.tr('drawer_helps_title', fallback: 'Ajuda')} & FAQ',
+                        style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(
+                      t.tr('faq_subtitle', fallback: 'Dúvidas frequentes e canais de atendimento'),
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                    trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                    onTap: () => FaqHelpDialog.show(context),
+                  ),
+                  const Divider(color: AppColors.border, height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.code_rounded, color: AppColors.primary),
+                    title: Text(t.tr('open_source_licenses', fallback: 'Licenças Open Source'),
+                        style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(
+                      t.tr('licenses_subtitle', fallback: 'Softwares e bibliotecas de código aberto'),
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                    trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                    onTap: () => OpenSourceLicensesDialog.show(context),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 32),
 
             // Danger Zone Section
