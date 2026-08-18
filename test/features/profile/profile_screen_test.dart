@@ -4,19 +4,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deskypt/core/localization/app_translation.dart';
 import 'package:deskypt/data/models/user_model.dart';
 import 'package:deskypt/data/repositories/auth_repository.dart';
+import 'package:deskypt/data/repositories/settings_repository.dart';
 import 'package:deskypt/features/auth/auth_notifier.dart';
+import 'package:deskypt/features/settings/settings_notifier.dart';
 import 'package:deskypt/features/profile/profile_screen.dart';
 
 void main() {
   testWidgets('ProfileScreen renders user profile information and settings options', (tester) async {
-    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.physicalSize = const Size(1280, 1400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
     });
 
-    final mockUser = const UserModel(
+    const mockUser = UserModel(
       id: 1,
       name: 'Estudante Focado',
       email: 'foco@deskypt.com',
@@ -34,7 +36,10 @@ void main() {
             (ref) => AppTranslationNotifier(ref)..state = const AppTranslation(languageCode: 'pt'),
           ),
           authStateProvider.overrideWith(
-            (ref) => AuthNotifier(AuthRepository())..state = AuthState(user: mockUser),
+            (ref) => AuthNotifier(AuthRepository())..state = const AuthState(user: mockUser),
+          ),
+          settingsNotifierProvider.overrideWith(
+            (ref) => SettingsNotifier(SettingsRepository()),
           ),
         ],
         child: const MaterialApp(

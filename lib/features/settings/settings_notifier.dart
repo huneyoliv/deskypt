@@ -21,39 +21,39 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   }
 
   Future<void> init() async {
-    final country = await _repository.getSavedCountry();
-    final language = await _repository.getSavedLanguage();
-    final dayResetHour = await _repository.getDayResetHour();
-    final showRestTime = await _repository.getShowRestTime();
-    final wakeNotifications = await _repository.getWakeNotifications();
-    final soundEffects = await _repository.getSoundEffects();
-    final blockedUsers = await _repository.getBlockedUsers();
+    try {
+      final country = await _repository.getSavedCountry();
+      final language = await _repository.getSavedLanguage();
+      final dayResetHour = await _repository.getDayResetHour();
+      final showRestTime = await _repository.getShowRestTime();
+      final wakeNotifications = await _repository.getWakeNotifications();
+      final soundEffects = await _repository.getSoundEffects();
+      final blockedUsers = await _repository.getBlockedUsers();
 
-    state = state.copyWith(
-      selectedCountry: country,
-      selectedLanguage: language,
-      dayResetHour: dayResetHour,
-      showRestTime: showRestTime,
-      wakeNotifications: wakeNotifications,
-      soundEffects: soundEffects,
-      blockedUsers: blockedUsers.isNotEmpty ? blockedUsers : state.blockedUsers,
-    );
-
-    await Future.wait([
-      loadCountries(),
-      loadCategories(countryId: country.id, language: language),
-    ]);
+      if (!mounted) return;
+      state = state.copyWith(
+        selectedCountry: country,
+        selectedLanguage: language,
+        dayResetHour: dayResetHour,
+        showRestTime: showRestTime,
+        wakeNotifications: wakeNotifications,
+        soundEffects: soundEffects,
+        blockedUsers: blockedUsers.isNotEmpty ? blockedUsers : state.blockedUsers,
+      );
+    } catch (_) {}
   }
 
   Future<void> loadCountries() async {
     state = state.copyWith(isLoadingCountries: true, errorMessage: null);
     try {
       final countries = await _repository.fetchCountries();
+      if (!mounted) return;
       state = state.copyWith(
         availableCountries: countries,
         isLoadingCountries: false,
       );
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(
         isLoadingCountries: false,
         errorMessage: e.toString(),
@@ -71,11 +71,13 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
         countryId: targetCountryId,
         language: targetLang,
       );
+      if (!mounted) return;
       state = state.copyWith(
         countryCategories: categories,
         isLoadingCategories: false,
       );
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(
         isLoadingCategories: false,
         errorMessage: e.toString(),
@@ -85,12 +87,14 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
 
   Future<void> selectCountry(CountryModel country) async {
     await _repository.saveCountry(country);
+    if (!mounted) return;
     state = state.copyWith(selectedCountry: country);
     await loadCategories(countryId: country.id);
   }
 
   Future<void> selectLanguage(String languageCode) async {
     await _repository.saveLanguage(languageCode);
+    if (!mounted) return;
     state = state.copyWith(selectedLanguage: languageCode);
     await loadCategories(language: languageCode);
   }

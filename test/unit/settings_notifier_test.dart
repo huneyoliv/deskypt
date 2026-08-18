@@ -13,6 +13,11 @@ class MockSettingsRepository extends SettingsRepository {
     continent: 'South America',
   );
   String savedLanguage = 'pt';
+  int savedDayResetHour = 5;
+  bool savedShowRestTime = true;
+  bool savedWakeNotifications = true;
+  bool savedSoundEffects = true;
+  List<String> savedBlockedUsers = [];
 
   @override
   Future<CountryModel> getSavedCountry() async => savedCountry;
@@ -21,10 +26,40 @@ class MockSettingsRepository extends SettingsRepository {
   Future<String> getSavedLanguage() async => savedLanguage;
 
   @override
+  Future<int> getDayResetHour() async => savedDayResetHour;
+
+  @override
+  Future<bool> getShowRestTime() async => savedShowRestTime;
+
+  @override
+  Future<bool> getWakeNotifications() async => savedWakeNotifications;
+
+  @override
+  Future<bool> getSoundEffects() async => savedSoundEffects;
+
+  @override
+  Future<List<String>> getBlockedUsers() async => savedBlockedUsers;
+
+  @override
   Future<void> saveCountry(CountryModel country) async => savedCountry = country;
 
   @override
   Future<void> saveLanguage(String languageCode) async => savedLanguage = languageCode;
+
+  @override
+  Future<void> saveDayResetHour(int hour) async => savedDayResetHour = hour;
+
+  @override
+  Future<void> saveShowRestTime(bool value) async => savedShowRestTime = value;
+
+  @override
+  Future<void> saveWakeNotifications(bool value) async => savedWakeNotifications = value;
+
+  @override
+  Future<void> saveSoundEffects(bool value) async => savedSoundEffects = value;
+
+  @override
+  Future<void> saveBlockedUsers(List<String> users) async => savedBlockedUsers = users;
 
   @override
   Future<List<CountryModel>> fetchCountries() async => [
@@ -79,6 +114,20 @@ void main() {
 
       expect(notifier.state.selectedLanguage, equals('en'));
       expect(mockRepo.savedLanguage, equals('en'));
+    });
+
+    test('setDayResetHour, toggle preferences and block users', () async {
+      await notifier.setDayResetHour(4);
+      expect(notifier.state.dayResetHour, 4);
+
+      await notifier.toggleShowRestTime(false);
+      expect(notifier.state.showRestTime, isFalse);
+
+      await notifier.blockUser('bad_actor');
+      expect(notifier.state.blockedUsers, contains('bad_actor'));
+
+      await notifier.unblockUser('bad_actor');
+      expect(notifier.state.blockedUsers, isNot(contains('bad_actor')));
     });
   });
 }
