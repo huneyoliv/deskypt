@@ -2,162 +2,164 @@
 
 # ⏱️ DeskYPT — Yeolpumta Desktop Client
 
-**Um cliente desktop moderno, poderoso e elegante para a plataforma de estudos Yeolpumta (YPT).**
+**A modern, powerful, and sleek desktop client for the Yeolpumta (YPT) study platform.**
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
 [![Platforms](https://img.shields.io/badge/Platforms-Windows%20%7C%20macOS%20%7C%20Linux-blue?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/huneyoliv/deskypt/releases)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 [![CI/CD](https://img.shields.io/badge/Build-Passing-brightgreen?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/huneyoliv/deskypt/actions)
-[![Tests](https://img.shields.io/badge/Tests-245%2B%20Passing-success?style=for-the-badge&logo=dart)](https://github.com/huneyoliv/deskypt)
+[![Tests](https://img.shields.io/badge/Tests-256%2B%20Passing-success?style=for-the-badge&logo=dart)](https://github.com/huneyoliv/deskypt)
 
-[Recursos](#-recursos-principais) •
-[Instalação](#-instalação-e-download) •
-[Arquitetura](#-arquitetura-e-tecnologias) •
-[Desenvolvimento](#-desenvolvimento-local) •
-[CI/CD e Releases](#-cicd-e-releases) •
-[Licença](#-licença)
+**[English](README.md)** • **[Português (Brasil)](README.pt-BR.md)**
+
+[Key Features](#-key-features) •
+[Installation](#-installation--downloads) •
+[Architecture](#-architecture--technologies) •
+[Local Development](#-local-development) •
+[CI/CD & Releases](#-cicd--releases) •
+[License](#-license)
 
 </div>
 
 ---
 
-## 📖 Sobre o Projeto
+## 📖 About the Project
 
-O **DeskYPT** foi desenvolvido para oferecer a melhor experiência de produtividade e foco para estudantes que utilizam computadores desktop (Windows, macOS e Linux). Com uma interface dark moderna inspirada no design nativo do Yeolpumta e aprimorada para monitores de alta resolução, o aplicativo traz todas as funcionalidades essenciais da plataforma diretamente para o seu computador.
+**DeskYPT** is designed to provide the ultimate focus and productivity experience for students on desktop operating systems (Windows, macOS, and Linux). Built with a modern dark theme aligned with Yeolpumta's design language and optimized for high-resolution displays, DeskYPT brings all the core study features directly to your computer.
 
 ---
 
-## ✨ Recursos Principais
+## ✨ Key Features
 
-### ⏱️ Cronômetro de Estudo & Pomodoro
-- **Modo Padrão & Pomodoro**: Ciclos configuráveis de foco, pausa curta e pausa longa.
-- **Gestão de Matérias**: Criação, edição, arquivamento e paleta de cores personalizada.
-- **Registro Manual**: Inserção de sessões de estudo passadas com cálculo instantâneo.
-- **Sincronização Offline**: Fila de requisições persistente em caso de instabilidade na conexão.
+### ⏱️ Study Timer & Pomodoro
+- **Standard & Pomodoro Modes**: Customizable focus sessions, short breaks, and long breaks.
+- **Subject Management**: Create, edit, archive, and customize subjects with color palettes.
+- **Manual Study Logs**: Add past study sessions with instant time calculations.
+- **Offline Synchronization**: Persistent request queue for uninterrupted tracking during connectivity drops.
 
-### 🛡️ Modo Foco & Bloqueador de Distrações
-- **Monitoramento de Processos**: Detecção automática e alertas para aplicativos não permitidos abertos durante o estudo.
-- **Modo Estrito**: Bloqueio de navegação lateral para foco ininterrupto.
-- **Mini Player Flutuante**: Janela compacta do cronômetro para acompanhar o tempo enquanto consulta materiais.
+### 🛡️ Focus Mode & Distraction Blocker
+- **Process Monitoring**: Automated detection and alerts for unauthorized distraction applications open during study.
+- **Strict Mode**: Locks navigation to maintain deep focus.
+- **Floating Mini Player**: Compact timer overlay to monitor elapsed study time alongside study materials.
 
-### 👥 Grupos de Estudo & Cam Study
-- **Feed e Presença em Tempo Real**: Visualize membros estudando ao vivo com status detalhado.
-- **Cam Study**: Captura periódica e upload seguro de fotos de webcam para comprovação de presença.
-- **Chat do Grupo**: Envio de mensagens, reações com emojis, anexos de mídia e stickers oficiais do YPT.
-- **Interações Sociais**: Envio de "Toques" (Shake) para incentivar colegas de grupo.
+### 👥 Study Groups & Cam Study
+- **Real-Time Attendance Feed**: View active members studying live with real-time status updates.
+- **Cam Study**: Periodic webcam capture and secure upload for study verification.
+- **Group Chat**: Rich messaging with emoji reactions, media attachments, and official YPT stickers.
+- **Social Nudges**: Send "Shakes" to motivate group peers.
 
 ### 📅 Planner, Timetable & D-Days
-- **D-Day Countdown**: Contagem regressiva visual para provas, exames e metas importantes.
-- **To-Do List Inteligente**: Tarefas com prazos, prioridades e suporte a regras de recorrência.
-- **Grade Semanal (Timetable)**: Planejador semanal interativo com blocos de horários por disciplina.
+- **D-Day Countdowns**: Visual countdown timers for exams, tests, and target milestones.
+- **Smart To-Do List**: Priority-based tasks with due dates and recurrence rules.
+- **Weekly Timetable**: Interactive weekly schedule grid organized by subject blocks.
 
-### 📊 Rankings Globais & Heatmap de Atividade
-- **Classificação Multicategoria**: Rankings em tempo real globais, nacionais e por categoria de estudo.
-- **Matriz de Heatmap**: Gráfico de intensidade anual estilo GitHub para visualização da constância de estudo.
-- **Calendário Mensal**: Histórico dia a dia com metas diárias e streaks.
+### 📊 Global Rankings & Activity Heatmap
+- **Multilevel Leaderboards**: Real-time global, national, and category-based leaderboards.
+- **Activity Heatmap Grid**: GitHub-style annual matrix visualizing daily study intensity and consistency.
+- **Monthly Calendar**: Detailed day-by-day study streaks and goal completion.
 
-### 🃏 Flashcards com Repetição Espaçada (SM-2)
-- **Baralhos Personalizados**: Organização de cartas por matérias e tópicos.
-- **Algoritmo SM-2**: Agendamento inteligente de revisões baseado na facilidade de retenção (Novamente, Difícil, Bom, Fácil).
+### 🃏 Flashcards with Spaced Repetition (SM-2)
+- **Custom Decks**: Organize study cards by subject and topic.
+- **SuperMemo-2 Algorithm**: Adaptive review scheduling based on retention feedback (Again, Hard, Good, Easy).
 
-### 📹 Gravador de Timelapse
-- Captura contínua de tela em intervalos configuráveis com galeria e reprodutor interno.
+### 📹 Timelapse Recorder
+- Automated study session screen captures with built-in gallery viewer and video playback.
 
-### 🎨 Studicons & Loja
-- Personalização de avatar com roupas, acessórios e poses dinâmicas sincronizadas com o estado de estudo.
-- Visualização e histórico do saldo de Chamas (Flames).
+### 🎨 Studicons & Avatar Store
+- Customizable doll avatars with outfits, accessories, and dynamic poses reactive to study state.
+- Real Flames balance tracking and equipment management.
 
-### 🌐 Internacionalização Completa (i18n)
-- Suporte a 28 idiomas (incluindo Português, Inglês, Espanhol, Coreano, Japonês, Chinês e Francês) com troca instantânea.
+### 🌐 Comprehensive Internationalization (i18n)
+- Native support for 28 languages with instant runtime locale switching.
 
-### 🔄 Notificação de Atualizações In-App
-- Verificação automática de novas versões com badge pulsante ao lado do sino de notificações.
-- Modal interno com visualização do changelog oficial e botão de download direto do instalador da plataforma do usuário.
+### 🔄 In-App Update Notifications
+- Automatic release checks against GitHub Releases API with animated badge indicator in sidebar.
+- Modal dialog with full changelog release notes and direct native installer download buttons.
 
 ---
 
-## 💻 Instalação e Download
+## 💻 Installation & Downloads
 
-Baixe a versão mais recente diretamente na página de [**Releases Oficiais**](https://github.com/huneyoliv/deskypt/releases/latest).
+Download the latest version directly from our official [**Releases Page**](https://github.com/huneyoliv/deskypt/releases/latest).
 
-| Plataforma | Pacote / Instalador | Formato | Como Instalar |
+| Platform | Package / Installer | Format | Installation Instructions |
 | :--- | :--- | :--- | :--- |
-| **Windows** | `DeskYPT-Windows-Installer-x64.exe` | Instalador Executável | Execute o instalador `.exe` e siga as instruções do assistente. |
-| **macOS** | `DeskYPT-macOS-Installer.dmg` | Imagem de Disco | Abra o arquivo `.dmg` e arraste o `DeskYPT.app` para `Applications`. |
-| **Linux (Debian/Ubuntu)** | `DeskYPT-Linux-x64.deb` | Pacote Debian | `sudo apt install ./DeskYPT-Linux-x64.deb` ou `sudo dpkg -i DeskYPT-Linux-x64.deb` |
-| **Linux (Outras Distros)** | `DeskYPT-Linux-x64.tar.gz` | Arquivo Portável | Extraia o `.tar.gz` e execute o binário `./deskypt`. |
+| **Windows** | `DeskYPT-Windows-Installer-x64.exe` | Executable Setup | Run the `.exe` installer and follow the setup wizard. |
+| **macOS** | `DeskYPT-macOS-Installer.dmg` | Disk Image | Open `.dmg` and drag `DeskYPT.app` to your `Applications` folder. |
+| **Linux (Debian/Ubuntu)** | `DeskYPT-Linux-x64.deb` | Debian Package | Run `sudo apt install ./DeskYPT-Linux-x64.deb` or `sudo dpkg -i DeskYPT-Linux-x64.deb`. |
+| **Linux (Other Distros)** | `DeskYPT-Linux-x64.tar.gz` | Portable Archive | Extract the archive and execute `./deskypt`. |
 
 ---
 
-## 🏗️ Arquitetura e Tecnologias
+## 🏗️ Architecture & Technologies
 
-O projeto segue as diretrizes da **Clean Architecture**, com separação clara de responsabilidades:
+The codebase follows **Clean Architecture** principles with clear layer separation:
 
 ```
 lib/
-├── core/                  # Serviços globais, rede, temas, constantes e i18n
-│   ├── api/               # Cliente HTTP (Dio) e interceptors de autenticação
-│   ├── cdn/               # Resolução dinâmica de URLs de avatares e mídias
-│   ├── constants/         # Endpoints e constantes da aplicação
-│   ├── localization/      # Sistema de tradução e fallbacks
-│   ├── services/          # Serviços do sistema (Foco, Webcam, Atualizações, Janelas)
-│   └── theme/             # Paleta de cores escura, tipografia e estilos
-├── data/                  # Modelos de dados e repositórios
-│   ├── models/            # DTOs com serialização JSON e Freezed
-│   └── repositories/      # Camada de abstração de dados e chamadas de API
-├── features/              # Módulos verticais de funcionalidades
-│   ├── auth/              # Login com e-mail e social (Google / Apple)
-│   ├── challenges/        # Desafios de estudo e apostas em Chamas
-│   ├── flashcards/        # Baralhos e algoritmo SM-2
-│   ├── focus/             # Bloqueio de processos e Mini Player
-│   ├── groups/            # Grupos, presenças ao vivo, chat e Cam Study
-│   ├── notifications/     # Central de notificações e avisos
-│   ├── planner/           # Planner, To-Do list e grade horária
-│   ├── profile/           # Perfil do estudante e configurações de conta
-│   ├── ranks/             # Tabelas de classificação, Heatmap e Calendário
-│   ├── settings/          # Preferências de estudo, idioma e legal
-│   ├── smartbook/         # Visualizador integrado de PDFs e materiais
-│   ├── store/             # Loja de Studicons e inventário
-│   ├── timelapse/         # Gravação e galeria de timelapses
-│   ├── timer/             # Cronômetro principal, Pomodoro e matérias
-│   └── updates/           # Verificador de releases, changelog e instaladores
-└── shared/                # Widgets compartilhados (Shell, Sidebar, Título, Avatares)
+├── core/                  # Core services, networking, themes, constants & i18n
+│   ├── api/               # HTTP client (Dio) and auth interceptors
+│   ├── cdn/               # Dynamic CDN resolvers for avatars & assets
+│   ├── constants/         # API endpoints and application defaults
+│   ├── localization/      # Translation engine and fallback dictionaries
+│   ├── services/          # System services (Focus, Webcam, Updates, Window)
+│   └── theme/             # Dark theme palette, typography & styles
+├── data/                  # Data layer, DTOs and repositories
+│   ├── models/            # Data models with JSON serialization
+│   └── repositories/      # API communication and data access abstraction
+├── features/              # Feature-first modular components
+│   ├── auth/              # Email authentication & social logins (Google / Apple)
+│   ├── challenges/        # Study challenges and flame bets
+│   ├── flashcards/        # Deck management & SM-2 algorithm
+│   ├── focus/             # Process blocker and Mini Player
+│   ├── groups/            # Study groups, attendance, chat & Cam Study
+│   ├── notifications/     # Notification center and alerts
+│   ├── planner/           # Planner, To-Do list & timetable grid
+│   ├── profile/           # User profile and account security
+│   ├── ranks/             # Leaderboards, Heatmap matrix & calendar
+│   ├── settings/          # Study preferences, language and legal dialogs
+│   ├── smartbook/         # Built-in PDF reader and study material viewer
+│   ├── store/             # Studicon avatar inventory & store
+│   ├── timelapse/         # Screen recording & timelapse playback
+│   ├── timer/             # Main study timer, Pomodoro & subject tracker
+│   └── updates/           # Release checker, changelog viewer & installer links
+└── shared/                # Shared widgets (AppShell, SidebarNav, TitleBar, Avatars)
 ```
 
-### Principais Bibliotecas:
+### Key Libraries:
 - **Framework**: [Flutter Desktop](https://flutter.dev) (Dart 3.x)
-- **Gerenciamento de Estado**: [Flutter Riverpod](https://riverpod.dev)
-- **Roteamento**: [GoRouter](https://pub.dev/packages/go_router)
-- **Comunicação HTTP**: [Dio](https://pub.dev/packages/dio)
-- **Armazenamento Seguro**: [flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage) & [shared_preferences](https://pub.dev/packages/shared_preferences)
-- **Gráficos & Animações**: [FL Chart](https://pub.dev/packages/fl_chart) & [Lottie](https://pub.dev/packages/lottie)
-- **Manipulação de Janelas**: [window_manager](https://pub.dev/packages/window_manager)
+- **State Management**: [Flutter Riverpod](https://riverpod.dev)
+- **Routing**: [GoRouter](https://pub.dev/packages/go_router)
+- **Networking**: [Dio](https://pub.dev/packages/dio)
+- **Secure Storage**: [flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage) & [shared_preferences](https://pub.dev/packages/shared_preferences)
+- **Charts & Animations**: [FL Chart](https://pub.dev/packages/fl_chart) & [Lottie](https://pub.dev/packages/lottie)
+- **Desktop Window Control**: [window_manager](https://pub.dev/packages/window_manager)
 
 ---
 
-## 🛠️ Desenvolvimento Local
+## 🛠️ Local Development
 
-### Pré-requisitos
+### Prerequisites
 - [Flutter SDK](https://flutter.dev/docs/get-started/install) (`>= 3.0.0`)
-- **Windows**: Visual Studio 2022 com a carga de trabalho "Desenvolvimento para Desktop com C++".
-- **macOS**: Xcode 15+ com ferramentas de linha de comando.
-- **Linux**: Dependências de compilação:
+- **Windows**: Visual Studio 2022 with "Desktop development with C++" workload.
+- **macOS**: Xcode 15+ with Command Line Tools.
+- **Linux**: Build toolchain:
   ```bash
   sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libsecret-1-dev libjsoncpp-dev
   ```
 
-### Clonando o Repositório
+### Clone the Repository
 ```bash
-git clone git@github.com:huneyoliv/deskypt.git
+git clone https://github.com/huneyoliv/deskypt.git
 cd deskypt
 ```
 
-### Instalando Dependências
+### Install Dependencies
 ```bash
 flutter pub get
 ```
 
-### Executando a Aplicação
+### Run the Application
 ```bash
 # Windows
 flutter run -d windows
@@ -169,38 +171,38 @@ flutter run -d macos
 flutter run -d linux
 ```
 
-### Executando a Suíte de Testes
+### Run Automated Tests & Static Analysis
 ```bash
-# Executa todos os 245+ testes automatizados
+# Run all 256+ automated unit & widget tests
 flutter test
 
-# Análise estática do código
+# Run static analysis
 flutter analyze
 ```
 
 ---
 
-## 🚀 CI/CD e Releases
+## 🚀 CI/CD & Releases
 
-O projeto utiliza o **GitHub Actions** para automação de ponta a ponta:
+Continuous Integration and Continuous Delivery are powered by **GitHub Actions**:
 
-1. **Validação Contínua (`ci.yml`)**: Disparado a cada Push e Pull Request para executar análise de lint (`flutter analyze`) e a suíte completa de testes (`flutter test`).
-2. **Compilação de Releases Multiplataforma (`release.yml`)**: Disparado automaticamente ao criar uma tag de versão semântica (ex: `v1.0.0`):
-   - **Windows**: Compila o app e gera o instalador oficial `DeskYPT-Windows-Installer-x64.exe` via Inno Setup.
-   - **macOS**: Compila o bundle `.app` e cria a imagem de disco montável `DeskYPT-macOS-Installer.dmg`.
-   - **Linux**: Compila o executável e empacota o instalador nativo Debian `DeskYPT-Linux-x64.deb` para `apt`, além do pacote portável `DeskYPT-Linux-x64.tar.gz`.
-   - **Publicação Automática**: Anexa todos os instaladores diretamente na Release oficial do repositório com o changelog gerado.
+1. **Continuous Integration (`ci.yml`)**: Triggered on every Push and Pull Request to execute `flutter analyze` and `flutter test`.
+2. **Multiplatform Release Compilation (`release.yml`)**: Automatically triggered on semver tag push (e.g. `v1.0.0`):
+   - **Windows**: Compiles release and builds official `DeskYPT-Windows-Installer-x64.exe` using Inno Setup.
+   - **macOS**: Compiles `.app` bundle and generates `DeskYPT-macOS-Installer.dmg`.
+   - **Linux**: Compiles release and creates `DeskYPT-Linux-x64.deb` Debian package for `apt`, plus portable `DeskYPT-Linux-x64.tar.gz`.
+   - **Automated Publishing**: Attaches all built installers to the official GitHub Release with generated changelog.
 
-### Como Publicar uma Nova Versão
+### How to Release a New Version
 ```bash
-# 1. Atualize a versão no pubspec.yaml (ex: 1.0.1)
-# 2. Crie e envie a tag semântica correspondente:
+# 1. Bump version in pubspec.yaml (e.g. 1.0.1)
+# 2. Commit, tag, and push:
 git tag v1.0.1
 git push origin v1.0.1
 ```
 
 ---
 
-## 📄 Licença
+## 📄 License
 
-Este projeto está sob a licença [MIT](LICENSE).
+This project is licensed under the [MIT License](LICENSE).
