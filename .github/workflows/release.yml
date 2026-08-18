@@ -1,0 +1,195 @@
+name: Release - Multiplatform Desktop Installers
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: 'Tag da versão da release (ex: v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Windows Installer (.exe)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Windows Release
+        run: flutter build windows --release
+
+      - name: Compile Inno Setup Installer
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" windows\installer\deskypt_setup.iss
+
+      - name: Upload Windows Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeskYPT-Windows-Installer-x64
+          path: windows/installer/DeskYPT-Windows-Installer-x64.exe
+
+  build-macos:
+    name: macOS Disk Image (.dmg)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build macOS Release
+        run: flutter build macos --release
+
+      - name: Create DMG Installer
+        run: |
+          mkdir -p dmg_root
+          cp -r build/macos/Build/Products/Release/deskypt.app dmg_root/
+          ln -s /Applications dmg_root/Applications
+          hdiutil create -volname "DeskYPT" -srcfolder dmg_root -ov -format UDZO DeskYPT-macOS-Installer.dmg
+
+      - name: Upload macOS Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeskYPT-macOS-Installer
+          path: DeskYPT-macOS-Installer.dmg
+
+  build-linux:
+    name: Linux Debian Package (.deb & .tar.gz)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libsecret-1-dev libjsoncpp-dev dpkg-dev
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Linux Release
+        run: flutter build linux --release
+
+      - name: Package Debian (.deb) & Portable (.tar.gz)
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [ -z "$VERSION" ] || [ "$VERSION" = "$GITHUB_REF_NAME" ]; then
+            VERSION="1.0.0"
+          fi
+          
+          mkdir -p pkg/DEBIAN
+          mkdir -p pkg/usr/lib/deskypt
+          mkdir -p pkg/usr/bin
+          mkdir -p pkg/usr/share/applications
+          mkdir -p pkg/usr/share/pixmaps
+
+          cp -r build/linux/x64/release/bundle/* pkg/usr/lib/deskypt/
+          cp assets/icons/splash_logo.png pkg/usr/share/pixmaps/deskypt.png
+
+          cat << 'EOF' > pkg/usr/bin/deskypt
+          #!/bin/bash
+          exec /usr/lib/deskypt/deskypt "$@"
+          EOF
+          chmod +x pkg/usr/bin/deskypt
+
+          cat << EOF > pkg/usr/share/applications/deskypt.desktop
+          [Desktop Entry]
+          Name=DeskYPT
+          Comment=Yeolpumta Desktop Client
+          Exec=/usr/bin/deskypt
+          Icon=deskypt
+          Terminal=false
+          Type=Application
+          Categories=Utility;Education;
+          EOF
+
+          cat << EOF > pkg/DEBIAN/control
+          Package: deskypt
+          Version: ${VERSION}
+          Architecture: amd64
+          Maintainer: DeskYPT Project <huney.oliveira@gmail.com>
+          Description: DeskYPT - Yeolpumta Desktop Client
+           Client desktop completo e moderno para a plataforma de estudos Yeolpumta (YPT).
+          EOF
+
+          dpkg-deb --build pkg DeskYPT-Linux-x64.deb
+          tar -czf DeskYPT-Linux-x64.tar.gz -C build/linux/x64/release/bundle .
+
+      - name: Upload Linux Packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeskYPT-Linux-Packages
+          path: |
+            DeskYPT-Linux-x64.deb
+            DeskYPT-Linux-x64.tar.gz
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all installer artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release_assets
+          merge-multiple: true
+
+      - name: Identify Release Tag
+        id: tag_info
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.version_tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Official GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag_info.outputs.tag }}
+          name: "DeskYPT ${{ steps.tag_info.outputs.tag }}"
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            release_assets/DeskYPT-Windows-Installer-x64.exe
+            release_assets/DeskYPT-macOS-Installer.dmg
+            release_assets/DeskYPT-Linux-x64.deb
+            release_assets/DeskYPT-Linux-x64.tar.gz

@@ -8,6 +8,7 @@ import '../../core/localization/app_translation.dart';
 import '../../features/auth/auth_notifier.dart';
 import '../../data/repositories/notification_repository.dart';
 import '../../features/notifications/widgets/notification_bell.dart';
+import '../../features/updates/widgets/update_button.dart';
 import 'studicon_avatar.dart';
 
 class SidebarNavItemData {
@@ -281,7 +282,13 @@ class SidebarNav extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const NotificationBell(),
+                const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    UpdateButton(),
+                    NotificationBell(),
+                  ],
+                ),
                 IconButton(
                   icon: const Icon(Icons.logout_rounded,
                       color: AppColors.textMuted, size: 20),
