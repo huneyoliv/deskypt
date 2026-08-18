@@ -7,6 +7,7 @@ import 'package:deskypt/data/repositories/subject_repository.dart';
 import 'package:deskypt/data/repositories/timer_repository.dart';
 import 'package:deskypt/features/timer/timer_notifier.dart';
 import 'package:deskypt/features/timer/timer_screen.dart';
+import 'package:deskypt/features/timer/widgets/timer_display.dart';
 
 class FakeTimerRepository extends TimerRepository {
   @override
@@ -43,7 +44,7 @@ class FakeSubjectRepository extends SubjectRepository {
 }
 
 void main() {
-  testWidgets('TimerScreen renders study and rest headers and progress ring', (tester) async {
+  testWidgets('TimerScreen renders study and rest headers and clean timer display', (tester) async {
     final timerRepo = FakeTimerRepository();
     final subjectRepo = FakeSubjectRepository();
 
@@ -66,6 +67,6 @@ void main() {
 
     expect(find.text('Tempo Total de Hoje'), findsOneWidget);
     expect(find.text('Tempo de Descanso'), findsOneWidget);
-    expect(find.byType(CustomPaint), findsWidgets);
+    expect(find.byType(TimerDisplay), findsOneWidget);
   });
 }

@@ -5,7 +5,6 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/localization/app_translation.dart';
 import 'timer_notifier.dart';
 import 'widgets/timer_display.dart';
-import 'widgets/progress_ring_painter.dart';
 import 'widgets/subject_management_dialog.dart';
 import 'widgets/pomodoro_config_dialog.dart';
 import 'widgets/manual_study_log_dialog.dart';
@@ -60,23 +59,6 @@ class TimerScreen extends ConsumerWidget {
       PomodoroPhase.shortBreak => AppColors.success,
       PomodoroPhase.longBreak => AppColors.warning,
     };
-
-    double ringProgress = 0.0;
-    if (isPomodoro) {
-      final totalPhaseMs = switch (timerState.pomodoroPhase) {
-        PomodoroPhase.focus => timerState.pomodoroFocusMinutes * 60 * 1000,
-        PomodoroPhase.shortBreak => timerState.pomodoroShortBreakMinutes * 60 * 1000,
-        PomodoroPhase.longBreak => timerState.pomodoroLongBreakMinutes * 60 * 1000,
-      };
-      if (totalPhaseMs > 0) {
-        ringProgress = (1.0 - (timerState.pomodoroRemainingMs / totalPhaseMs)).clamp(0.0, 1.0);
-      }
-    } else {
-      final goalMs = timerState.dailyGoalMinutes * 60 * 1000;
-      if (goalMs > 0) {
-        ringProgress = (timerState.todayTotalMs / goalMs).clamp(0.0, 1.0);
-      }
-    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -361,61 +343,47 @@ class TimerScreen extends ConsumerWidget {
               ),
             ],
 
-            // Center Interactive Ring & Timer Area
+            // Center Timer Area
             Expanded(
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Stack(
-                      alignment: Alignment.center,
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        CustomPaint(
-                          size: const Size(280, 280),
-                          painter: ProgressRingPainter(
-                            progress: ringProgress,
-                            activeColor: phaseColor,
-                            backgroundColor: AppColors.card,
-                            strokeWidth: 10,
-                          ),
+                        TimerDisplay(
+                          elapsedMs: displayMs,
+                          fontSize: 64,
                         ),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            TimerDisplay(
-                              elapsedMs: displayMs,
-                              fontSize: 54,
+                        if (timerState.isPaused) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.resting.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            if (timerState.isPaused) ...[
-                              const SizedBox(height: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: AppColors.resting.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  '${t.tr("study_rest_label", fallback: "Descanso")}: ${_formatRestTime(timerState.sessionRestMs)}',
-                                  style: const TextStyle(
-                                    color: AppColors.resting,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13,
-                                  ),
-                                ),
+                            child: Text(
+                              '${t.tr("study_rest_label", fallback: "Descanso")}: ${_formatRestTime(timerState.sessionRestMs)}',
+                              style: const TextStyle(
+                                color: AppColors.resting,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
                               ),
-                            ] else if (timerState.currentSubject != null) ...[
-                              const SizedBox(height: 6),
-                              Text(
-                                timerState.currentSubject!.title,
-                                style: TextStyle(
-                                  color: currentSubjectColor,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 15,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
+                            ),
+                          ),
+                        ] else if (timerState.currentSubject != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            timerState.currentSubject!.title,
+                            style: TextStyle(
+                              color: currentSubjectColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 36),
