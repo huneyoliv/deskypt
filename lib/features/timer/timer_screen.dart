@@ -404,7 +404,7 @@ class TimerScreen extends ConsumerWidget {
                             label: Text(
                               isPomodoro
                                   ? '${t.tr("start", fallback: "INICIAR")} $phaseLabel'.toUpperCase()
-                                  : '${t.tr("start", fallback: "INICIAR")} (${timerState.currentSubject?.title ?? t.tr("study", fallback: "Estudo")})'.toUpperCase(),
+                                  : t.tr("start", fallback: "INICIAR").toUpperCase(),
                               style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w800,

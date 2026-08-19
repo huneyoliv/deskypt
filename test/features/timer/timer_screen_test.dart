@@ -69,5 +69,7 @@ void main() {
     expect(find.text('Tempo Total de Hoje'), findsOneWidget);
     expect(find.text('Tempo de Descanso'), findsOneWidget);
     expect(find.byType(TimerDisplay), findsOneWidget);
+    expect(find.text('INICIAR'), findsOneWidget);
+    expect(find.textContaining('INICIAR ('), findsNothing);
   });
 }
