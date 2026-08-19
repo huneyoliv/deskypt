@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/localization/app_translation.dart';
@@ -170,7 +169,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         try {
                           if (step == 1) {
                             final email = emailController.text.trim();
-                            if (email.isEmpty) throw Exception('Digite um e-mail válido');
+                            if (email.isEmpty) throw Exception(t.tr('invalid_email', fallback: 'Digite um e-mail válido'));
                             await authRepo.sendPasswordResetCode(email);
                             setState(() {
                               step = 2;
@@ -178,7 +177,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             });
                           } else if (step == 2) {
                             final code = codeController.text.trim();
-                            if (code.length < 6) throw Exception('Digite o código de 6 dígitos');
+                            if (code.length < 6) throw Exception(t.tr('verification_code_min_length', fallback: 'Digite o código de 6 dígitos'));
                             await authRepo.verifyPasswordResetCode(
                               emailController.text.trim(),
                               code,
@@ -190,7 +189,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           } else {
                             final pass = newPasswordController.text.trim();
                             if (pass.length < 6) {
-                              throw Exception('A senha deve ter pelo menos 6 caracteres');
+                              throw Exception(t.tr('password_min_length', fallback: 'A senha deve ter pelo menos 6 caracteres'));
                             }
                             await authRepo.resetPassword(
                               email: emailController.text.trim(),
@@ -406,7 +405,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       const SizedBox(width: 10),
                                       Expanded(
                                         child: Text(
-                                          authState.errorMessage!,
+                                          t.tr(authState.errorMessage!, fallback: authState.errorMessage!),
                                           style: const TextStyle(
                                             color: AppColors.error,
                                             fontSize: 13,
@@ -547,85 +546,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         ),
                                 ),
                               ),
-                              const SizedBox(height: 24),
-
-                              // Social Logins Separator
-                              Row(
-                                children: [
-                                  const Expanded(child: Divider(color: AppColors.border)),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                                    child: Text(t.tr('or_login_with', fallback: 'ou entre com'),
-                                        style: AppTextStyles.labelSmall),
-                                  ),
-                                  const Expanded(child: Divider(color: AppColors.border)),
-                                ],
-                              ),
-                              const SizedBox(height: 20),
-
-                              // Social Buttons Row
-                              Row(
-                                children: [
-                                  // Google Login Button
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      onPressed: authState.isLoading
-                                          ? null
-                                          : () => ref
-                                              .read(authStateProvider.notifier)
-                                              .signInWithGoogle(),
-                                      style: OutlinedButton.styleFrom(
-                                        minimumSize: const Size.fromHeight(44),
-                                        side: const BorderSide(color: AppColors.border),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                      icon: Image.asset(
-                                        'assets/icons/google_icon.png',
-                                        height: 20,
-                                        errorBuilder: (_, __, ___) => const Icon(
-                                            Icons.g_mobiledata,
-                                            color: Colors.white),
-                                      ),
-                                      label: const Text(
-                                        'Google',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-
-                                  // Apple Login Button
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      onPressed: authState.isLoading
-                                          ? null
-                                          : () => ref
-                                              .read(authStateProvider.notifier)
-                                              .signInWithApple(),
-                                      style: OutlinedButton.styleFrom(
-                                        minimumSize: const Size.fromHeight(44),
-                                        side: const BorderSide(color: AppColors.border),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                      icon: SvgPicture.asset(
-                                        'assets/icons/apple_icon.svg',
-                                        height: 20,
-                                        colorFilter: const ColorFilter.mode(
-                                            Colors.white, BlendMode.srcIn),
-                                      ),
-                                      label: const Text(
-                                        'Apple',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 32),
+                              const SizedBox(height: 28),
 
                               // Sign up link
                               Wrap(

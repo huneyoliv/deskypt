@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/color_utils.dart';
+import '../../core/localization/app_translation.dart';
 import '../../data/models/timelapse_session_model.dart';
 
-class TimelapsePlayerDialog extends StatefulWidget {
+class TimelapsePlayerDialog extends ConsumerStatefulWidget {
   final TimelapseSession session;
 
   const TimelapsePlayerDialog({super.key, required this.session});
@@ -18,10 +20,10 @@ class TimelapsePlayerDialog extends StatefulWidget {
   }
 
   @override
-  State<TimelapsePlayerDialog> createState() => _TimelapsePlayerDialogState();
+  ConsumerState<TimelapsePlayerDialog> createState() => _TimelapsePlayerDialogState();
 }
 
-class _TimelapsePlayerDialogState extends State<TimelapsePlayerDialog> {
+class _TimelapsePlayerDialogState extends ConsumerState<TimelapsePlayerDialog> {
   int _currentFrameIndex = 0;
   bool _isPlaying = false;
   double _playbackSpeed = 10.0;
@@ -87,6 +89,7 @@ class _TimelapsePlayerDialogState extends State<TimelapsePlayerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(appTranslationProvider);
     final session = widget.session;
     final subjectColor = ColorUtils.fromArgbInt(session.subjectColorInt);
 
@@ -132,7 +135,7 @@ class _TimelapsePlayerDialogState extends State<TimelapsePlayerDialog> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          'Estudo: ${_formatDuration(session.durationSeconds)}',
+                          '${t.tr("study", fallback: "Estudo")}: ${_formatDuration(session.durationSeconds)}',
                           style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                         ),
                       ),
@@ -153,7 +156,7 @@ class _TimelapsePlayerDialogState extends State<TimelapsePlayerDialog> {
                   border: Border.all(color: AppColors.border),
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: _buildFrameView(),
+                child: _buildFrameView(t),
               ),
               const SizedBox(height: 16),
               if (session.frameCount > 0) ...[
@@ -193,7 +196,7 @@ class _TimelapsePlayerDialogState extends State<TimelapsePlayerDialog> {
                     ),
                     Row(
                       children: [
-                        const Text('Velocidade: ', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                        Text(t.tr('speed', fallback: 'Velocidade: '), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                         for (final sp in [1.0, 5.0, 10.0, 30.0, 60.0])
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -219,15 +222,15 @@ class _TimelapsePlayerDialogState extends State<TimelapsePlayerDialog> {
     );
   }
 
-  Widget _buildFrameView() {
+  Widget _buildFrameView(AppTranslation t) {
     if (widget.session.frameCount == 0) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.videocam_off_rounded, size: 48, color: AppColors.textMuted),
-            SizedBox(height: 8),
-            Text('Nenhum frame gravado nesta sessão.', style: TextStyle(color: AppColors.textSecondary)),
+          children: [
+            const Icon(Icons.videocam_off_rounded, size: 48, color: AppColors.textMuted),
+            const SizedBox(height: 8),
+            Text(t.tr('no_frames_recorded', fallback: 'Nenhum frame gravado nesta sessão.'), style: const TextStyle(color: AppColors.textSecondary)),
           ],
         ),
       );

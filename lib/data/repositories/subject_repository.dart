@@ -5,10 +5,12 @@ import '../models/subject_model.dart';
 class SubjectFetchResult {
   final List<SubjectModel> subjects;
   final int todayTotalMs;
+  final int todayRestMs;
 
   const SubjectFetchResult({
     required this.subjects,
     required this.todayTotalMs,
+    this.todayRestMs = 0,
   });
 }
 
@@ -69,7 +71,7 @@ class SubjectRepository {
       return _parseSplashData(data);
     } catch (_) {}
 
-    return const SubjectFetchResult(subjects: [], todayTotalMs: 0);
+    return const SubjectFetchResult(subjects: [], todayTotalMs: 0, todayRestMs: 0);
   }
 
   Future<List<SubjectModel>> fetchSubjects() async {
@@ -82,9 +84,14 @@ class SubjectRepository {
     final dl = data['dl'] as Map<String, dynamic>?;
 
     int todayTotalMs = 0;
+    int todayRestMs = 0;
     if (dl != null) {
       final sm = dl['sm'] ?? dl['tp'];
       if (sm is int) todayTotalMs = sm;
+      final rm = dl['rm'] ?? dl['rt'] ?? dl['rest'] ?? dl['restMs'] ?? dl['rest_ms'];
+      if (rm is int) {
+        todayRestMs = (rm > 0 && rm < 500000000) ? rm * 1000 : rm;
+      }
     }
 
     final Map<String, int> subjectTimes = {};
@@ -119,6 +126,7 @@ class SubjectRepository {
     return SubjectFetchResult(
       subjects: subjects,
       todayTotalMs: todayTotalMs,
+      todayRestMs: todayRestMs,
     );
   }
 

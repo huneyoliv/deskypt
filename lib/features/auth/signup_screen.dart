@@ -108,9 +108,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   Future<void> _handleSendVerificationCode() async {
+    final t = ref.read(appTranslationProvider);
     final email = _emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
-      setState(() => _errorMessage = 'Por favor, insira um e-mail válido.');
+      setState(() => _errorMessage = t.tr('invalid_email', fallback: 'Por favor, insira um e-mail válido.'));
       return;
     }
 
@@ -140,10 +141,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   Future<void> _handleVerifyCode() async {
+    final t = ref.read(appTranslationProvider);
     final email = _emailController.text.trim();
     final code = _codeController.text.trim();
     if (code.length < 6) {
-      setState(() => _errorMessage = 'Insira o código de 6 dígitos recebido.');
+      setState(() => _errorMessage = t.tr('verification_code_min_length', fallback: 'Insira o código de 6 dígitos recebido.'));
       return;
     }
 
@@ -172,24 +174,25 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   Future<void> _handleCompleteSignUp() async {
+    final t = ref.read(appTranslationProvider);
     final nickname = _nicknameController.text.trim();
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
 
     if (nickname.isEmpty) {
-      setState(() => _errorMessage = 'Por favor, insira seu apelido/nickname.');
+      setState(() => _errorMessage = t.tr('enter_nickname', fallback: 'Por favor, insira seu apelido/nickname.'));
       return;
     }
     if (password.length < 6) {
-      setState(() => _errorMessage = 'A senha deve ter pelo menos 6 caracteres.');
+      setState(() => _errorMessage = t.tr('password_min_length', fallback: 'A senha deve ter pelo menos 6 caracteres.'));
       return;
     }
     if (password != confirmPassword) {
-      setState(() => _errorMessage = 'As senhas digitadas não coincidem.');
+      setState(() => _errorMessage = t.tr('passwords_dont_match', fallback: 'As senhas digitadas não coincidem.'));
       return;
     }
     if (_selectedCountry == null) {
-      setState(() => _errorMessage = 'Selecione um país.');
+      setState(() => _errorMessage = t.tr('select_country', fallback: 'Selecione um país.'));
       return;
     }
 

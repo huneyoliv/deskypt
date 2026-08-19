@@ -141,7 +141,7 @@ void main() {
       expect(categories.first.id, 198);
     });
 
-    test('fetchCountries throws ApiException on server error', () async {
+    test('fetchCountries returns fallback countries on server error', () async {
       final dio = Dio(BaseOptions(validateStatus: (_) => true));
       dio.httpClientAdapter = MockAdapter((options) {
         return {
@@ -155,7 +155,9 @@ void main() {
         prefs: prefs,
       );
 
-      expect(() => repo.fetchCountries(), throwsA(isA<ApiException>()));
+      final countries = await repo.fetchCountries();
+      expect(countries.isNotEmpty, true);
+      expect(countries.any((c) => c.code == 'BR'), true);
     });
 
     test('saveCountry and getSavedCountry persist correctly', () async {

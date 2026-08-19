@@ -35,21 +35,68 @@ class SettingsRepository {
     continent: 'South America',
   );
 
+  static const List<CountryModel> defaultFallbackCountries = [
+    CountryModel(id: 23, name: 'BRAZIL', code: 'BR', timezone: 'America/Sao_Paulo', continent: 'South America'),
+    CountryModel(id: 1, name: 'UNITED STATES', code: 'US', timezone: 'America/New_York', continent: 'North America'),
+    CountryModel(id: 82, name: 'SOUTH KOREA', code: 'KR', timezone: 'Asia/Seoul', continent: 'Asia'),
+    CountryModel(id: 81, name: 'JAPAN', code: 'JP', timezone: 'Asia/Tokyo', continent: 'Asia'),
+    CountryModel(id: 86, name: 'CHINA', code: 'CN', timezone: 'Asia/Shanghai', continent: 'Asia'),
+    CountryModel(id: 44, name: 'UNITED KINGDOM', code: 'GB', timezone: 'Europe/London', continent: 'Europe'),
+    CountryModel(id: 351, name: 'PORTUGAL', code: 'PT', timezone: 'Europe/Lisbon', continent: 'Europe'),
+    CountryModel(id: 34, name: 'SPAIN', code: 'ES', timezone: 'Europe/Madrid', continent: 'Europe'),
+    CountryModel(id: 33, name: 'FRANCE', code: 'FR', timezone: 'Europe/Paris', continent: 'Europe'),
+    CountryModel(id: 49, name: 'GERMANY', code: 'DE', timezone: 'Europe/Berlin', continent: 'Europe'),
+    CountryModel(id: 39, name: 'ITALY', code: 'IT', timezone: 'Europe/Rome', continent: 'Europe'),
+    CountryModel(id: 2, name: 'CANADA', code: 'CA', timezone: 'America/Toronto', continent: 'North America'),
+    CountryModel(id: 52, name: 'MEXICO', code: 'MX', timezone: 'America/Mexico_City', continent: 'North America'),
+    CountryModel(id: 54, name: 'ARGENTINA', code: 'AR', timezone: 'America/Argentina/Buenos_Aires', continent: 'South America'),
+    CountryModel(id: 56, name: 'CHILE', code: 'CL', timezone: 'America/Santiago', continent: 'South America'),
+    CountryModel(id: 57, name: 'COLOMBIA', code: 'CO', timezone: 'America/Bogota', continent: 'South America'),
+    CountryModel(id: 51, name: 'PERU', code: 'PE', timezone: 'America/Lima', continent: 'South America'),
+    CountryModel(id: 61, name: 'AUSTRALIA', code: 'AU', timezone: 'Australia/Sydney', continent: 'Oceania'),
+    CountryModel(id: 91, name: 'INDIA', code: 'IN', timezone: 'Asia/Kolkata', continent: 'Asia'),
+    CountryModel(id: 62, name: 'INDONESIA', code: 'ID', timezone: 'Asia/Jakarta', continent: 'Asia'),
+    CountryModel(id: 84, name: 'VIETNAM', code: 'VN', timezone: 'Asia/Ho_Chi_Minh', continent: 'Asia'),
+    CountryModel(id: 63, name: 'PHILIPPINES', code: 'PH', timezone: 'Asia/Manila', continent: 'Asia'),
+    CountryModel(id: 90, name: 'TURKEY', code: 'TR', timezone: 'Europe/Istanbul', continent: 'Europe'),
+    CountryModel(id: 7, name: 'RUSSIA', code: 'RU', timezone: 'Europe/Moscow', continent: 'Europe'),
+    CountryModel(id: 966, name: 'SAUDI ARABIA', code: 'SA', timezone: 'Asia/Riyadh', continent: 'Middle East'),
+    CountryModel(id: 971, name: 'UNITED ARAB EMIRATES', code: 'AE', timezone: 'Asia/Dubai', continent: 'Middle East'),
+    CountryModel(id: 20, name: 'EGYPT', code: 'EG', timezone: 'Africa/Cairo', continent: 'Africa'),
+    CountryModel(id: 27, name: 'SOUTH AFRICA', code: 'ZA', timezone: 'Africa/Johannesburg', continent: 'Africa'),
+    CountryModel(id: 234, name: 'NIGERIA', code: 'NG', timezone: 'Africa/Lagos', continent: 'Africa'),
+    CountryModel(id: 77, name: 'KAZAKHSTAN', code: 'KZ', timezone: 'Asia/Almaty', continent: 'Central Asia'),
+  ];
+
   Future<List<CountryModel>> fetchCountries() async {
-    final response = await _apiClient.get(
-      '/category/countries',
-      baseUrl: ApiConstants.metadataCdnUrl,
-    );
-    final data = response.data;
-    if (data is Map<String, dynamic> && data['s'] == true && data['cs'] is List) {
-      return (data['cs'] as List)
-          .map((e) => CountryModel.fromJson(e as Map<String, dynamic>))
-          .toList();
+    try {
+      final response = await _apiClient.get(
+        '/category/countries',
+        baseUrl: ApiConstants.metadataCdnUrl,
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['s'] == true && data['cs'] is List) {
+        final list = (data['cs'] as List)
+            .map((e) => CountryModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+        if (list.isNotEmpty) return list;
+      }
+    } catch (_) {
+      try {
+        final response = await _apiClient.get(
+          '/category/countries',
+          baseUrl: ApiConstants.baseUrl,
+        );
+        final data = response.data;
+        if (data is Map<String, dynamic> && data['s'] == true && data['cs'] is List) {
+          final list = (data['cs'] as List)
+              .map((e) => CountryModel.fromJson(e as Map<String, dynamic>))
+              .toList();
+          if (list.isNotEmpty) return list;
+        }
+      } catch (_) {}
     }
-    if (data is Map<String, dynamic> && data['m'] != null) {
-      throw ApiException(data['m'].toString(), statusCode: response.statusCode);
-    }
-    throw const ApiException('Falha ao carregar lista de países do servidor');
+    return defaultFallbackCountries;
   }
 
   Future<List<CategoryModel>> fetchCategoriesByCountry({

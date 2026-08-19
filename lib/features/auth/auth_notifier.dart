@@ -114,7 +114,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Login com Google no Desktop requer login por e-mail e senha. Se criou via Google, use "Esqueci minha senha" com seu Gmail.',
+        errorMessage: 'google_desktop_login_notice',
       );
     }
   }
@@ -143,7 +143,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Login com Apple no Desktop requer login por e-mail e senha. Se criou via Apple, use "Esqueci minha senha" com seu e-mail Apple.',
+        errorMessage: 'apple_desktop_login_notice',
       );
     }
   }

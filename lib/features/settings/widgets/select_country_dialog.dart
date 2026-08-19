@@ -37,6 +37,14 @@ class _SelectCountryDialogState extends ConsumerState<SelectCountryDialog> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(settingsNotifierProvider.notifier).loadCountries();
+    });
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
@@ -54,21 +62,21 @@ class _SelectCountryDialogState extends ConsumerState<SelectCountryDialog> {
       case 'Todos':
         return t.tr('all', fallback: 'Todos');
       case 'South America':
-        return 'América do Sul';
+        return t.tr('continent_south_america', fallback: 'América do Sul');
       case 'North America':
-        return 'América do Norte';
+        return t.tr('continent_north_america', fallback: 'América do Norte');
       case 'Europe':
-        return 'Europa';
+        return t.tr('continent_europe', fallback: 'Europa');
       case 'Asia':
-        return 'Ásia';
+        return t.tr('continent_asia', fallback: 'Ásia');
       case 'Africa':
-        return 'África';
+        return t.tr('continent_africa', fallback: 'África');
       case 'Oceania':
-        return 'Oceania';
+        return t.tr('continent_oceania', fallback: 'Oceania');
       case 'Middle East':
-        return 'Oriente Médio';
+        return t.tr('continent_middle_east', fallback: 'Oriente Médio');
       case 'Central Asia':
-        return 'Ásia Central';
+        return t.tr('continent_central_asia', fallback: 'Ásia Central');
       default:
         return continent;
     }

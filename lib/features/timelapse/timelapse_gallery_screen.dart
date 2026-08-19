@@ -75,9 +75,9 @@ class TimelapseGalleryScreen extends ConsumerWidget {
             style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Inicie o cronômetro com a câmera/timelapse ativado para gravar seu progresso acelerado.',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+          Text(
+            t.tr('timelapse_empty_desc', fallback: 'Inicie o cronômetro com a câmera/timelapse ativado para gravar seu progresso acelerado.'),
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
             textAlign: TextAlign.center,
           ),
         ],
@@ -100,14 +100,14 @@ class TimelapseGalleryScreen extends ConsumerWidget {
           Row(
             children: [
               _buildMetricCard(
-                title: 'Total de Vídeos',
+                title: t.tr('total_videos', fallback: 'Total de Vídeos'),
                 value: '${sessions.length}',
                 icon: Icons.video_library_rounded,
                 color: AppColors.primary,
               ),
               const SizedBox(width: 16),
               _buildMetricCard(
-                title: 'Tempo Gravado',
+                title: t.tr('recorded_time', fallback: 'Tempo Gravado'),
                 value: _formatDuration(totalSeconds),
                 icon: Icons.access_time_filled_rounded,
                 color: AppColors.success,
@@ -115,9 +115,9 @@ class TimelapseGalleryScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Sessões de Estudo',
-            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          Text(
+            t.tr('study_sessions', fallback: 'Sessões de Estudo'),
+            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           Expanded(
@@ -131,7 +131,7 @@ class TimelapseGalleryScreen extends ConsumerWidget {
               itemCount: sessions.length,
               itemBuilder: (context, index) {
                 final session = sessions[index];
-                return _buildSessionCard(context, session, notifier);
+                return _buildSessionCard(context, session, notifier, t);
               },
             ),
           ),
@@ -183,6 +183,7 @@ class TimelapseGalleryScreen extends ConsumerWidget {
     BuildContext context,
     TimelapseSession session,
     TimelapseNotifier notifier,
+    AppTranslation t,
   ) {
     final subjectColor = ColorUtils.fromArgbInt(session.subjectColorInt);
     final dateStr = DateFormat('dd/MM/yyyy • HH:mm').format(session.startTime);
@@ -261,7 +262,7 @@ class TimelapseGalleryScreen extends ConsumerWidget {
                   IconButton(
                     icon: const Icon(Icons.delete_outline_rounded, color: AppColors.textMuted, size: 20),
                     onPressed: () => notifier.deleteSession(session.id),
-                    tooltip: 'Excluir Timelapse',
+                    tooltip: t.tr('delete_timelapse', fallback: 'Excluir Timelapse'),
                   ),
                 ],
               ),

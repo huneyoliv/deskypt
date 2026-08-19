@@ -28,14 +28,6 @@ class TimerScreen extends ConsumerWidget {
     return '${s}s';
   }
 
-  String _formatRestTime(int ms) {
-    final totalSecs = ms ~/ 1000;
-    final h = (totalSecs ~/ 3600).toString().padLeft(2, '0');
-    final m = ((totalSecs % 3600) ~/ 60).toString().padLeft(2, '0');
-    final s = (totalSecs % 60).toString().padLeft(2, '0');
-    return '$h:$m:$s';
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final timerState = ref.watch(timerNotifierProvider);
@@ -353,24 +345,32 @@ class TimerScreen extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         TimerDisplay(
-                          elapsedMs: displayMs,
+                          elapsedMs: timerState.isPaused ? timerState.sessionRestMs : displayMs,
                           fontSize: 64,
                         ),
                         if (timerState.isPaused) ...[
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                             decoration: BoxDecoration(
-                              color: AppColors.resting.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
+                              color: AppColors.resting.withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.resting.withValues(alpha: 0.4)),
                             ),
-                            child: Text(
-                              '${t.tr("study_rest_label", fallback: "Descanso")}: ${_formatRestTime(timerState.sessionRestMs)}',
-                              style: const TextStyle(
-                                color: AppColors.resting,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.coffee_rounded, color: AppColors.resting, size: 16),
+                                const SizedBox(width: 6),
+                                Text(
+                                  t.tr("study_rest_label", fallback: "Em Descanso"),
+                                  style: const TextStyle(
+                                    color: AppColors.resting,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ] else if (timerState.currentSubject != null) ...[
@@ -392,7 +392,7 @@ class TimerScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        if (!timerState.isRunning && !timerState.isPaused)
+                        if (!timerState.isRunning && !timerState.isPaused) ...[
                           ElevatedButton.icon(
                             onPressed: () => notifier.startStudy(),
                             style: ElevatedButton.styleFrom(
@@ -412,6 +412,22 @@ class TimerScreen extends ConsumerWidget {
                               ),
                             ),
                           ),
+                          const SizedBox(width: 12),
+                          OutlinedButton.icon(
+                            onPressed: () => notifier.pauseStudy(),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.resting,
+                              side: const BorderSide(color: AppColors.resting),
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                            ),
+                            icon: const Icon(Icons.coffee_rounded, size: 20),
+                            label: Text(
+                              t.tr("study_rest_label", fallback: "DESCANSO").toUpperCase(),
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ],
 
                         if (timerState.isRunning) ...[
                           ElevatedButton.icon(

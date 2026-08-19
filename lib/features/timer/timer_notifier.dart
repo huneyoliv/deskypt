@@ -176,6 +176,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
         subjects: subjects,
         currentSubject: current,
         todayTotalMs: result.todayTotalMs,
+        todayRestMs: result.todayRestMs,
         lastStudyDate: StudyDateHelper.getStudyDateString(),
       );
     } catch (_) {

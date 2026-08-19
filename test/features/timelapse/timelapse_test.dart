@@ -89,13 +89,15 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(splashFactory: InkRipple.splashFactory),
-          home: Scaffold(
-            body: Builder(
-              builder: (context) => ElevatedButton(
-                onPressed: () => TimelapsePlayerDialog.show(context, session),
-                child: const Text('Open Player'),
+        ProviderScope(
+          child: MaterialApp(
+            theme: ThemeData(splashFactory: InkRipple.splashFactory),
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () => TimelapsePlayerDialog.show(context, session),
+                  child: const Text('Open Player'),
+                ),
               ),
             ),
           ),
