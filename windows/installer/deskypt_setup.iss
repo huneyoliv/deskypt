@@ -1,6 +1,6 @@
 ; Script generated for Inno Setup compiler to package DeskYPT for Windows
 #define MyAppName "DeskYPT"
-#define MyAppVersion "1.0.2"
+#define MyAppVersion "1.0.3"
 #define MyAppPublisher "DeskYPT"
 #define MyAppURL "https://github.com/huneyoliv/deskypt"
 #define MyAppExeName "deskypt.exe"

@@ -151,7 +151,7 @@ jobs:
           mkdir -p pkg/usr/share/pixmaps
 
           cp -r build/linux/x64/release/bundle/* pkg/usr/lib/deskypt/
-          cp assets/icons/splash_logo.png pkg/usr/share/pixmaps/deskypt.png
+          cp assets/icons/icon.png pkg/usr/share/pixmaps/deskypt.png
 
           cat << 'EOF' > pkg/usr/bin/deskypt
           #!/bin/bash
