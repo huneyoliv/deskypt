@@ -15,8 +15,37 @@ permissions:
   contents: write
 
 jobs:
+  quality-gate:
+    name: Code Quality & Automated Tests Gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Linux build dependencies for tests
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libsecret-1-dev libjsoncpp-dev
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run Flutter Analyze
+        run: flutter analyze
+
+      - name: Run Full Test Suite
+        run: flutter test
+
   build-windows:
     name: Windows Installer (.exe)
+    needs: [quality-gate]
     runs-on: windows-latest
 
     steps:
@@ -50,6 +79,7 @@ jobs:
 
   build-macos:
     name: macOS Disk Image (.dmg)
+    needs: [quality-gate]
     runs-on: macos-latest
 
     steps:
@@ -83,6 +113,7 @@ jobs:
 
   build-linux:
     name: Linux Debian Package (.deb & .tar.gz)
+    needs: [quality-gate]
     runs-on: ubuntu-latest
 
     steps:
@@ -161,7 +192,7 @@ jobs:
 
   publish-release:
     name: Publish GitHub Release
-    needs: [build-windows, build-macos, build-linux]
+    needs: [quality-gate, build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
 
     steps:

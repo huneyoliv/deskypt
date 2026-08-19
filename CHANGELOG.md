@@ -1,35 +1,36 @@
 # Changelog
 
-Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
+All notable changes to this project will be documented in this file.
 
-O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/)
-e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.0.1] - 2026-08-18
 
-### ✨ Adicionado
-- **Ícones Oficiais Multiplataforma**: Ícone autêntico do YPT configurado para executáveis e janelas no Windows (`.ico`), macOS (`.png` / `AppIcon.appiconset`) e Linux.
-- **Exploração e Pesquisa de Grupos**: Suporte completo a listagem por categorias oficiais (Vestibular, Concursos, Graduação, Idiomas, etc.), ordenação, busca reativa por nome e ingresso em grupos privados com senha.
-- **Notificações em Lote**: Suporte à notificação de cutucada em grupo (`shakeAllMembers`).
-- **Changelog Integrado**: Exibição direta das notas de versão a partir do `CHANGELOG.md` na janela de atualização do aplicativo.
+### ✨ Added
+- **Official Multiplatform Icons**: Authentic Yeolpumta (YPT) app icon configured for Windows (`.ico`), macOS (`AppIcon.appiconset`), and Linux desktop packaging.
+- **Group Exploration & Search API**: Complete categorization filters (Exams, Civil Service, College, Languages, High School, Others), sorting options, reactive search by title, and password-protected group join support.
+- **Batch Notifications**: Support for group poke/shake push notification (`shakeAllMembers`).
+- **Integrated Release Notes**: Direct extraction of changelog notes from `CHANGELOG.md` into the application's update dialog and GitHub Releases.
 
-### 🐛 Corrigido
-- **API de Grupos**: Mapeamento e parsing seguro de membros ativos, tempo estudado (`sm`), disciplina atual e identificadores Studicon (`sd`, `gd`, `st`).
-- **Testes Multiplataforma**: Padronização do `splashFactory` para `InkRipple` nos testes de widget para evitar falhas com shaders ausentes no Flutter Desktop.
-- **Sincronização de Versão**: Resolução da flag de atualização que exibia download indevido quando o app já estava na última versão.
+### 🐛 Fixed
+- **Group API Contracts**: Secure mapping and parsing for real-time studying members, study time (`sm`), active subject names/colors, and Studicon avatars (`sd`, `gd`, `st`).
+- **Multiplatform Widget Tests**: Standardized `splashFactory` to `InkRipple.splashFactory` to prevent shader exceptions in desktop headless tests.
+- **Version Synchronization**: Centralized `AppConstants.appVersion` to ensure the update check button disappears when running the latest release.
+- **CI/CD Quality Gate**: Enforced mandatory automated tests and static analysis gate before building or deploying releases.
 
 ---
 
 ## [1.0.0] - 2026-08-17
 
-### ✨ Adicionado
-- **Versão Inicial do DeskYPT**: Cliente desktop nativo para Yeolpumta (YPT) com suporte para Windows, macOS e Linux.
-- **Timer de Estudos**: Cronômetro de estudos em tempo real com rastreamento de disciplinas, metas diárias e descanso.
-- **Gerenciamento de Matérias**: Criação, edição, exclusão, reordenação e cores customizadas para disciplinas.
-- **Planner & Horários**: Tabela de horários e planejamento diário de estudos.
-- **Cam Study & Grupos**: Visualização de participantes estudando em tempo real com fotos e status.
-- **Flashcards & SmartBook**: Leitor de PDF integrado e criação/revisão de cartões de estudo.
-- **Rankings**: Visualização de classificações individuais e por grupo.
-- **Modo Foco Estrito**: Bloqueio de distrações e monitoramento de processos desktop.
-- **Suporte Multilíngue**: Suporte completo para Português (pt-BR), Inglês (en-US), Espanhol (es-ES) e Coreano (ko-KR).
-- **Auto-Update**: Verificação de novas versões com download direto de instaladores oficiais.
+### ✨ Added
+- **Initial DeskYPT Release**: Modern cross-platform desktop client for the Yeolpumta (YPT) study platform on Windows, macOS, and Linux.
+- **Real-Time Study Timer**: Precision stopwatch with subject tracking, rest timers, daily goals, and background synchronization.
+- **Subject Management**: Create, edit, archive, delete, recolor, and reorder study subjects.
+- **Planner & Timetable**: Visual weekly schedule and study timetable.
+- **Cam Study & Groups**: View group members studying in real-time with webcam/camera captures and active subjects.
+- **Flashcards & SmartBook**: Integrated PDF document reader and study flashcard decks.
+- **Global & Group Rankings**: Real-time leaderboards with daily, weekly, and monthly periods.
+- **Strict Focus Mode**: Distraction blocker and desktop process monitoring.
+- **Multilingual Support**: English, Portuguese, Spanish, and Korean translations.
+- **Auto-Update System**: GitHub Release integration with OS-specific installer downloads.
