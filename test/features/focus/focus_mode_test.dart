@@ -56,9 +56,10 @@ void main() {
 
     testWidgets('FocusModeScreen renders switches and app chips', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: FocusModeScreen(),
+            theme: ThemeData(splashFactory: InkRipple.splashFactory),
+            home: const FocusModeScreen(),
           ),
         ),
       );
@@ -76,8 +77,9 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: const MaterialApp(
-            home: Scaffold(
+          child: MaterialApp(
+            theme: ThemeData(splashFactory: InkRipple.splashFactory),
+            home: const Scaffold(
               body: DistractionAlertOverlay(),
             ),
           ),

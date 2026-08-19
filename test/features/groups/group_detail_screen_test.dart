@@ -114,7 +114,8 @@ void main() {
             (ref) => AuthNotifier(AuthRepository())..state = AuthState(user: mockUser),
           ),
         ],
-        child: const MaterialApp(
+        child: MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
           home: GroupDetailScreen(group: group),
         ),
       ),

@@ -18,6 +18,7 @@ class AppColors {
   // Flame / Accent
   static const Color flame = Color(0xFFFF5247);
   static const Color flameOrange = Color(0xFFFF7A00);
+  static const Color accent = Color(0xFFFF7A00);
 
   // Text Colors
   static const Color textPrimary = Color(0xFFF5F5F7);

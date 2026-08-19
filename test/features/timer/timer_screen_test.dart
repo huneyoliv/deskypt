@@ -57,8 +57,9 @@ void main() {
             (ref) => AppTranslationNotifier(ref)..state = const AppTranslation(languageCode: 'pt'),
           ),
         ],
-        child: const MaterialApp(
-          home: TimerScreen(),
+        child: MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
+          home: const TimerScreen(),
         ),
       ),
     );

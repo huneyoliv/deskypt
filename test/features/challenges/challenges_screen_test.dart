@@ -83,8 +83,11 @@ void main() {
             (ref) => AppTranslationNotifier(ref)..state = const AppTranslation(languageCode: 'pt'),
           ),
         ],
-        child: const MaterialApp(
-          home: ChallengesScreen(),
+        child: MaterialApp(
+          theme: ThemeData(
+            splashFactory: InkRipple.splashFactory,
+          ),
+          home: const ChallengesScreen(),
         ),
       ),
     );

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:deskypt/main.dart';
+import 'package:deskypt/features/auth/login_screen.dart';
 
 class TestHttpOverrides extends HttpOverrides {
   @override
@@ -102,9 +103,10 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.pump(const Duration(seconds: 5));
+    await tester.pump(const Duration(seconds: 2));
 
     expect(find.byType(MaterialApp), findsOneWidget);
-    expect(find.textContaining('Entrar'), findsWidgets);
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.byType(TextFormField), findsWidgets);
   });
 }

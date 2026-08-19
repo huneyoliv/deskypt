@@ -30,6 +30,18 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
 
   List<GroupModel> _exploreGroups = [];
   bool _isLoadingExplore = false;
+  int _selectedCategoryIndex = 0;
+  final String _selectedOrderType = 'promotedAt';
+
+  final List<Map<String, dynamic>> _categories = const [
+    {'id': 0, 'name': 'Todos'},
+    {'id': 1, 'name': 'Vestibular'},
+    {'id': 2, 'name': 'Concursos'},
+    {'id': 3, 'name': 'Graduação'},
+    {'id': 4, 'name': 'Idiomas'},
+    {'id': 5, 'name': 'Ensino Médio'},
+    {'id': 6, 'name': 'Outros'},
+  ];
 
   @override
   void initState() {
@@ -55,7 +67,11 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
 
     try {
       final repo = ref.read(groupRepoProvider);
-      final results = await repo.fetchExploreGroups();
+      final catId = _categories[_selectedCategoryIndex]['id'] as int;
+      final results = await repo.fetchExploreGroups(
+        categoryId: catId,
+        orderType: _selectedOrderType,
+      );
       if (mounted) {
         setState(() {
           _exploreGroups = results;
@@ -90,7 +106,8 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
 
     try {
       final repo = ref.read(groupRepoProvider);
-      final results = await repo.searchGroups(query);
+      final catId = _categories[_selectedCategoryIndex]['id'] as int;
+      final results = await repo.searchGroups(query, categoryId: catId);
       if (mounted) {
         setState(() {
           _searchResults = results;
@@ -107,47 +124,191 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
     }
   }
 
+  Future<void> _handleJoinGroup(GroupModel group, AppTranslation t) async {
+    final repo = ref.read(groupRepoProvider);
+    final user = ref.read(authStateProvider).user;
+
+    String? password;
+    if (group.isPrivate) {
+      final passController = TextEditingController();
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: AppColors.card,
+          title: Text(t.tr('join_private_group', fallback: 'Grupo Privado'), style: const TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                t.tr('enter_group_password', fallback: 'Este grupo requer senha para entrada:'),
+                style: const TextStyle(color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: passController,
+                obscureText: true,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: t.tr('password', fallback: 'Senha do Grupo'),
+                  hintStyle: const TextStyle(color: AppColors.textMuted),
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              child: Text(t.tr('join', fallback: 'Entrar'), style: const TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+      password = passController.text.trim();
+    }
+
+    final success = await repo.joinGroup(
+      group.id,
+      nickname: user?.nickname ?? 'Estudante',
+      studiconId: user?.avatarStudiconId,
+      password: password,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${t.tr("joined_group_success", fallback: "Você entrou no grupo")} ${group.name}!'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+      await ref.read(authStateProvider.notifier).refreshUserGroups();
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => GroupDetailScreen(group: group),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(t.tr('join_group_error', fallback: 'Não foi possível entrar no grupo. Verifique a senha ou a capacidade.')),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
   Widget _buildGroupCard(GroupModel group, AppTranslation t, {bool isMyGroup = false}) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       color: AppColors.card,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: AppColors.border),
+      ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
         leading: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.15),
+            color: (group.isCamStudy ? AppColors.accent : AppColors.primary).withValues(alpha: 0.15),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.group_work, color: AppColors.primary),
-        ),
-        title: Text(
-          group.name,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-            fontSize: 16,
+          child: Icon(
+            group.isCamStudy ? Icons.videocam_rounded : Icons.group_work_rounded,
+            color: group.isCamStudy ? AppColors.accent : AppColors.primary,
           ),
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                group.name,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (group.isPrivate) ...[
+              const SizedBox(width: 6),
+              const Icon(Icons.lock_rounded, size: 16, color: AppColors.warning),
+            ],
+            if (group.isCamStudy) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'CAM',
+                  style: TextStyle(
+                    color: AppColors.accent,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 6),
-          child: Text(
-            '${group.category} • ${group.membersCount}/${group.maxCapacity} ${t.tr("members", fallback: "membros")} • ${t.tr("goal", fallback: "Meta")}: ${group.dailyGoalHours}h/${t.tr("today", fallback: "dia")}',
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${group.category} • ${group.membersCount}/${group.maxCapacity} ${t.tr("members", fallback: "membros")} • ${t.tr("goal", fallback: "Meta")}: ${group.dailyGoalHours}h/${t.tr("today", fallback: "dia")}',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
+              if (group.notice != null && group.notice!.trim().isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  group.notice!.trim(),
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 12,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
           ),
         ),
         trailing: ElevatedButton(
           onPressed: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => GroupDetailScreen(group: group),
-              ),
-            );
-            if (mounted) {
-              ref.read(authStateProvider.notifier).refreshUserGroups();
+            if (isMyGroup) {
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => GroupDetailScreen(group: group),
+                ),
+              );
+              if (mounted) {
+                ref.read(authStateProvider.notifier).refreshUserGroups();
+              }
+            } else {
+              await _handleJoinGroup(group, t);
             }
           },
           style: ElevatedButton.styleFrom(
@@ -181,7 +342,11 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
             onPressed: () {
               ref.read(authStateProvider.notifier).refreshUserGroups();
               if (_tabController.index == 1) {
-                _performSearch();
+                if (_hasSearched) {
+                  _performSearch();
+                } else {
+                  _loadExploreGroups();
+                }
               }
             },
           ),
@@ -246,7 +411,9 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Search Bar
                   Row(
                     children: [
                       Expanded(
@@ -254,7 +421,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
                           controller: _searchController,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
-                            hintText: t.tr('search', fallback: 'Buscar grupos por nome ou categoria...'),
+                            hintText: t.tr('search', fallback: 'Buscar grupos por nome ou palavra-chave...'),
                             hintStyle: const TextStyle(color: AppColors.textMuted),
                             filled: true,
                             fillColor: AppColors.card,
@@ -277,17 +444,58 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
                         ),
                       ),
                       const SizedBox(width: 12),
-                      ElevatedButton(
+                      ElevatedButton.icon(
                         onPressed: _performSearch,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        child: Text(t.tr('search', fallback: 'Buscar'), style: const TextStyle(color: Colors.white)),
+                        icon: const Icon(Icons.search, size: 18, color: Colors.white),
+                        label: Text(t.tr('search', fallback: 'Buscar'), style: const TextStyle(color: Colors.white)),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
+
+                  // Category Filter Chips
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: List.generate(_categories.length, (index) {
+                        final cat = _categories[index];
+                        final isSelected = _selectedCategoryIndex == index;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(cat['name'] as String),
+                            selected: isSelected,
+                            selectedColor: AppColors.primary,
+                            backgroundColor: AppColors.card,
+                            labelStyle: TextStyle(
+                              color: isSelected ? Colors.white : AppColors.textSecondary,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            ),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _selectedCategoryIndex = index;
+                                });
+                                if (_hasSearched) {
+                                  _performSearch();
+                                } else {
+                                  _loadExploreGroups();
+                                }
+                              }
+                            },
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Groups List
                   Expanded(
                     child: (_isSearching || _isLoadingExplore)
                         ? const Center(child: CircularProgressIndicator())

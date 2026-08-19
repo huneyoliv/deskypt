@@ -28,6 +28,9 @@ class UserModel {
     this.flamesBalance = 100,
   });
 
+  String get nickname => name;
+  int get avatarStudiconId => studiconId;
+
   factory UserModel.fromJson(Map<String, dynamic> json, String token) {
     final userId = safeInt(json['id'] ?? json['ud'] ?? json['userId']);
     final studiconId = safeInt(json['pv'] ?? json['st'] ?? json['studiconId'], 0);

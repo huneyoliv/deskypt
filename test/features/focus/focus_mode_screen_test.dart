@@ -20,6 +20,7 @@ void main() {
           ),
       ],
       child: MaterialApp(
+        theme: ThemeData(splashFactory: InkRipple.splashFactory),
         home: Scaffold(body: child),
       ),
     );

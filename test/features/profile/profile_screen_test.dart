@@ -42,8 +42,9 @@ void main() {
             (ref) => SettingsNotifier(SettingsRepository()),
           ),
         ],
-        child: const MaterialApp(
-          home: ProfileScreen(),
+        child: MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
+          home: const ProfileScreen(),
         ),
       ),
     );

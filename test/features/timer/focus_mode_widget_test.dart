@@ -22,8 +22,9 @@ void main() {
           ),
           focusModeProvider.overrideWith((ref) => FocusModeNotifier()),
         ],
-        child: const MaterialApp(
-          home: AppShell(
+        child: MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
+          home: const AppShell(
             currentRoute: '/timer',
             child: Text('Timer Screen Body'),
           ),
@@ -56,8 +57,9 @@ void main() {
           ),
           focusModeProvider.overrideWith((ref) => focusNotifier),
         ],
-        child: const MaterialApp(
-          home: AppShell(
+        child: MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
+          home: const AppShell(
             currentRoute: '/timer',
             child: Text('Timer Screen Body'),
           ),

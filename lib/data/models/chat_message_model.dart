@@ -1,4 +1,5 @@
 import '../../core/cdn/cdn_resolver.dart';
+import '../../core/utils/json_utils.dart';
 
 class ChatMessageModel {
   final int id;
@@ -67,8 +68,8 @@ class ChatMessageModel {
 
   factory ChatMessageModel.fromJson(Map<String, dynamic> json) {
     String? photo;
-    if (json['photo'] != null && (json['photo'] as String).isNotEmpty) {
-      photo = CdnResolver.chatPhotoUrl(json['photo'] as String);
+    if (json['photo'] != null && json['photo'].toString().isNotEmpty) {
+      photo = CdnResolver.chatPhotoUrl(json['photo'].toString());
     }
 
     final rawImg = json['img'] as String? ?? json['imageUrl'] as String? ?? photo;
@@ -79,37 +80,40 @@ class ChatMessageModel {
         (sticker != null ? 'sticker' : (image != null ? 'image' : 'text'));
 
     DateTime sentTime = DateTime.now();
-    if (json['ts'] != null) {
-      final tsNum = json['ts'];
-      if (tsNum is num) {
-        sentTime = DateTime.fromMillisecondsSinceEpoch((tsNum * 1000).toInt());
+    final tsRaw = json['ts'] ?? json['ca'] ?? json['createdAt'];
+    if (tsRaw != null) {
+      if (tsRaw is num) {
+        sentTime = tsRaw > 1000000000000
+            ? DateTime.fromMillisecondsSinceEpoch(tsRaw.toInt())
+            : DateTime.fromMillisecondsSinceEpoch((tsRaw * 1000).toInt());
+      } else if (tsRaw is String) {
+        sentTime = DateTime.tryParse(tsRaw) ?? DateTime.now();
       }
-    } else if (json['ca'] != null && json['ca'] is int) {
-      sentTime = DateTime.fromMillisecondsSinceEpoch(json['ca'] as int);
     }
 
     final reactionsMap = <String, List<int>>{};
-    if (json['reactions'] is Map) {
-      (json['reactions'] as Map).forEach((k, v) {
+    final rawReactions = json['reactions'] ?? json['rc'];
+    if (rawReactions is Map) {
+      rawReactions.forEach((k, v) {
         if (v is List) {
-          reactionsMap[k.toString()] = v.map((e) => (e as num).toInt()).toList();
+          reactionsMap[k.toString()] = v.map((e) => safeInt(e)).toList();
         }
       });
     }
 
     return ChatMessageModel(
-      id: json['idx'] as int? ?? json['id'] as int? ?? DateTime.now().millisecondsSinceEpoch,
-      senderId: json['uid'] as int? ?? json['ud'] as int? ?? 0,
-      senderName: json['nn'] as String? ?? json['n'] as String? ?? 'Usuário',
-      studiconId: json['st'] as int? ?? 377,
-      message: json['msg'] as String? ?? json['m'] as String? ?? json['text'] as String? ?? '',
+      id: safeInt(json['idx'] ?? json['id'], DateTime.now().millisecondsSinceEpoch),
+      senderId: safeInt(json['uid'] ?? json['ud']),
+      senderName: safeString(json['nn'] ?? json['n'], 'Usuário'),
+      studiconId: safeInt(json['st'] ?? json['did'] ?? json['pv'], 377),
+      message: safeString(json['msg'] ?? json['m'] ?? json['text']),
       photoUrl: photo,
       stickerUrl: sticker,
       imageUrl: image,
       thumbUrl: rawThumb,
       type: msgType,
       sentAt: sentTime,
-      isNotice: json['isNotice'] as bool? ?? false,
+      isNotice: safeBool(json['isNotice'] ?? json['sn']),
       reactions: reactionsMap,
     );
   }

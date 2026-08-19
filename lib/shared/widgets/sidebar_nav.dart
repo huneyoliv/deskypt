@@ -126,9 +126,10 @@ class SidebarNav extends ConsumerWidget {
                     Image.asset(
                       'assets/icons/splash_logo.png',
                       height: 28,
-                      errorBuilder: (_, __, ___) => const Text(
-                        'DeskYPT',
-                        style: AppTextStyles.titleMedium,
+                      errorBuilder: (_, __, ___) => const SizedBox(
+                        height: 28,
+                        width: 28,
+                        child: Icon(Icons.school_rounded, color: AppColors.primary, size: 24),
                       ),
                     ),
                     const SizedBox(width: 10),

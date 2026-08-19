@@ -21,12 +21,15 @@ class GroupRepository {
         '${ApiConstants.groupMembers}?groupID=$groupId&countryID=$countryId&isLooking=false&version=$version',
       );
 
-      final data = response.data as Map<String, dynamic>;
-      final list = data['ms'] ?? data['members'];
-      if (list != null && list is List) {
-        return list
-            .map((m) => GroupMemberModel.fromJson(m as Map<String, dynamic>))
-            .toList();
+      final data = response.data;
+      if (data is Map) {
+        final list = data['ms'] ?? data['members'];
+        if (list is List) {
+          return list
+              .whereType<Map>()
+              .map((m) => GroupMemberModel.fromJson(Map<String, dynamic>.from(m)))
+              .toList();
+        }
       }
     } catch (_) {}
 
@@ -34,12 +37,15 @@ class GroupRepository {
       final response = await _apiClient.get(
         '${ApiConstants.groupMembers}?groupID=$groupId',
       );
-      final data = response.data as Map<String, dynamic>;
-      final list = data['ms'] ?? data['members'];
-      if (list != null && list is List) {
-        return list
-            .map((m) => GroupMemberModel.fromJson(m as Map<String, dynamic>))
-            .toList();
+      final data = response.data;
+      if (data is Map) {
+        final list = data['ms'] ?? data['members'];
+        if (list is List) {
+          return list
+              .whereType<Map>()
+              .map((m) => GroupMemberModel.fromJson(Map<String, dynamic>.from(m)))
+              .toList();
+        }
       }
     } catch (_) {}
 
@@ -59,12 +65,12 @@ class GroupRepository {
       );
 
       final data = response.data;
-      if (data is Map<String, dynamic> && data['s'] == true) {
+      if (data is Map && data['s'] == true) {
         final list = data['ms'] ?? data['ranks'];
         if (list is List) {
           final members = list
-              .whereType<Map<String, dynamic>>()
-              .map((m) => GroupMemberModel.fromJson(m))
+              .whereType<Map>()
+              .map((m) => GroupMemberModel.fromJson(Map<String, dynamic>.from(m)))
               .toList();
           members.sort((a, b) => b.studyMs.compareTo(a.studyMs));
           return members;
@@ -91,8 +97,20 @@ class GroupRepository {
         },
       );
 
-      final data = response.data as Map<String, dynamic>;
-      return data['s'] == true;
+      final data = response.data;
+      return data is Map && data['s'] == true;
+    } catch (_) {}
+    return false;
+  }
+
+  Future<bool> shakeAllMembers(int groupId) async {
+    try {
+      final response = await _apiClient.post(
+        '/group/push/shake/all',
+        data: {'groupID': groupId},
+      );
+      final data = response.data;
+      return data is Map && data['s'] == true;
     } catch (_) {}
     return false;
   }
@@ -100,15 +118,18 @@ class GroupRepository {
   Future<List<ChatMessageModel>> fetchChatMessages(int groupId) async {
     try {
       final response = await _apiClient.get(
-        '/chat/group/messages?group_id=$groupId&include_meta=1',
+        '/chat/group/messages?group_id=$groupId&include_meta=true',
       );
 
-      final data = response.data as Map<String, dynamic>;
-      final list = data['m'] ?? data['messages'];
-      if (list != null && list is List) {
-        return list
-            .map((m) => ChatMessageModel.fromJson(m as Map<String, dynamic>))
-            .toList();
+      final data = response.data;
+      if (data is Map) {
+        final list = data['m'] ?? data['messages'];
+        if (list is List) {
+          return list
+              .whereType<Map>()
+              .map((m) => ChatMessageModel.fromJson(Map<String, dynamic>.from(m)))
+              .toList();
+        }
       }
     } catch (_) {}
     return [];
@@ -119,7 +140,7 @@ class GroupRepository {
     String nickname = 'Usuário',
     int userId = 0,
     String message = '',
-    String? category,
+    int category = 0,
     String? stickerUrl,
     String? imageUrl,
     String? thumbUrl,
@@ -127,7 +148,7 @@ class GroupRepository {
     final payload = <String, dynamic>{
       'group_id': groupId,
       'nickname': nickname,
-      'category': category ?? 'Geral',
+      'category': category,
       'userID': userId,
       'message': message.isNotEmpty ? message : (imageUrl != null ? 'Photo' : ''),
       'createdAt': null,
@@ -147,12 +168,12 @@ class GroupRepository {
       data: payload,
     );
 
-    final data = response.data as Map<String, dynamic>;
-    if (data['s'] != true && data['idx'] == null) {
-      throw Exception(data['m'] ?? 'Falha ao enviar mensagem');
+    final data = response.data;
+    if (data is! Map || (data['s'] != true && data['idx'] == null)) {
+      throw Exception(data is Map ? data['m'] : 'Falha ao enviar mensagem');
     }
 
-    return ChatMessageModel.fromJson(data);
+    return ChatMessageModel.fromJson(Map<String, dynamic>.from(data));
   }
 
   Future<bool> sendReaction({
@@ -170,7 +191,7 @@ class GroupRepository {
         },
       );
       final data = response.data;
-      return data is Map<String, dynamic> && data['s'] == true;
+      return data is Map && data['s'] == true;
     } catch (_) {}
     return false;
   }
@@ -200,21 +221,48 @@ class GroupRepository {
       final queryString = Uri(queryParameters: queryParams).query;
       final response = await _apiClient.get('/group/list-new-2?$queryString');
 
-      final data = response.data as Map<String, dynamic>;
-      final list = data['g'] ?? data['groups'] ?? data['list'];
-      if (list != null && list is List) {
-        return list
-            .whereType<Map<String, dynamic>>()
-            .map((g) => GroupModel.fromJson(g))
-            .toList();
+      final data = response.data;
+      if (data is Map) {
+        final list = data['gs'] ?? data['g'] ?? data['groups'] ?? data['list'];
+        if (list is List) {
+          return list
+              .whereType<Map>()
+              .map((g) => GroupModel.fromJson(Map<String, dynamic>.from(g)))
+              .toList();
+        }
       }
     } catch (_) {}
 
     return [];
   }
 
-  Future<List<GroupModel>> searchGroups(String query, {int countryId = 23}) async {
-    return fetchExploreGroups(query: query, countryId: countryId);
+  Future<List<GroupModel>> searchGroups(String query, {int categoryId = 0, int countryId = 23}) async {
+    return fetchExploreGroups(query: query, categoryId: categoryId, countryId: countryId);
+  }
+
+  Future<Map<String, dynamic>?> fetchGroupSearchInfo(int groupId) async {
+    try {
+      final response = await _apiClient.get('/group/search-info/v2?groupID=$groupId');
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<bool> updateGroupNotice({required int groupId, required String notice}) async {
+    try {
+      final response = await _apiClient.post(
+        '/group/notice',
+        data: {
+          'groupID': groupId,
+          'notice': notice,
+        },
+      );
+      final data = response.data;
+      return data is Map && data['s'] == true;
+    } catch (_) {}
+    return false;
   }
 
   Future<bool> joinGroup(
@@ -241,7 +289,7 @@ class GroupRepository {
         data: payload,
       );
       final data = response.data;
-      if (data is Map<String, dynamic> && data['s'] == true) {
+      if (data is Map && data['s'] == true) {
         return true;
       }
     } catch (_) {}
@@ -252,7 +300,7 @@ class GroupRepository {
         data: {'group_id': groupId, 'id': groupId},
       );
       final data = response.data;
-      return data is Map<String, dynamic> && data['s'] == true;
+      return data is Map && data['s'] == true;
     } catch (_) {}
     return false;
   }
@@ -264,7 +312,7 @@ class GroupRepository {
         data: {'id': groupId, 'group_id': groupId},
       );
       final data = response.data;
-      return data is Map<String, dynamic> && data['s'] == true;
+      return data is Map && data['s'] == true;
     } catch (_) {}
     return false;
   }

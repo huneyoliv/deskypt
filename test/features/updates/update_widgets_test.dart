@@ -32,6 +32,20 @@ void main() {
           downloadUrl: 'https://github.com/test/download.exe',
           contentType: 'application/x-msdownload',
         ),
+        ReleaseAsset(
+          id: 102,
+          name: 'DeskYPT-Linux-x64.deb',
+          size: 50000000,
+          downloadUrl: 'https://github.com/test/download.deb',
+          contentType: 'application/vnd.debian.binary-package',
+        ),
+        ReleaseAsset(
+          id: 103,
+          name: 'DeskYPT-macOS-Installer.dmg',
+          size: 50000000,
+          downloadUrl: 'https://github.com/test/download.dmg',
+          contentType: 'application/x-apple-diskimage',
+        ),
       ],
     );
 
@@ -85,7 +99,7 @@ void main() {
       expect(find.text('Atualização Disponível'), findsOneWidget);
       expect(find.text('v1.5.0'), findsOneWidget);
       expect(find.textContaining('New super fast timer'), findsOneWidget);
-      expect(find.textContaining('DeskYPT-Windows-Installer-x64.exe'), findsOneWidget);
+      expect(find.textContaining('Baixar'), findsOneWidget);
       expect(find.text('Ver no GitHub'), findsOneWidget);
     });
   });

@@ -1,4 +1,5 @@
 import '../../core/cdn/cdn_resolver.dart';
+import '../../core/utils/json_utils.dart';
 
 class GroupMemberModel {
   final int userId;
@@ -9,6 +10,8 @@ class GroupMemberModel {
   final int studyMs;
   final int? sessionStartMs;
   final bool hasCustomAvatar;
+  final String? currentSubject;
+  final int? subjectColor;
 
   const GroupMemberModel({
     required this.userId,
@@ -19,6 +22,8 @@ class GroupMemberModel {
     required this.studyMs,
     this.sessionStartMs,
     required this.hasCustomAvatar,
+    this.currentSubject,
+    this.subjectColor,
   });
 
   String get avatarUrl => CdnResolver.userAvatarUrl(
@@ -31,22 +36,26 @@ class GroupMemberModel {
       );
 
   factory GroupMemberModel.fromJson(Map<String, dynamic> json) {
-    final dl = json['dl'] as Map<String, dynamic>?;
-    final isStudying = dl?['is'] as bool? ?? json['isStudying'] as bool? ?? json['is'] as bool? ?? false;
-    final isPaused = dl?['ia'] as bool? ?? dl?['ip'] as bool? ?? json['isPaused'] as bool? ?? json['ia'] as bool? ?? json['ip'] as bool? ?? false;
-    final studyMs = (dl?['sm'] ?? dl?['tp'] ?? json['studyMs'] ?? json['sm'] ?? 0) as int;
-    final sessionStart = dl?['ss'] as int? ?? json['ss'] as int? ?? json['session_start'] as int?;
-    final sd = json['gd'] as int? ?? json['sd'] as int? ?? json['st'] as int? ?? json['pv'] as int? ?? json['studiconId'] as int? ?? -1;
+    final dl = json['dl'] is Map ? json['dl'] as Map<String, dynamic> : null;
+    final isStudying = safeBool(dl?['is'] ?? json['isStudying'] ?? json['is']);
+    final isPaused = safeBool(dl?['ia'] ?? dl?['ip'] ?? json['isPaused'] ?? json['ia'] ?? json['ip']);
+    final studyMs = safeInt(dl?['sm'] ?? dl?['tp'] ?? json['studyMs'] ?? json['sm'], 0);
+    final sessionStart = dl?['ss'] != null ? safeInt(dl?['ss']) : null;
+    final sd = safeInt(json['sd'] ?? json['st'] ?? json['pv'] ?? json['gd'] ?? json['studiconId'], -1);
 
     return GroupMemberModel(
-      userId: json['ud'] as int? ?? json['userId'] as int? ?? json['id'] as int? ?? 0,
-      name: (json['n'] ?? json['name'] ?? json['nickname'] ?? 'Membro').toString().trim(),
+      userId: safeInt(json['ud'] ?? json['userId'] ?? json['id']),
+      name: safeString(json['n'] ?? json['name'] ?? json['nickname'], 'Membro').trim(),
       studiconId: sd,
       isStudying: isStudying,
       isPaused: isPaused,
       studyMs: studyMs,
       sessionStartMs: sessionStart,
-      hasCustomAvatar: json['hasCustomAvatar'] as bool? ?? false,
+      hasCustomAvatar: safeBool(json['hasCustomAvatar']),
+      currentSubject: dl?['sn'] != null || dl?['sb'] != null
+          ? safeString(dl?['sn'] ?? dl?['sb'])
+          : null,
+      subjectColor: dl?['co'] != null ? safeInt(dl?['co']) : null,
     );
   }
 }

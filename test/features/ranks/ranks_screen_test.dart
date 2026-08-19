@@ -91,8 +91,9 @@ void main() {
             (ref) => AppTranslationNotifier(ref)..state = const AppTranslation(languageCode: 'pt'),
           ),
         ],
-        child: const MaterialApp(
-          home: RanksScreen(),
+        child: MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
+          home: const RanksScreen(),
         ),
       ),
     );

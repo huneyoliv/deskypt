@@ -8,9 +8,10 @@ void main() {
   group('SmartBook Tests', () {
     testWidgets('SmartBookScreen renders empty view when no file is loaded', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: SmartBookScreen(),
+            theme: ThemeData(splashFactory: InkRipple.splashFactory),
+            home: const SmartBookScreen(),
           ),
         ),
       );
@@ -24,6 +25,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
+            theme: ThemeData(splashFactory: InkRipple.splashFactory),
             home: Builder(
               builder: (context) => ElevatedButton(
                 onPressed: () => SmartBookWindowService.open(context),

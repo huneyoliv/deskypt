@@ -60,8 +60,9 @@ void main() {
             (ref) => AppTranslationNotifier(ref)..state = const AppTranslation(languageCode: 'pt'),
           ),
         ],
-        child: const MaterialApp(
-          home: NotificationsScreen(),
+        child: MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
+          home: const NotificationsScreen(),
         ),
       ),
     );
@@ -84,8 +85,9 @@ void main() {
             (ref) => AppTranslationNotifier(ref)..state = const AppTranslation(languageCode: 'pt'),
           ),
         ],
-        child: const MaterialApp(
-          home: NotificationsScreen(),
+        child: MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
+          home: const NotificationsScreen(),
         ),
       ),
     );

@@ -65,9 +65,10 @@ void main() {
 
     testWidgets('TimelapseGalleryScreen renders empty state when no recordings exist', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: TimelapseGalleryScreen(),
+            theme: ThemeData(splashFactory: InkRipple.splashFactory),
+            home: const TimelapseGalleryScreen(),
           ),
         ),
       );
@@ -89,6 +90,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
           home: Scaffold(
             body: Builder(
               builder: (context) => ElevatedButton(
