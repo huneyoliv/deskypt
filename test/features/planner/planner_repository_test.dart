@@ -2,10 +2,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deskypt/data/models/dday_model.dart';
 import 'package:deskypt/data/models/todo_item_model.dart';
 
+import 'package:deskypt/core/utils/study_date_helper.dart';
+
 void main() {
   group('Planner Models Tests', () {
     test('DDayModel calculates daysRemaining and label correctly', () {
-      final targetFuture = DateTime.now().add(const Duration(days: 10));
+      final studyToday = StudyDateHelper.getStudyDate();
+      final targetFuture = studyToday.add(const Duration(days: 10));
       final dday = DDayModel(
         id: 1,
         title: 'Prova',

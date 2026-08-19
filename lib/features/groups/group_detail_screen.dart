@@ -705,12 +705,14 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                       final member = displayList[index];
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
-                        decoration: BoxDecoration(
+                        child: Material(
                           color: AppColors.card,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: const BorderSide(color: AppColors.border),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: ListTile(
                           leading: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -758,8 +760,9 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                             ),
                           ),
                         ),
-                      );
-                    },
+                      ),
+                    );
+                  },
                   ),
                 ),
               ],

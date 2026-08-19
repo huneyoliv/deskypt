@@ -43,22 +43,19 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 360,
-      height: 480,
-      decoration: BoxDecoration(
-        color: AppColors.card,
+    return Material(
+      color: AppColors.card,
+      elevation: 8,
+      shadowColor: Colors.black45,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black45,
-            blurRadius: 16,
-            offset: Offset(0, 8),
-          ),
-        ],
+        side: const BorderSide(color: AppColors.border),
       ),
-      child: Column(
+      clipBehavior: Clip.antiAlias,
+      child: SizedBox(
+        width: 360,
+        height: 480,
+        child: Column(
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -129,6 +126,7 @@ class _NotificationsPanelState extends ConsumerState<NotificationsPanel> {
                       ),
           ),
         ],
+      ),
       ),
     );
   }

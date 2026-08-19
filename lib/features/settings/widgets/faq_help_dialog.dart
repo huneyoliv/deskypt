@@ -99,26 +99,29 @@ class FaqHelpDialog extends ConsumerWidget {
   Widget _buildFaqTile({required IconData icon, required String question, required String answer}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
+      child: Material(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: ExpansionTile(
-        leading: Icon(icon, color: AppColors.primary, size: 22),
-        title: Text(
-          question,
-          style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppColors.border),
         ),
-        iconColor: AppColors.primary,
-        collapsedIconColor: AppColors.textMuted,
-        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        children: [
-          Text(
-            answer,
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.5),
+        clipBehavior: Clip.antiAlias,
+        child: ExpansionTile(
+          leading: Icon(icon, color: AppColors.primary, size: 22),
+          title: Text(
+            question,
+            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
           ),
-        ],
+          iconColor: AppColors.primary,
+          collapsedIconColor: AppColors.textMuted,
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          children: [
+            Text(
+              answer,
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.5),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -460,12 +460,13 @@ class ProfileScreen extends ConsumerWidget {
                 _ => langCode,
               };
 
-              return Container(
-                decoration: BoxDecoration(
-                  color: AppColors.card,
+              return Material(
+                color: AppColors.card,
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  side: const BorderSide(color: AppColors.border),
                 ),
+                clipBehavior: Clip.antiAlias,
                 child: Column(
                   children: [
                     ListTile(
@@ -528,12 +529,13 @@ class ProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
 
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.card,
+            Material(
+              color: AppColors.card,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
+                side: const BorderSide(color: AppColors.border),
               ),
+              clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
                   ListTile(
@@ -562,12 +564,13 @@ class ProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
 
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.card,
+            Material(
+              color: AppColors.card,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
+                side: const BorderSide(color: AppColors.border),
               ),
+              clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
                   ListTile(
@@ -608,12 +611,13 @@ class ProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
 
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.card,
+            Material(
+              color: AppColors.card,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
+                side: const BorderSide(color: AppColors.border),
               ),
+              clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
                   ListTile(
@@ -682,12 +686,13 @@ class ProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
 
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.card,
+            Material(
+              color: AppColors.card,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                side: BorderSide(color: AppColors.error.withValues(alpha: 0.3)),
               ),
+              clipBehavior: Clip.antiAlias,
               child: ListTile(
                 leading: const Icon(Icons.delete_forever, color: AppColors.error),
                 title: Text(
