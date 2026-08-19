@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/localization/app_translation.dart';
+import '../../core/constants/app_constants.dart';
 import '../../shared/widgets/studicon_avatar.dart';
 import '../auth/auth_notifier.dart';
 import '../settings/settings_notifier.dart';
@@ -510,7 +511,7 @@ class ProfileScreen extends ConsumerWidget {
                     ListTile(
                       leading: const Icon(Icons.info_outline, color: AppColors.primary),
                       title: Text(t.tr('version', fallback: 'Versão do Cliente API'), style: const TextStyle(color: Colors.white)),
-                      subtitle: const Text('v8.1.0 (build 810041)',
+                      subtitle: const Text('v${AppConstants.appVersion} (API v8.1.0)',
                           style: TextStyle(color: AppColors.textSecondary)),
                     ),
                   ],
