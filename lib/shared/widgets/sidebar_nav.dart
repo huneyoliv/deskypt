@@ -9,6 +9,7 @@ import '../../features/auth/auth_notifier.dart';
 import '../../data/repositories/notification_repository.dart';
 import '../../features/notifications/widgets/notification_bell.dart';
 import '../../features/updates/widgets/update_button.dart';
+import '../../features/timer/timer_notifier.dart';
 import 'studicon_avatar.dart';
 
 class SidebarNavItemData {
@@ -104,6 +105,8 @@ class SidebarNav extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authStateProvider).user;
+    final timerState = ref.watch(timerNotifierProvider);
+    final isStudying = timerState.isRunning && !timerState.isPaused;
     final unreadAsync = ref.watch(unreadNotificationCountProvider);
     final hasUnread = unreadAsync.maybeWhen(data: (cnt) => cnt > 0, orElse: () => true);
     final t = ref.watch(appTranslationProvider);
@@ -113,72 +116,59 @@ class SidebarNav extends ConsumerWidget {
       color: AppColors.surface,
       child: Column(
         children: [
-          // Header: Logo & User Card
+          // Header: User Profile Card
           Container(
             padding: const EdgeInsets.all(20),
             decoration: const BoxDecoration(
               border: Border(bottom: BorderSide(color: AppColors.border)),
             ),
-            child: Column(
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    Image.asset(
-                      'assets/icons/splash_logo.png',
-                      height: 28,
-                      errorBuilder: (_, __, ___) => const SizedBox(
-                        height: 28,
-                        width: 28,
-                        child: Icon(Icons.school_rounded, color: AppColors.primary, size: 24),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    const Text(
-                      'DeskYPT',
-                      style: TextStyle(
-                        fontFamily: AppTextStyles.fontPretendard,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+                StudiconAvatar(
+                  studiconId: user?.studiconId ?? -1,
+                  size: 42,
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    StudiconAvatar(
-                      studiconId: user?.studiconId ?? -1,
-                      size: 40,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user?.name ?? t.tr('student', fallback: 'Estudante'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
                         children: [
-                          Text(
-                            user?.name ?? t.tr('student', fallback: 'Estudante'),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: isStudying ? AppColors.success : AppColors.textMuted.withAlpha(120),
+                              shape: BoxShape.circle,
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(width: 6),
                           Text(
-                            t.tr('online', fallback: 'Online'),
-                            style: const TextStyle(
-                              color: AppColors.success,
+                            isStudying
+                                ? t.tr('studying', fallback: 'Estudando')
+                                : t.tr('idle', fallback: 'Inativo'),
+                            style: TextStyle(
+                              color: isStudying ? AppColors.success : AppColors.textMuted,
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
