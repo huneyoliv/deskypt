@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/services/update_service.dart';
 import 'models/update_model.dart';
 
@@ -11,7 +12,7 @@ class UpdateState {
   final DateTime? lastCheckedAt;
 
   const UpdateState({
-    this.currentVersion = '1.0.0',
+    this.currentVersion = AppConstants.appVersion,
     this.isChecking = false,
     this.hasUpdate = false,
     this.latestRelease,
@@ -44,7 +45,7 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
 
   UpdateNotifier({
     required UpdateService service,
-    String currentVersion = '1.0.0',
+    String currentVersion = AppConstants.appVersion,
   })  : _service = service,
         super(UpdateState(currentVersion: currentVersion)) {
     checkForUpdates();
