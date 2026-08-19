@@ -78,7 +78,16 @@ void main() {
       expect(find.byIcon(Icons.download_rounded), findsOneWidget);
     });
 
-    testWidgets('UpdateDialog renders changelog and download buttons', (tester) async {
+    testWidgets('UpdateDialog renders changelog with Markdown formatting', (tester) async {
+      const markdownRelease = AppRelease(
+        id: 1000,
+        tagName: 'v1.5.0',
+        name: 'DeskYPT v1.5.0 - Super Speed',
+        body: '### ✨ Features\n- **Super Timer**: 10x faster\n- `AppConstants` updated\n\nVisit [GitHub](https://github.com/huneyoliv/deskypt)',
+        htmlUrl: 'https://github.com/huneyoliv/deskypt/releases/tag/v1.5.0',
+        assets: [],
+      );
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -86,9 +95,9 @@ void main() {
               (ref) => AppTranslationNotifier(ref),
             ),
           ],
-          child: MaterialApp(
+          child: const MaterialApp(
             home: Scaffold(
-              body: UpdateDialog(release: sampleRelease),
+              body: UpdateDialog(release: markdownRelease),
             ),
           ),
         ),
@@ -98,9 +107,39 @@ void main() {
 
       expect(find.text('Atualização Disponível'), findsOneWidget);
       expect(find.text('v1.5.0'), findsOneWidget);
-      expect(find.textContaining('New super fast timer'), findsOneWidget);
-      expect(find.textContaining('Baixar'), findsOneWidget);
+      expect(find.textContaining('Super Timer'), findsOneWidget);
+      expect(find.textContaining('10x faster'), findsOneWidget);
       expect(find.text('Ver no GitHub'), findsOneWidget);
+    });
+
+    testWidgets('UpdateDialog renders fallback text when release body is empty', (tester) async {
+      const emptyRelease = AppRelease(
+        id: 1001,
+        tagName: 'v1.6.0',
+        name: 'DeskYPT v1.6.0',
+        body: '',
+        htmlUrl: 'https://github.com/huneyoliv/deskypt/releases/tag/v1.6.0',
+        assets: [],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appTranslationProvider.overrideWith(
+              (ref) => AppTranslationNotifier(ref),
+            ),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(
+              body: UpdateDialog(release: emptyRelease),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Melhorias de desempenho e correções gerais.'), findsOneWidget);
     });
   });
 }

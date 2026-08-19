@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -152,7 +153,7 @@ class UpdateDialog extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Container(
-              constraints: const BoxConstraints(maxHeight: 220),
+              constraints: const BoxConstraints(maxHeight: 240),
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -161,14 +162,79 @@ class UpdateDialog extends ConsumerWidget {
                 border: Border.all(color: AppColors.border),
               ),
               child: SingleChildScrollView(
-                child: Text(
-                  release.body.isNotEmpty
+                child: MarkdownBody(
+                  data: release.body.isNotEmpty
                       ? release.body
                       : t.tr('no_changelog', fallback: 'Melhorias de desempenho e correções gerais.'),
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                    height: 1.45,
+                  selectable: true,
+                  onTapLink: (text, href, title) {
+                    if (href != null && href.isNotEmpty) {
+                      _launchUrl(href);
+                    }
+                  },
+                  styleSheet: MarkdownStyleSheet(
+                    p: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                      height: 1.45,
+                    ),
+                    h1: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      height: 1.4,
+                    ),
+                    h2: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.bold,
+                      height: 1.4,
+                    ),
+                    h3: const TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      height: 1.4,
+                    ),
+                    strong: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    em: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    listBullet: const TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 13,
+                    ),
+                    code: TextStyle(
+                      color: AppColors.warning,
+                      backgroundColor: AppColors.card,
+                      fontSize: 12,
+                      fontFamily: 'monospace',
+                    ),
+                    codeblockDecoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    blockquoteDecoration: BoxDecoration(
+                      color: AppColors.card.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(4),
+                      border: const Border(
+                        left: BorderSide(color: AppColors.primary, width: 4),
+                      ),
+                    ),
+                    horizontalRuleDecoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: AppColors.border, width: 1),
+                      ),
+                    ),
+                    a: const TextStyle(
+                      color: AppColors.primary,
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 ),
               ),
