@@ -43,6 +43,7 @@ void main() {
     expect(find.textContaining('Aplicativos Bloqueados'), findsOneWidget);
 
     // Add a new blocked app
+    expect(find.text('Procurar .exe'), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'steam');
     await tester.tap(find.text('Adicionar'));
     await tester.pump(const Duration(milliseconds: 300));

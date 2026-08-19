@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
@@ -18,6 +19,22 @@ class _FocusModeScreenState extends ConsumerState<FocusModeScreen> {
   void dispose() {
     _customAppController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickExecutableFile(FocusModeNotifier notifier) async {
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['exe', 'app'],
+      );
+      if (result != null && result.files.isNotEmpty) {
+        final fileName = result.files.first.name;
+        if (fileName.isNotEmpty) {
+          final cleanName = fileName.endsWith('.exe') ? fileName : '$fileName.exe';
+          notifier.addBlockedApp(cleanName);
+        }
+      }
+    } catch (_) {}
   }
 
   void _addCustomApp(FocusModeNotifier notifier) {
@@ -166,14 +183,28 @@ class _FocusModeScreenState extends ConsumerState<FocusModeScreen> {
                     onSubmitted: (_) => _addCustomApp(notifier),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: () => _addCustomApp(notifier),
-                  icon: const Icon(Icons.add, color: Colors.white),
+                  icon: const Icon(Icons.add, color: Colors.white, size: 20),
                   label: Text(t.tr('add', fallback: 'Adicionar'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: () => _pickExecutableFile(notifier),
+                  icon: const Icon(Icons.folder_open_rounded, color: AppColors.textSecondary, size: 20),
+                  label: Text(
+                    t.tr('browse_exe', fallback: 'Procurar .exe'),
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.border),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
