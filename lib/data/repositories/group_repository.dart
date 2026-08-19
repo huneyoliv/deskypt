@@ -65,8 +65,8 @@ class GroupRepository {
       );
 
       final data = response.data;
-      if (data is Map && data['s'] == true) {
-        final list = data['ms'] ?? data['ranks'];
+      if (data is Map) {
+        final list = data['ms'] ?? data['ranks'] ?? data['list'] ?? data['members'];
         if (list is List) {
           final members = list
               .whereType<Map>()
@@ -75,6 +75,13 @@ class GroupRepository {
           members.sort((a, b) => b.studyMs.compareTo(a.studyMs));
           return members;
         }
+      } else if (data is List) {
+        final members = data
+            .whereType<Map>()
+            .map((m) => GroupMemberModel.fromJson(Map<String, dynamic>.from(m)))
+            .toList();
+        members.sort((a, b) => b.studyMs.compareTo(a.studyMs));
+        return members;
       }
     } catch (_) {}
     return [];

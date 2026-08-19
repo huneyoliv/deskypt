@@ -410,7 +410,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    final studyingMembers = _members.where((m) => m.isStudying).toList();
+    final studyingMembers = _members.where((m) => m.isStudying && !m.isPaused).toList();
     final activeUser = ref.watch(authStateProvider).user;
     final t = ref.watch(appTranslationProvider);
     final isLeader = activeUser != null &&

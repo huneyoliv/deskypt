@@ -126,5 +126,25 @@ void main() {
 
     expect(find.text('Grupo de Estudos 101'), findsOneWidget);
     expect(find.text('Líder do Grupo'), findsWidgets);
+    expect(find.textContaining('1 estudando agora'), findsOneWidget);
+    expect(find.text('Estudando Agora (1)'), findsOneWidget);
+  });
+
+  testWidgets('GroupMemberModel parses ranking time in seconds and milliseconds correctly', (tester) async {
+    final memberWithSeconds = GroupMemberModel.fromJson({
+      'ud': 10,
+      'n': 'Estudante Segundos',
+      'st': 7200, // 2 hours in seconds
+      'sd': 5,
+    });
+    expect(memberWithSeconds.studyMs, 7200000);
+
+    final memberWithMs = GroupMemberModel.fromJson({
+      'ud': 11,
+      'n': 'Estudante Ms',
+      'sm': 18000000, // 5 hours in ms
+      'sd': 6,
+    });
+    expect(memberWithMs.studyMs, 18000000);
   });
 }

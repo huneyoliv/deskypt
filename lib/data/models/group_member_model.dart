@@ -39,14 +39,37 @@ class GroupMemberModel {
     final dl = json['dl'] is Map ? json['dl'] as Map<String, dynamic> : null;
     final isStudying = safeBool(dl?['is'] ?? json['isStudying'] ?? json['is']);
     final isPaused = safeBool(dl?['ia'] ?? dl?['ip'] ?? json['isPaused'] ?? json['ia'] ?? json['ip']);
-    final studyMs = safeInt(dl?['sm'] ?? dl?['tp'] ?? json['studyMs'] ?? json['sm'], 0);
+
+    int studiconId = safeInt(json['sd'] ?? json['gd'] ?? json['pv'] ?? json['si'] ?? json['studiconId'], -1);
+    if (studiconId == -1 && json['st'] != null) {
+      if (dl != null || json['sm'] != null || json['studyMs'] != null || safeInt(json['st']) < 1000) {
+        studiconId = safeInt(json['st']);
+      }
+    }
+
+    int studyMs;
+    if (dl != null && (dl['sm'] != null || dl['tp'] != null)) {
+      studyMs = safeInt(dl['sm'] ?? dl['tp'], 0);
+    } else if (json['studyMs'] != null || json['sm'] != null) {
+      studyMs = safeInt(json['studyMs'] ?? json['sm'], 0);
+    } else {
+      final rawTime = safeInt(
+        (studiconId != safeInt(json['st']) ? json['st'] : null) ?? json['tp'] ?? json['time'] ?? json['totalTime'] ?? json['cnt'] ?? json['duration'],
+        0,
+      );
+      if (rawTime > 0 && rawTime < 1000000) {
+        studyMs = rawTime * 1000;
+      } else {
+        studyMs = rawTime;
+      }
+    }
+
     final sessionStart = dl?['ss'] != null ? safeInt(dl?['ss']) : null;
-    final sd = safeInt(json['sd'] ?? json['st'] ?? json['pv'] ?? json['gd'] ?? json['studiconId'], -1);
 
     return GroupMemberModel(
       userId: safeInt(json['ud'] ?? json['userId'] ?? json['id']),
       name: safeString(json['n'] ?? json['name'] ?? json['nickname'], 'Membro').trim(),
-      studiconId: sd,
+      studiconId: studiconId,
       isStudying: isStudying,
       isPaused: isPaused,
       studyMs: studyMs,

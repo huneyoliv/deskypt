@@ -30,8 +30,21 @@ class RankEntryModel {
 
   factory RankEntryModel.fromJson(Map<String, dynamic> json, int rankIndex) {
     final dl = json['dl'] is Map<String, dynamic> ? json['dl'] as Map<String, dynamic> : null;
-    final studyMs = safeInt(dl?['sm'] ?? json['sm']);
-    final studiconId = safeInt(json['sd'] ?? json['st'] ?? json['pv'] ?? json['si'], -1);
+    int studyMs;
+    if (dl != null && (dl['sm'] != null || dl['tp'] != null)) {
+      studyMs = safeInt(dl['sm'] ?? dl['tp'], 0);
+    } else if (json['sm'] != null || json['studyMs'] != null) {
+      studyMs = safeInt(json['sm'] ?? json['studyMs'], 0);
+    } else {
+      final rawTime = safeInt(json['st'] ?? json['tp'] ?? json['time'] ?? json['duration'], 0);
+      if (rawTime > 0 && rawTime < 1000000) {
+        studyMs = rawTime * 1000;
+      } else {
+        studyMs = rawTime;
+      }
+    }
+
+    final studiconId = safeInt(json['sd'] ?? json['gd'] ?? json['pv'] ?? json['si'] ?? (json['sm'] != null ? json['st'] : null) ?? json['studiconId'], -1);
     final category = safeString(json['ct'] ?? json['c'], 'Geral');
 
     return RankEntryModel(
