@@ -60,11 +60,19 @@ class GroupRepository {
   }) async {
     try {
       final dateStr = StudyDateHelper.getStudyDateString();
-      final response = await _apiClient.get(
-        '/logs/group/member/ranks?type=$period&countryID=$countryId&categoryID=$categoryId&groupID=$groupId&isCam=false&date=$dateStr&page=1',
-      );
+      dynamic data;
+      try {
+        final response = await _apiClient.get(
+          '${ApiConstants.metadataCdnUrl}/logs/group/member/ranks?type=$period&countryID=$countryId&categoryID=$categoryId&groupID=$groupId&isCam=false&date=$dateStr&page=1',
+        );
+        data = response.data;
+      } catch (_) {
+        final response = await _apiClient.get(
+          '/logs/group/member/ranks?type=$period&countryID=$countryId&categoryID=$categoryId&groupID=$groupId&isCam=false&date=$dateStr&page=1',
+        );
+        data = response.data;
+      }
 
-      final data = response.data;
       if (data is Map) {
         final list = data['ms'] ?? data['ranks'] ?? data['list'] ?? data['members'];
         if (list is List) {

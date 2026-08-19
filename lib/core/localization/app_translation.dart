@@ -127,7 +127,7 @@ class AppTranslation {
     'end_time': ['calendar_event_end_time'],
     'subject_distribution': ['analytics_pie_chart_title'],
     'paused': ['paused', 'pause', 'study_rest_label'],
-    'studying': ['studying', 'study', 'timer_options_pomodoro_study'],
+    'studying': ['studying'],
     'resting': ['resting', 'rest', 'study_rest_label'],
     'ypt_stickers': ['sticker', 'ypt_stickers'],
     'leader_menu': ['group_manager', 'leader_menu'],

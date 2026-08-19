@@ -74,6 +74,34 @@ void main() {
       expect(member.isPaused, false);
     });
 
+    test('GroupMemberModel.fromJson parses st in seconds correctly to studyMs', () {
+      final jsonSeconds = {
+        'ud': 12345,
+        'n': 'yuguro',
+        'sd': 377,
+        'st': 3720, // 3720 seconds = 1h 2m
+      };
+
+      final member = GroupMemberModel.fromJson(jsonSeconds);
+
+      expect(member.name, 'yuguro');
+      expect(member.studiconId, 377);
+      expect(member.studyMs, 3720000); // Converted to ms (1h 2m)
+    });
+
+    test('GroupMemberModel.fromJson parses st: 0 correctly without error', () {
+      final jsonZero = {
+        'ud': 67890,
+        'n': 'érica',
+        'st': 0,
+      };
+
+      final member = GroupMemberModel.fromJson(jsonZero);
+
+      expect(member.name, 'érica');
+      expect(member.studyMs, 0);
+    });
+
     test('GroupRepository.fetchGroupRanks includes isCam=false and sorts descending by studyMs', () async {
       final dio = Dio();
       final adapter = MockDioWithRankAdapter();

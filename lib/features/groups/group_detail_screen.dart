@@ -176,14 +176,22 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
     if (mounted) setState(() => _isLoadingMembers = false);
   }
 
+  bool _isLoadingRanks = false;
+
   Future<void> _loadGroupRanksSilently() async {
+    setState(() => _isLoadingRanks = true);
     try {
       final repo = ref.read(groupRepositoryProvider);
       final ranks = await repo.fetchGroupRanks(widget.group.id, period: _selectedGroupRankPeriod);
       if (mounted) {
-        setState(() => _weeklyRanks = ranks);
+        setState(() {
+          _weeklyRanks = ranks;
+          _isLoadingRanks = false;
+        });
       }
-    } catch (_) {}
+    } catch (_) {
+      if (mounted) setState(() => _isLoadingRanks = false);
+    }
   }
 
   Future<void> _loadMembersSilently() async {
@@ -651,7 +659,9 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
 
           // Tab 3: Group Rankings
           (() {
-            final displayList = _weeklyRanks.isNotEmpty ? _weeklyRanks : _members;
+            final displayList = _weeklyRanks.isNotEmpty
+                ? _weeklyRanks
+                : (_selectedGroupRankPeriod == 'day' ? _members : <GroupMemberModel>[]);
             return Column(
               children: [
                 Container(
@@ -698,11 +708,20 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen>
                   ),
                 ),
                 Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(24),
-                    itemCount: displayList.length,
-                    itemBuilder: (context, index) {
-                      final member = displayList[index];
+                  child: _isLoadingRanks
+                      ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                      : displayList.isEmpty
+                          ? Center(
+                              child: Text(
+                                t.tr('no_records', fallback: 'Nenhum registro encontrado para este período.'),
+                                style: const TextStyle(color: AppColors.textMuted),
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(24),
+                              itemCount: displayList.length,
+                              itemBuilder: (context, index) {
+                                final member = displayList[index];
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         child: Material(

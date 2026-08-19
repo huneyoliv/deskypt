@@ -150,39 +150,6 @@ class ProfileScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text('${t.tr('profile', fallback: 'Perfil')} & ${t.tr('settings', fallback: 'Configurações')}', style: AppTextStyles.titleLarge),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout_rounded, color: AppColors.error),
-            tooltip: t.tr('logout', fallback: 'Sair da Conta'),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  backgroundColor: AppColors.card,
-                  title: Text(t.tr('logout', fallback: 'Sair do DeskYPT'), style: const TextStyle(color: Colors.white)),
-                  content: Text(
-                    t.tr('logout_confirm', fallback: 'Tem certeza que deseja encerrar sua sessão?'),
-                    style: const TextStyle(color: AppColors.textSecondary),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        ref.read(authStateProvider.notifier).logout();
-                      },
-                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-                      child: Text(t.tr('logout', fallback: 'Sair'), style: const TextStyle(color: Colors.white)),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(32),

@@ -55,5 +55,6 @@ void main() {
     expect(find.text('Estudante Focado'), findsOneWidget);
     expect(find.text('foco@deskypt.com'), findsOneWidget);
     expect(find.textContaining('Rumo à aprovação!'), findsOneWidget);
+    expect(find.byIcon(Icons.logout_rounded), findsNothing);
   });
 }
