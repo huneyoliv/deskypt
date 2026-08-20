@@ -1,5 +1,4 @@
 import 'package:deskypt/core/api/api_client.dart';
-import 'package:deskypt/core/api/api_exception.dart';
 import 'package:deskypt/data/models/category_model.dart';
 import 'package:deskypt/data/models/country_model.dart';
 import 'package:deskypt/data/repositories/settings_repository.dart';
