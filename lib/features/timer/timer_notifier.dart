@@ -7,6 +7,7 @@ import '../../data/repositories/subject_repository.dart';
 import '../../data/repositories/timer_repository.dart';
 import '../../data/repositories/offline_sync_repository.dart';
 import '../auth/auth_notifier.dart';
+import '../settings/settings_notifier.dart';
 import 'offline_sync_notifier.dart';
 
 enum TimerMode {
@@ -138,28 +139,45 @@ class TimerNotifier extends StateNotifier<TimerState> {
   final SubjectRepository _subjectRepository;
   final OfflineSyncRepository? _offlineSyncRepository;
   Timer? _ticker;
+  Timer? _dayResetTimer;
+  int _dayResetHour;
 
   TimerNotifier({
     required TimerRepository timerRepository,
     required SubjectRepository subjectRepository,
     OfflineSyncRepository? offlineSyncRepository,
     int userStudiconId = 377,
+    int dayResetHour = 5,
   })  : _timerRepository = timerRepository,
         _subjectRepository = subjectRepository,
         _offlineSyncRepository = offlineSyncRepository,
+        _dayResetHour = dayResetHour,
         super(TimerState(
           studiconId: userStudiconId,
-          lastStudyDate: StudyDateHelper.getStudyDateString(),
+          lastStudyDate: StudyDateHelper.getStudyDateString(null, dayResetHour),
         )) {
     loadSubjects();
+    _dayResetTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      _checkStudyDateReset();
+    });
+  }
+
+  void setDayResetHour(int hour) {
+    if (_dayResetHour == hour) return;
+    _dayResetHour = hour;
+    _checkStudyDateReset();
   }
 
   void _checkStudyDateReset() {
-    final currentStudyDate = StudyDateHelper.getStudyDateString();
+    final currentStudyDate = StudyDateHelper.getStudyDateString(null, _dayResetHour);
     if (state.lastStudyDate.isNotEmpty && state.lastStudyDate != currentStudyDate) {
+      final resetSubjects = state.subjects.map((s) => s.copyWith(studyMs: 0)).toList();
+      final resetCurrent = state.currentSubject?.copyWith(studyMs: 0);
       state = state.copyWith(
         todayTotalMs: 0,
         todayRestMs: 0,
+        subjects: resetSubjects,
+        currentSubject: resetCurrent,
         lastStudyDate: currentStudyDate,
       );
       loadSubjects();
@@ -177,7 +195,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
         currentSubject: current,
         todayTotalMs: result.todayTotalMs,
         todayRestMs: result.todayRestMs,
-        lastStudyDate: StudyDateHelper.getStudyDateString(),
+        lastStudyDate: StudyDateHelper.getStudyDateString(null, _dayResetHour),
       );
     } catch (_) {
       if (state.subjects.isEmpty) {
@@ -626,6 +644,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
   @override
   void dispose() {
     _ticker?.cancel();
+    _dayResetTimer?.cancel();
     super.dispose();
   }
 }
@@ -636,11 +655,21 @@ final timerNotifierProvider =
   final subjectRepo = ref.watch(subjectRepositoryProvider);
   final offlineSyncRepo = ref.watch(offlineSyncRepositoryProvider);
   final user = ref.watch(authStateProvider).user;
+  final dayResetHour = ref.watch(settingsNotifierProvider.select((s) => s.dayResetHour));
 
-  return TimerNotifier(
+  final notifier = TimerNotifier(
     timerRepository: timerRepo,
     subjectRepository: subjectRepo,
     offlineSyncRepository: offlineSyncRepo,
     userStudiconId: user?.studiconId ?? 0,
+    dayResetHour: dayResetHour,
   );
+
+  ref.listen(settingsNotifierProvider.select((s) => s.dayResetHour), (prev, next) {
+    if (next != prev) {
+      notifier.setDayResetHour(next);
+    }
+  });
+
+  return notifier;
 });

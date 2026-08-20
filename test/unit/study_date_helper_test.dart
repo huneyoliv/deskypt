@@ -58,5 +58,22 @@ void main() {
       final nextResetDay = StudyDateHelper.getNextResetTime(dayTime);
       expect(nextResetDay, equals(DateTime(2026, 8, 18, 5, 0)));
     });
+
+    test('custom resetHour calculates study date and next reset time accordingly', () {
+      // Custom reset at 07:00 AM
+      final time6am = DateTime(2026, 8, 17, 6, 30);
+      expect(StudyDateHelper.getStudyDateString(time6am, 7), equals('2026-08-16'));
+
+      final time8am = DateTime(2026, 8, 17, 8, 0);
+      expect(StudyDateHelper.getStudyDateString(time8am, 7), equals('2026-08-17'));
+
+      // Next reset time for 07:00 AM
+      expect(StudyDateHelper.getNextResetTime(time6am, 7), equals(DateTime(2026, 8, 17, 7, 0)));
+      expect(StudyDateHelper.getNextResetTime(time8am, 7), equals(DateTime(2026, 8, 18, 7, 0)));
+
+      // Midnight reset (00:00)
+      final time11pm = DateTime(2026, 8, 17, 23, 30);
+      expect(StudyDateHelper.getStudyDateString(time11pm, 0), equals('2026-08-17'));
+    });
   });
 }

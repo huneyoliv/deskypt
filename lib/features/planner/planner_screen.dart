@@ -8,6 +8,7 @@ import '../../core/utils/study_date_helper.dart';
 import '../../data/models/dday_model.dart';
 import '../../data/models/todo_item_model.dart';
 import '../../data/repositories/planner_repository.dart';
+import '../settings/settings_notifier.dart';
 import 'timetable_screen.dart';
 
 final plannerRepositoryProvider = Provider<PlannerRepository>((ref) {
@@ -22,7 +23,7 @@ class PlannerScreen extends ConsumerStatefulWidget {
 }
 
 class _PlannerScreenState extends ConsumerState<PlannerScreen> {
-  DateTime _selectedDate = StudyDateHelper.getStudyDate();
+  late DateTime _selectedDate;
   List<DDayModel> _ddays = [];
   List<TodoItemModel> _todos = [];
   bool _isLoading = true;
@@ -33,6 +34,8 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
   @override
   void initState() {
     super.initState();
+    final dayResetHour = ref.read(settingsNotifierProvider).dayResetHour;
+    _selectedDate = StudyDateHelper.getStudyDate(null, dayResetHour);
     _loadData();
   }
 
@@ -46,7 +49,8 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     final repo = ref.read(plannerRepositoryProvider);
-    final dateStr = StudyDateHelper.getStudyDateString(_selectedDate);
+    final dayResetHour = ref.read(settingsNotifierProvider).dayResetHour;
+    final dateStr = StudyDateHelper.getStudyDateString(_selectedDate, dayResetHour);
 
     final results = await Future.wait([
       repo.fetchDDays(),
