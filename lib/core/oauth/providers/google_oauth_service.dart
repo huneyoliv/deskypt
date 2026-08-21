@@ -8,17 +8,22 @@ class GoogleOAuthService {
   final Dio _dio;
   final OAuthDesktopService _desktopService;
   final String clientId;
+  final String? clientSecret;
 
   static const String defaultClientId =
-      '817104413429-3m0gmfk1vedr2prb0rktubcujia098lc.apps.googleusercontent.com';
+      'REDACTED_GOOGLE_CLIENT_ID';
+  static const String defaultClientSecret =
+      'REDACTED_GOOGLE_CLIENT_SECRET';
 
   GoogleOAuthService({
     Dio? dio,
     OAuthDesktopService? desktopService,
     String? clientId,
+    String? clientSecret,
   })  : _dio = dio ?? Dio(),
         _desktopService = desktopService ?? OAuthDesktopService(),
-        clientId = clientId ?? defaultClientId;
+        clientId = clientId ?? defaultClientId,
+        clientSecret = clientSecret ?? defaultClientSecret;
 
   Future<OAuthUserInfo> authenticate({
     Duration timeout = const Duration(minutes: 3),
@@ -54,15 +59,20 @@ class GoogleOAuthService {
       }
 
       final redirectUri = 'http://127.0.0.1:$activePort';
+      final Map<String, dynamic> tokenRequestBody = {
+        'client_id': clientId,
+        'code': code,
+        'code_verifier': verifier,
+        'grant_type': 'authorization_code',
+        'redirect_uri': redirectUri,
+      };
+      if (clientSecret != null && clientSecret!.isNotEmpty) {
+        tokenRequestBody['client_secret'] = clientSecret;
+      }
+
       final tokenResponse = await _dio.post(
         'https://oauth2.googleapis.com/token',
-        data: {
-          'client_id': clientId,
-          'code': code,
-          'code_verifier': verifier,
-          'grant_type': 'authorization_code',
-          'redirect_uri': redirectUri,
-        },
+        data: tokenRequestBody,
         options: Options(
           contentType: Headers.formUrlEncodedContentType,
           validateStatus: (status) => status != null && status < 500,
