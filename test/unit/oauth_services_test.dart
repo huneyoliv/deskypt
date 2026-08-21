@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deskypt/core/oauth/providers/google_oauth_service.dart';
 import 'package:deskypt/core/oauth/providers/kakao_oauth_service.dart';
 import 'package:deskypt/core/oauth/providers/naver_oauth_service.dart';
-import 'package:deskypt/core/oauth/oauth_exception.dart';
 
 void main() {
   group('GoogleOAuthService configuration & instantiation', () {
