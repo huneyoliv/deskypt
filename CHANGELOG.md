@@ -8,7 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.5] - 2026-08-21
 
 ### ✨ Added
-- **OAuth Social Login for Desktop**: Implemented RFC 8252 compliant PKCE and loopback HTTP server authentication for Google, Kakao, and Naver providers.
+- **QR Code Companion Sync & Mobile Auth Pairing**: Implemented local network peer-to-peer pairing server (`QrAuthService`) with ephemeral cryptographic session tokens and mobile pairing web interface for Google and social login transfer.
+- **Vector QR Code Dialog**: Added glassmorphic `QrAuthDialog` featuring vector QR code rendering (`qr_flutter`), real-time connection status, link clipboard export, and manual JWT token input fallback.
+- **Direct JWT Session Ingestion**: Added `signInWithJwt` method in `AuthRepository` and `AuthNotifier` to seamlessly authenticate and restore profile data via `splashLogin`.
+- **OAuth Social Login Infrastructure**: Implemented RFC 8252 PKCE and loopback HTTP server authentication for Google, Kakao, and Naver providers.
 - **Native Social Auth UI**: Integrated custom branded Google, Kakao, Naver, and Apple login buttons on `LoginScreen` with loading states, cancellation support, and localized feedback.
 - **PKCE & Cryptographic Utilities**: Added `OAuthPkce` helper for secure verifier/challenge generation, state CSRF validation, and JWT payload decoding.
 
