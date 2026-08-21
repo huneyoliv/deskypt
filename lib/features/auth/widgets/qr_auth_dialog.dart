@@ -317,6 +317,8 @@ class _QrAuthDialogState extends ConsumerState<QrAuthDialog> {
           ),
         ),
         const SizedBox(height: 20),
+        _buildNetworkInterfaceSelector(),
+        const SizedBox(height: 14),
         _buildStep(
           number: '1',
           text: 'Conecte o celular na mesma rede Wi-Fi deste computador.',
@@ -331,7 +333,7 @@ class _QrAuthDialogState extends ConsumerState<QrAuthDialog> {
           number: '3',
           text: 'Cole seu token ou confirme no celular para entrar instantaneamente.',
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 18),
         Row(
           children: [
             Expanded(
@@ -496,6 +498,101 @@ class _QrAuthDialogState extends ConsumerState<QrAuthDialog> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildNetworkInterfaceSelector() {
+    if (_session == null) return const SizedBox.shrink();
+
+    final availableIps = _session!.availableIps;
+    final currentIp = _session!.hostIp;
+    final currentInfo = availableIps.firstWhere(
+      (info) => info.ip == currentIp,
+      orElse: () => LanInterfaceInfo(name: 'Rede Local', ip: currentIp),
+    );
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161616),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withOpacity(0.08)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            currentInfo.isVirtual ? LucideIcons.network : LucideIcons.wifi,
+            size: 14,
+            color: currentInfo.isVirtual ? Colors.amberAccent : Colors.greenAccent,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'IP Local: ',
+            style: TextStyle(
+              fontSize: 11.5,
+              color: Colors.white.withOpacity(0.6),
+            ),
+          ),
+          Text(
+            '${currentInfo.ip} (${currentInfo.name})',
+            style: const TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          if (availableIps.length > 1) ...[
+            const SizedBox(width: 4),
+            PopupMenuButton<String>(
+              tooltip: 'Trocar interface de rede',
+              padding: EdgeInsets.zero,
+              icon: Icon(
+                LucideIcons.chevronDown,
+                size: 14,
+                color: Colors.white.withOpacity(0.7),
+              ),
+              color: const Color(0xFF222222),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: BorderSide(color: Colors.white.withOpacity(0.1)),
+              ),
+              onSelected: (newIp) {
+                setState(() {
+                  _session = _session!.copyWithIp(newIp);
+                });
+              },
+              itemBuilder: (context) => availableIps.map((info) {
+                final isSelected = info.ip == currentIp;
+                return PopupMenuItem<String>(
+                  value: info.ip,
+                  height: 36,
+                  child: Row(
+                    children: [
+                      Icon(
+                        info.isVirtual ? LucideIcons.network : LucideIcons.wifi,
+                        size: 14,
+                        color: info.isVirtual ? Colors.amberAccent : Colors.greenAccent,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${info.name}: ${info.ip}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                            color: isSelected ? AppColors.primary : Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

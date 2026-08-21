@@ -21,6 +21,21 @@ void main() {
       expect(ip.contains('.'), isTrue);
     });
 
+    test('getAvailableIpAddresses returns list of LAN interfaces with valid IPs', () async {
+      final ips = await service.getAvailableIpAddresses();
+      expect(ips.isNotEmpty, isTrue);
+      expect(ips.first.ip.isNotEmpty, isTrue);
+      expect(ips.first.name.isNotEmpty, isTrue);
+    });
+
+    test('copyWithIp updates hostIp and pairingUrl accurately', () async {
+      final session = await service.startSession();
+      session.tokenFuture.ignore();
+      final updated = session.copyWithIp('192.168.1.100');
+      expect(updated.hostIp, equals('192.168.1.100'));
+      expect(updated.pairingUrl, contains('192.168.1.100:${session.port}'));
+    });
+
     test('startSession binds local server and exposes pairingUrl with valid session token', () async {
       final session = await service.startSession(
         timeout: const Duration(seconds: 10),

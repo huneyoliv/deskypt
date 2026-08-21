@@ -5,11 +5,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'oauth_exception.dart';
 import 'oauth_pkce.dart';
 
+class LanInterfaceInfo {
+  final String name;
+  final String ip;
+  final bool isVirtual;
+
+  const LanInterfaceInfo({
+    required this.name,
+    required this.ip,
+    this.isVirtual = false,
+  });
+}
+
 class QrAuthSession {
   final String sessionId;
   final String pairingUrl;
   final String hostIp;
   final int port;
+  final List<LanInterfaceInfo> availableIps;
   final Future<String> tokenFuture;
 
   const QrAuthSession({
@@ -17,8 +30,20 @@ class QrAuthSession {
     required this.pairingUrl,
     required this.hostIp,
     required this.port,
+    required this.availableIps,
     required this.tokenFuture,
   });
+
+  QrAuthSession copyWithIp(String newIp) {
+    return QrAuthSession(
+      sessionId: sessionId,
+      pairingUrl: 'http://$newIp:$port/pair?session=$sessionId',
+      hostIp: newIp,
+      port: port,
+      availableIps: availableIps,
+      tokenFuture: tokenFuture,
+    );
+  }
 }
 
 class QrAuthService {
@@ -26,35 +51,62 @@ class QrAuthService {
   Completer<String>? _completer;
   String? _activeSessionId;
 
-  Future<String> getLocalIpAddress() async {
+  Future<List<LanInterfaceInfo>> getAvailableIpAddresses() async {
+    final physical = <LanInterfaceInfo>[];
+    final virtual = <LanInterfaceInfo>[];
+
     try {
       final interfaces = await NetworkInterface.list(
         type: InternetAddressType.IPv4,
         includeLoopback: false,
       );
 
-      for (final interface in interfaces) {
-        for (final address in interface.addresses) {
+      for (final iface in interfaces) {
+        final nameLower = iface.name.toLowerCase();
+        final isVirtual = nameLower.contains('vethernet') ||
+            nameLower.contains('wsl') ||
+            nameLower.contains('virtual') ||
+            nameLower.contains('hyper-v') ||
+            nameLower.contains('vmnet') ||
+            nameLower.contains('vbox') ||
+            nameLower.contains('docker') ||
+            nameLower.contains('bluetooth') ||
+            nameLower.contains('loopback');
+
+        for (final address in iface.addresses) {
+          final ip = address.address;
           if (!address.isLoopback &&
-              !address.address.startsWith('169.254.') &&
-              (address.address.startsWith('192.168.') ||
-                  address.address.startsWith('10.') ||
-                  address.address.startsWith('172.'))) {
-            return address.address;
+              !ip.startsWith('169.254.') &&
+              !ip.startsWith('127.') &&
+              !ip.startsWith('192.168.56.')) {
+            if (!isVirtual && !ip.startsWith('172.24.')) {
+              physical.add(LanInterfaceInfo(name: iface.name, ip: ip));
+            } else {
+              virtual.add(LanInterfaceInfo(name: '${iface.name} (Virtual)', ip: ip, isVirtual: true));
+            }
           }
         }
       }
-
-      if (interfaces.isNotEmpty && interfaces.first.addresses.isNotEmpty) {
-        return interfaces.first.addresses.first.address;
-      }
     } catch (_) {}
 
-    return '127.0.0.1';
+    final all = [...physical, ...virtual];
+    if (all.isEmpty) {
+      all.add(const LanInterfaceInfo(name: 'Localhost', ip: '127.0.0.1'));
+    }
+    return all;
+  }
+
+  Future<String> getLocalIpAddress({String? preferredIp}) async {
+    if (preferredIp != null && preferredIp.isNotEmpty) {
+      return preferredIp;
+    }
+    final available = await getAvailableIpAddresses();
+    return available.first.ip;
   }
 
   Future<QrAuthSession> startSession({
     Duration timeout = const Duration(minutes: 5),
+    String? preferredIp,
   }) async {
     await cancel();
 
@@ -67,7 +119,8 @@ class QrAuthService {
     final sessionId = OAuthPkce.generateState(32);
     _activeSessionId = sessionId;
 
-    final localIp = await getLocalIpAddress();
+    final availableIps = await getAvailableIpAddresses();
+    final localIp = preferredIp ?? availableIps.first.ip;
     final port = server.port;
     final pairingUrl = 'http://$localIp:$port/pair?session=$sessionId';
 
@@ -166,6 +219,7 @@ class QrAuthService {
       pairingUrl: pairingUrl,
       hostIp: localIp,
       port: port,
+      availableIps: availableIps,
       tokenFuture: tokenFuture,
     );
   }
