@@ -1,6 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:dio/dio.dart';
-import 'package:deskypt/core/api/api_client.dart';
 import 'package:deskypt/core/oauth/oauth_exception.dart';
 import 'package:deskypt/core/oauth/oauth_user_info.dart';
 import 'package:deskypt/core/oauth/providers/google_oauth_service.dart';
