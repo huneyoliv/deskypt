@@ -44,6 +44,7 @@ dependencies:
   crypto: ^3.0.3
   google_sign_in: ^6.2.1
   sign_in_with_apple: ^6.1.1
+  qr_flutter: ^4.1.0
 
   # Models & JSON
   freezed_annotation: ^2.4.4

@@ -158,6 +158,24 @@ class AuthRepository {
     return UserModel.fromJson(data, token);
   }
 
+  Future<UserModel> signInWithJwt(String token, {String language = ApiConstants.defaultLanguage}) async {
+    final cleanToken = token.trim().replaceAll('JWT ', '').replaceAll('Bearer ', '');
+    if (cleanToken.isEmpty) {
+      throw const ApiException('Token JWT não fornecido.');
+    }
+
+    await _saveToken(cleanToken);
+
+    final splashData = await splashLogin(language: language);
+    if (splashData == null || splashData['s'] != true) {
+      await _deleteToken();
+      throw const ApiException('Sessão inválida ou expirada no servidor.');
+    }
+
+    await _cacheUserData(splashData, cleanToken);
+    return UserModel.fromJson(splashData, cleanToken);
+  }
+
   Future<Map<String, dynamic>?> splashLogin({
     String language = ApiConstants.defaultLanguage,
     String timezone = ApiConstants.defaultTimezone,

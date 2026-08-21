@@ -9,6 +9,7 @@ import '../settings/settings_notifier.dart';
 import '../settings/widgets/select_language_dialog.dart';
 import 'auth_notifier.dart';
 import 'signup_screen.dart';
+import 'widgets/qr_auth_dialog.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -666,7 +667,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       child: OutlinedButton(
         onPressed: authState.isLoading
             ? null
-            : () => ref.read(authStateProvider.notifier).signInWithGoogle(),
+            : () => QrAuthDialog.show(context, providerName: 'Google'),
         style: OutlinedButton.styleFrom(
           backgroundColor: AppColors.surface,
           side: const BorderSide(color: AppColors.border),
