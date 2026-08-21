@@ -116,6 +116,7 @@ class AuthRepository {
       ApiConstants.signInJwt,
       data: {
         'email': email,
+        'password': null,
         'socialId': socialId,
         'name': name,
         'loginProvider': provider,
@@ -127,9 +128,15 @@ class AuthRepository {
 
     final data = response.data;
     if (data is! Map<String, dynamic> || data['s'] != true) {
-      final msg = (data is Map && (data['m'] != null || data['message'] != null))
-          ? (data['m'] ?? data['message']).toString()
-          : 'Falha ao autenticar via $provider';
+      String msg;
+      if (data is Map) {
+        final code = data['c']?.toString();
+        msg = data['m']?.toString() ??
+            data['message']?.toString() ??
+            (code != null ? 'Erro de autenticação [$code]' : 'Falha ao autenticar via $provider');
+      } else {
+        msg = 'Falha ao autenticar via $provider';
+      }
       throw ApiException(msg, statusCode: response.statusCode);
     }
 
