@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/localization/app_translation.dart';
@@ -514,9 +515,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 16),
-
-                              // Login Submit Button
+                                                  // Login Submit Button
                               SizedBox(
                                 height: 48,
                                 child: ElevatedButton(
@@ -546,7 +545,74 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         ),
                                 ),
                               ),
-                              const SizedBox(height: 28),
+                              const SizedBox(height: 20),
+
+                              // Or continue with Divider
+                              Row(
+                                children: [
+                                  const Expanded(child: Divider(color: AppColors.border)),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                                    child: Text(
+                                      t.tr('or', fallback: 'ou').toUpperCase(),
+                                      style: const TextStyle(
+                                        color: AppColors.textMuted,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
+                                  ),
+                                  const Expanded(child: Divider(color: AppColors.border)),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Google Login Button
+                              _buildGoogleButton(context, t, authState),
+                              const SizedBox(height: 10),
+
+                              // Kakao, Naver, Apple Buttons
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildSocialTile(
+                                      context: context,
+                                      title: 'Kakao',
+                                      iconPath: 'assets/icons/kakao_icon.png',
+                                      backgroundColor: const Color(0xFFFEE500),
+                                      textColor: const Color(0xFF191919),
+                                      isLoading: authState.isLoading,
+                                      onPressed: () => ref.read(authStateProvider.notifier).signInWithKakao(),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: _buildSocialTile(
+                                      context: context,
+                                      title: 'Naver',
+                                      iconPath: 'assets/icons/naver_icon.png',
+                                      backgroundColor: const Color(0xFF03C75A),
+                                      textColor: Colors.white,
+                                      isLoading: authState.isLoading,
+                                      onPressed: () => ref.read(authStateProvider.notifier).signInWithNaver(),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: _buildSocialTile(
+                                      context: context,
+                                      title: 'Apple',
+                                      svgPath: 'assets/icons/apple_icon.svg',
+                                      backgroundColor: const Color(0xFF222222),
+                                      textColor: Colors.white,
+                                      isLoading: authState.isLoading,
+                                      onPressed: () => ref.read(authStateProvider.notifier).signInWithApple(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
 
                               // Sign up link
                               Wrap(
@@ -589,4 +655,103 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
     );
   }
+
+  Widget _buildGoogleButton(
+    BuildContext context,
+    AppTranslation t,
+    AuthState authState,
+  ) {
+    return SizedBox(
+      height: 46,
+      child: OutlinedButton(
+        onPressed: authState.isLoading
+            ? null
+            : () => ref.read(authStateProvider.notifier).signInWithGoogle(),
+        style: OutlinedButton.styleFrom(
+          backgroundColor: AppColors.surface,
+          side: const BorderSide(color: AppColors.border),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/icons/google_icon.png',
+              height: 20,
+              width: 20,
+              errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, color: Colors.white, size: 24),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              t.tr('sign_in_with_google', fallback: 'Entrar com Google'),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSocialTile({
+    required BuildContext context,
+    required String title,
+    String? iconPath,
+    String? svgPath,
+    required Color backgroundColor,
+    required Color textColor,
+    required bool isLoading,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      height: 44,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor,
+          foregroundColor: textColor,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (iconPath != null)
+              Image.asset(
+                iconPath,
+                height: 18,
+                width: 18,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              )
+            else if (svgPath != null)
+              SvgPicture.asset(
+                svgPath,
+                height: 18,
+                width: 18,
+                colorFilter: ColorFilter.mode(textColor, BlendMode.srcIn),
+              ),
+            const SizedBox(width: 6),
+            Text(
+              title,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
+
