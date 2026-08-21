@@ -41,6 +41,7 @@ dependencies:
   window_manager: ^0.3.9
 
   # Auth
+  crypto: ^3.0.3
   google_sign_in: ^6.2.1
   sign_in_with_apple: ^6.1.1
 
