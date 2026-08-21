@@ -119,6 +119,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<bool> signInWithCustomJwt(String token) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final user = await _repository.signInWithJwt(token);
+      state = AuthState(user: user, isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: _formatError(e),
+      );
+      return false;
+    }
+  }
+
   Future<void> signInWithGoogle() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {

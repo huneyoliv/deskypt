@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:deskypt/core/api/api_client.dart';
+import 'package:deskypt/core/api/api_exception.dart';
 import 'package:deskypt/data/repositories/auth_repository.dart';
 
 class MockStorage extends FlutterSecureStorage {
@@ -261,6 +262,51 @@ void main() {
           name: 'Ghost',
         ),
         throwsA(predicate((e) => e.toString().contains('111') || e.toString().contains('Erro'))),
+      );
+    });
+
+    test('signInWithJwt saves token and returns user model on valid splashLogin', () async {
+      final jwtDio = Dio();
+      jwtDio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            if (options.path.contains('/user/v2/splash-login')) {
+              return handler.resolve(
+                Response(
+                  requestOptions: options,
+                  statusCode: 200,
+                  data: {
+                    's': true,
+                    'id': 77777,
+                    'n': 'QR Synced User',
+                    'e': 'qr@gmail.com',
+                    'pv': 19,
+                  },
+                ),
+              );
+            }
+            return handler.next(options);
+          },
+        ),
+      );
+      final repo = AuthRepository(apiClient: ApiClient(customDio: jwtDio), storage: mockStorage);
+
+      final user = await repo.signInWithJwt('JWT valid_qr_jwt_token_123');
+
+      expect(user.id, equals(77777));
+      expect(user.name, equals('QR Synced User'));
+      expect(user.jwtToken, equals('valid_qr_jwt_token_123'));
+
+      final stored = await mockStorage.read(key: 'jwt_token');
+      expect(stored, equals('valid_qr_jwt_token_123'));
+    });
+
+    test('signInWithJwt throws ApiException on empty or invalid token', () async {
+      final repo = AuthRepository(apiClient: ApiClient(customDio: mockDio), storage: mockStorage);
+
+      expect(
+        () => repo.signInWithJwt(''),
+        throwsA(isA<ApiException>()),
       );
     });
   });
