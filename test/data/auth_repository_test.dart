@@ -185,5 +185,83 @@ void main() {
       final storedToken = await mockStorage.read(key: 'jwt_token');
       expect(storedToken, isNull);
     });
+
+    test('signInWithSocial sends password:null and returns user on success', () async {
+      Map<String, dynamic>? capturedData;
+      final socialDio = Dio();
+      socialDio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            if (options.path.contains('/user/sign-in-jwt')) {
+              capturedData = options.data as Map<String, dynamic>?;
+              return handler.resolve(
+                Response(
+                  requestOptions: options,
+                  statusCode: 200,
+                  data: {
+                    's': true,
+                    'jwt': 'social_jwt_token',
+                    'id': 99999,
+                    'n': 'Google User',
+                    'e': 'google@gmail.com',
+                    'pv': 1,
+                  },
+                ),
+              );
+            }
+            if (options.path.contains('/user/v2/splash-login')) {
+              return handler.resolve(
+                Response(requestOptions: options, statusCode: 200, data: {'s': true}),
+              );
+            }
+            return handler.next(options);
+          },
+        ),
+      );
+      final repo = AuthRepository(apiClient: ApiClient(customDio: socialDio), storage: mockStorage);
+
+      final user = await repo.signInWithSocial(
+        provider: 'Google',
+        socialId: 'google_sub_12345',
+        email: 'google@gmail.com',
+        name: 'Google User',
+      );
+
+      expect(user.id, equals(99999));
+      expect(user.name, equals('Google User'));
+      expect(capturedData, isNotNull);
+      expect(capturedData!.containsKey('password'), isTrue);
+      expect(capturedData!['password'], isNull);
+      expect(capturedData!['socialId'], equals('google_sub_12345'));
+      expect(capturedData!['loginProvider'], equals('Google'));
+    });
+
+    test('signInWithSocial throws ApiException on error c:111 (social id not found)', () async {
+      final errorDio = Dio();
+      errorDio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            return handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {'s': false, 'c': '111'},
+              ),
+            );
+          },
+        ),
+      );
+      final repo = AuthRepository(apiClient: ApiClient(customDio: errorDio), storage: mockStorage);
+
+      expect(
+        () => repo.signInWithSocial(
+          provider: 'Google',
+          socialId: 'nonexistent_sub',
+          email: 'ghost@gmail.com',
+          name: 'Ghost',
+        ),
+        throwsA(predicate((e) => e.toString().contains('111') || e.toString().contains('Erro'))),
+      );
+    });
   });
 }
