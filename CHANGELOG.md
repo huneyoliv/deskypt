@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-08-21
+
+### ✨ Added
+- **Official Categories Synchronization**: Integrated and synchronized complete group/subject categories matching official Yeolpumta APK specifications.
+- **Unified Brand Iconography**: Updated official high-resolution YPT flame icon across Windows (`.ico`), macOS launcher assets, and in-app asset catalogs.
+
+### 🐛 Fixed
+- **Study Time Calculation & Reset**: Synchronized daily study time resets with user's customized `dayResetHour` and fixed group study seconds parser.
+- **Internationalization (i18n)**: Completed comprehensive localization sweep across all languages and removed legacy third-party social login flows.
+- **Rest Timer & Country Selection**: Fixed country selector listing behavior and rest timer interval precision.
+- **Group UI & Rankings**: Fixed member study state labels, ranking avatar alignment, and centered app branding in dialogs.
+
+---
+
 ## [1.0.3] - 2026-08-18
 
 ### ✨ Added
