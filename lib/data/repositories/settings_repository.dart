@@ -1,7 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/api/api_client.dart';
-import '../../core/api/api_exception.dart';
 import '../../core/constants/api_constants.dart';
 import '../models/category_model.dart';
 import '../models/country_model.dart';
@@ -99,30 +98,71 @@ class SettingsRepository {
     return defaultFallbackCountries;
   }
 
+  static const List<CategoryModel> defaultFallbackCategories = [
+    CategoryModel(id: 198, title: 'Ensino Fundamental I', shortTitle: 'EF1', order: 1, section: 'Estudantes'),
+    CategoryModel(id: 199, title: 'Ensino Fundamental II', shortTitle: 'EF2', order: 2, section: 'Estudantes'),
+    CategoryModel(id: 432, title: 'Ensino Médio – 1º ano', shortTitle: 'EM1', order: 3, section: 'Estudantes'),
+    CategoryModel(id: 433, title: 'Ensino Médio – 2º ano', shortTitle: 'EM2', order: 4, section: 'Estudantes'),
+    CategoryModel(id: 200, title: 'Ensino Médio – 3º ano (ENEM/Vestibular)', shortTitle: 'EM3-ENEM', order: 11, section: 'Estudantes'),
+    CategoryModel(id: 434, title: 'Ensino Médio – 3º ano (ITA/IME)', shortTitle: 'EM3-ITA/IME', order: 11, section: 'Estudantes'),
+    CategoryModel(id: 435, title: 'Repetente – ENEM/Vestibular', shortTitle: 'REP-ENEM', order: 12, section: 'Estudantes'),
+    CategoryModel(id: 436, title: 'Repetente – ITA/IME', shortTitle: 'REP-ITA/IME', order: 13, section: 'Estudantes'),
+    CategoryModel(id: 201, title: 'Estudante de Graduação', shortTitle: 'Graduação', order: 21, section: 'Universidade e Carreira'),
+    CategoryModel(id: 438, title: 'Estudante de Pós-graduação', shortTitle: 'Pós-graduação', order: 22, section: 'Universidade e Carreira'),
+    CategoryModel(id: 439, title: 'Concurso Público', shortTitle: 'Concurso', order: 31, section: 'Concursos Públicos'),
+    CategoryModel(id: 440, title: 'Magistério', shortTitle: 'Magistério', order: 32, section: 'Concursos Públicos'),
+    CategoryModel(id: 441, title: 'Ordem dos Advogados do Brasil', shortTitle: 'OAB', order: 41, section: 'Exames Profissionais'),
+    CategoryModel(id: 442, title: 'Exame do CFC', shortTitle: 'CFC', order: 42, section: 'Exames Profissionais'),
+    CategoryModel(id: 202, title: 'Estudo de Idiomas', shortTitle: 'Idiomas', order: 52, section: 'Outros'),
+    CategoryModel(id: 443, title: 'Leitura', shortTitle: 'Leitura', order: 53, section: 'Outros'),
+    CategoryModel(id: 444, title: 'Preparação para Certificação', shortTitle: 'Certificação', order: 54, section: 'Outros'),
+    CategoryModel(id: 203, title: 'Outros', shortTitle: 'Outros', order: 55, section: 'Outros'),
+  ];
+
   Future<List<CategoryModel>> fetchCategoriesByCountry({
     required int countryId,
     required String language,
   }) async {
-    final response = await _apiClient.get(
-      '/category/category-by-country',
-      baseUrl: ApiConstants.metadataCdnUrl,
-      queryParameters: {
-        'countryID': countryId,
-        'country_id': countryId,
-        'lang': language,
-        'language': language,
-      },
-    );
-    final data = response.data;
-    if (data is Map<String, dynamic> && data['s'] == true && data['cs'] is List) {
-      return (data['cs'] as List)
-          .map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
-          .toList();
+    try {
+      final response = await _apiClient.get(
+        '/category/category-by-country',
+        baseUrl: ApiConstants.metadataCdnUrl,
+        queryParameters: {
+          'country_id': countryId,
+          'countryID': countryId,
+          'language': language,
+          'lang': language,
+        },
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['s'] == true && data['cs'] is List) {
+        final list = (data['cs'] as List)
+            .map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+        if (list.isNotEmpty) return list;
+      }
+    } catch (_) {
+      try {
+        final response = await _apiClient.get(
+          '/category/category-by-country',
+          baseUrl: ApiConstants.baseUrl,
+          queryParameters: {
+            'country_id': countryId,
+            'countryID': countryId,
+            'language': language,
+            'lang': language,
+          },
+        );
+        final data = response.data;
+        if (data is Map<String, dynamic> && data['s'] == true && data['cs'] is List) {
+          final list = (data['cs'] as List)
+              .map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
+              .toList();
+          if (list.isNotEmpty) return list;
+        }
+      } catch (_) {}
     }
-    if (data is Map<String, dynamic> && data['m'] != null) {
-      throw ApiException(data['m'].toString(), statusCode: response.statusCode);
-    }
-    throw const ApiException('Falha ao carregar categorias da região');
+    return defaultFallbackCategories;
   }
 
   Future<CountryModel> getSavedCountry() async {

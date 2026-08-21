@@ -205,8 +205,8 @@ class AuthRepository {
   Future<Map<String, dynamic>?> changeCategory(int categoryId) async {
     try {
       final response = await _apiClient.post(
-        '/category/category-by-country',
-        data: {'category_id': categoryId},
+        '/user/category/change',
+        data: {'category_id': categoryId, 'categoryId': categoryId},
       );
       final data = response.data;
       if (data is Map<String, dynamic> && data['s'] == true) {

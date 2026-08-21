@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/localization/app_translation.dart';
+import '../../data/models/category_model.dart';
 import '../../data/models/group_model.dart';
 import '../../data/repositories/group_repository.dart';
 import '../auth/auth_notifier.dart';
+import '../settings/settings_notifier.dart';
 import 'group_detail_screen.dart';
 
 final groupRepoProvider = Provider<GroupRepository>((ref) {
@@ -33,15 +35,15 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
   int _selectedCategoryIndex = 0;
   final String _selectedOrderType = 'promotedAt';
 
-  final List<Map<String, dynamic>> _categories = const [
-    {'id': 0, 'name': 'Todos'},
-    {'id': 1, 'name': 'Vestibular'},
-    {'id': 2, 'name': 'Concursos'},
-    {'id': 3, 'name': 'Graduação'},
-    {'id': 4, 'name': 'Idiomas'},
-    {'id': 5, 'name': 'Ensino Médio'},
-    {'id': 6, 'name': 'Outros'},
-  ];
+  List<Map<String, dynamic>> _getCategories(List<CategoryModel> countryCategories, AppTranslation t) {
+    return [
+      {'id': 0, 'name': t.tr('all', fallback: 'Todos')},
+      ...countryCategories.map((c) => {
+            'id': c.id,
+            'name': c.shortTitle.isNotEmpty ? c.shortTitle : c.title,
+          }),
+    ];
+  }
 
   @override
   void initState() {
@@ -67,7 +69,11 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
 
     try {
       final repo = ref.read(groupRepoProvider);
-      final catId = _categories[_selectedCategoryIndex]['id'] as int;
+      final countryCats = ref.read(settingsNotifierProvider).countryCategories;
+      final t = ref.read(appTranslationProvider);
+      final categories = _getCategories(countryCats, t);
+      final safeIndex = _selectedCategoryIndex < categories.length ? _selectedCategoryIndex : 0;
+      final catId = categories[safeIndex]['id'] as int;
       final results = await repo.fetchExploreGroups(
         categoryId: catId,
         orderType: _selectedOrderType,
@@ -106,7 +112,11 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
 
     try {
       final repo = ref.read(groupRepoProvider);
-      final catId = _categories[_selectedCategoryIndex]['id'] as int;
+      final countryCats = ref.read(settingsNotifierProvider).countryCategories;
+      final t = ref.read(appTranslationProvider);
+      final categories = _getCategories(countryCats, t);
+      final safeIndex = _selectedCategoryIndex < categories.length ? _selectedCategoryIndex : 0;
+      final catId = categories[safeIndex]['id'] as int;
       final results = await repo.searchGroups(query, categoryId: catId);
       if (mounted) {
         setState(() {
@@ -461,36 +471,43 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen>
                   // Category Filter Chips
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: List.generate(_categories.length, (index) {
-                        final cat = _categories[index];
-                        final isSelected = _selectedCategoryIndex == index;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: ChoiceChip(
-                            label: Text(cat['name'] as String),
-                            selected: isSelected,
-                            selectedColor: AppColors.primary,
-                            backgroundColor: AppColors.card,
-                            labelStyle: TextStyle(
-                              color: isSelected ? Colors.white : AppColors.textSecondary,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            ),
-                            onSelected: (selected) {
-                              if (selected) {
-                                setState(() {
-                                  _selectedCategoryIndex = index;
-                                });
-                                if (_hasSearched) {
-                                  _performSearch();
-                                } else {
-                                  _loadExploreGroups();
-                                }
-                              }
-                            },
-                          ),
+                    child: Builder(
+                      builder: (context) {
+                        final countryCats = ref.watch(settingsNotifierProvider).countryCategories;
+                        final categories = _getCategories(countryCats, t);
+                        final safeIndex = _selectedCategoryIndex < categories.length ? _selectedCategoryIndex : 0;
+                        return Row(
+                          children: List.generate(categories.length, (index) {
+                            final cat = categories[index];
+                            final isSelected = safeIndex == index;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ChoiceChip(
+                                label: Text(cat['name'] as String),
+                                selected: isSelected,
+                                selectedColor: AppColors.primary,
+                                backgroundColor: AppColors.card,
+                                labelStyle: TextStyle(
+                                  color: isSelected ? Colors.white : AppColors.textSecondary,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                ),
+                                onSelected: (selected) {
+                                  if (selected) {
+                                    setState(() {
+                                      _selectedCategoryIndex = index;
+                                    });
+                                    if (_hasSearched) {
+                                      _performSearch();
+                                    } else {
+                                      _loadExploreGroups();
+                                    }
+                                  }
+                                },
+                              ),
+                            );
+                          }),
                         );
-                      }),
+                      },
                     ),
                   ),
                   const SizedBox(height: 16),

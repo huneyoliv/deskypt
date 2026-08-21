@@ -259,58 +259,101 @@ class ProfileScreen extends ConsumerWidget {
                                     : t.tr('graduation', fallback: 'Graduação'),
                                 style: const TextStyle(color: Colors.white, fontSize: 12),
                               ),
-                              onPressed: () {
-                                final settingsState = ref.read(settingsNotifierProvider);
-                                final categories = settingsState.countryCategories;
+                              onPressed: () async {
+                                final settingsNotifier = ref.read(settingsNotifierProvider.notifier);
+                                if (ref.read(settingsNotifierProvider).countryCategories.isEmpty) {
+                                  await settingsNotifier.loadCategories();
+                                }
+                                if (!context.mounted) return;
                                 showDialog(
                                   context: context,
-                                  builder: (context) => SimpleDialog(
-                                    backgroundColor: AppColors.card,
-                                    title: Text(t.tr('category', fallback: 'Selecionar Categoria / Objetivo'),
-                                        style: const TextStyle(color: Colors.white)),
-                                    children: categories.isEmpty
-                                        ? [
-                                            Padding(
-                                              padding: const EdgeInsets.all(16),
-                                              child: Center(
-                                                child: Text(
-                                                  t.tr('loading_categories', fallback: 'Carregando categorias da região...'),
-                                                  style: const TextStyle(color: AppColors.textMuted),
+                                  builder: (context) => Consumer(
+                                    builder: (context, ref, _) {
+                                      final cats = ref.watch(settingsNotifierProvider).countryCategories;
+                                      return AlertDialog(
+                                        backgroundColor: AppColors.card,
+                                        title: Text(
+                                          t.tr('category', fallback: 'Selecionar Categoria / Objetivo'),
+                                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                        ),
+                                        content: SizedBox(
+                                          width: 420,
+                                          height: 480,
+                                          child: cats.isEmpty
+                                              ? Center(
+                                                  child: Text(
+                                                    t.tr('loading_categories', fallback: 'Carregando categorias da região...'),
+                                                    style: const TextStyle(color: AppColors.textMuted),
+                                                  ),
+                                                )
+                                              : ListView.builder(
+                                                  itemCount: cats.length,
+                                                  itemBuilder: (context, idx) {
+                                                    final cat = cats[idx];
+                                                    final isSelected = user?.categoryId == cat.id;
+                                                    final prevSection = idx > 0 ? cats[idx - 1].section : '';
+                                                    final showSectionHeader = cat.section.isNotEmpty && cat.section != prevSection;
+                                                    return Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        if (showSectionHeader)
+                                                          Padding(
+                                                            padding: const EdgeInsets.only(top: 12, bottom: 4, left: 8),
+                                                            child: Text(
+                                                              cat.section,
+                                                              style: const TextStyle(
+                                                                color: AppColors.primary,
+                                                                fontSize: 12,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ListTile(
+                                                          dense: true,
+                                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                                          tileColor: isSelected ? AppColors.primary.withValues(alpha: 0.15) : null,
+                                                          title: Text(
+                                                            cat.title,
+                                                            style: TextStyle(
+                                                              color: isSelected ? AppColors.primary : Colors.white,
+                                                              fontSize: 14,
+                                                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                                            ),
+                                                          ),
+                                                          trailing: isSelected ? const Icon(Icons.check, color: AppColors.primary, size: 18) : null,
+                                                          onTap: () async {
+                                                            Navigator.of(context).pop();
+                                                            final ok = await ref
+                                                                .read(authStateProvider.notifier)
+                                                                .updateCategory(cat.id, cat.title);
+                                                            if (context.mounted) {
+                                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                                SnackBar(
+                                                                  content: Text(
+                                                                    ok
+                                                                        ? '${t.tr("category_changed_to", fallback: "Categoria alterada para")} ${cat.title}'
+                                                                        : t.tr('category_change_fail', fallback: 'Falha ao atualizar categoria'),
+                                                                  ),
+                                                                  backgroundColor:
+                                                                      ok ? AppColors.success : AppColors.error,
+                                                                ),
+                                                              );
+                                                            }
+                                                          },
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
                                                 ),
-                                              ),
-                                            ),
-                                          ]
-                                        : categories.map((cat) {
-                                            return SimpleDialogOption(
-                                              onPressed: () async {
-                                                Navigator.of(context).pop();
-                                                final ok = await ref
-                                                    .read(authStateProvider.notifier)
-                                                    .updateCategory(cat.id, cat.title);
-                                                if (context.mounted) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        ok
-                                                            ? '${t.tr("category_changed_to", fallback: "Categoria alterada para")} ${cat.title}'
-                                                            : t.tr('category_change_fail', fallback: 'Falha ao atualizar categoria'),
-                                                      ),
-                                                      backgroundColor:
-                                                          ok ? AppColors.success : AppColors.error,
-                                                    ),
-                                                  );
-                                                }
-                                              },
-                                              child: Padding(
-                                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                                child: Text(
-                                                  cat.title,
-                                                  style: const TextStyle(
-                                                      color: Colors.white, fontSize: 15),
-                                                ),
-                                              ),
-                                            );
-                                          }).toList(),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.of(context).pop(),
+                                            child: Text(t.tr('cancel', fallback: 'Cancelar'), style: const TextStyle(color: AppColors.textMuted)),
+                                          ),
+                                        ],
+                                      );
+                                    },
                                   ),
                                 );
                               },

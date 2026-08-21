@@ -39,6 +39,8 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
         wakeNotifications: wakeNotifications,
         soundEffects: soundEffects,
         blockedUsers: blockedUsers.isNotEmpty ? blockedUsers : state.blockedUsers,
+        countryCategories: SettingsRepository.defaultFallbackCategories,
+        availableCountries: SettingsRepository.defaultFallbackCountries,
       );
     } catch (_) {}
   }
