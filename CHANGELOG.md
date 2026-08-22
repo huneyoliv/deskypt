@@ -5,6 +5,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+---
+
+## Versioning & Release Convention
+
+### Version Number Schema
+
+This project uses **Semantic Versioning** (`MAJOR.MINOR.PATCH`):
+
+| Segment | When to increment | Example |
+|---------|-------------------|---------|
+| `MAJOR` | Breaking changes or complete architectural overhaul | `2.0.0` |
+| `MINOR` | New backward-compatible features or significant UX additions | `1.1.0` |
+| `PATCH` | Bug fixes, small improvements, removals, or dependency updates | `1.0.6` |
+
+> During the initial rollout phase (`1.0.x`), `PATCH` increments are also used for feature additions
+> that do not break existing functionality, reflecting rapid iteration on the v1 baseline.
+
+### Git Tag & Release Workflow
+
+Releases are distributed as multiplatform installers (Windows `.exe`, macOS `.dmg`, Linux `.deb` / `.tar.gz`)
+via the GitHub Actions pipeline defined in `.github/workflows/release.yml`.
+
+**The CI/CD pipeline is tag-driven.** It activates exclusively on `push` events targeting tags
+that match the pattern `v*.*.*`. Tags are **not** created automatically by any workflow step —
+they must be created manually before the release push.
+
+#### Required steps to publish a new version
+
+```bash
+# 1. Ensure all commits for the release are on the target branch.
+# 2. Create an annotated tag pointing to the release commit.
+git tag -a v<MAJOR>.<MINOR>.<PATCH> <commit-sha> -m "Release v<MAJOR>.<MINOR>.<PATCH>"
+
+# 3. Push the tag to origin. This is what triggers the release pipeline.
+git push origin v<MAJOR>.<MINOR>.<PATCH>
+```
+
+> **Important:** Pushing commits without a corresponding tag will **not** trigger the release
+> pipeline. Only the tag push initiates the build matrix (Windows, macOS, Linux) and the
+> subsequent GitHub Release publication.
+
+#### Tag naming convention
+
+Tags must follow the pattern `v<MAJOR>.<MINOR>.<PATCH>` exactly (e.g., `v1.0.6`).
+Tags deviating from this pattern (e.g., `1.0.6` without the `v` prefix) will not match
+the workflow trigger and will be silently ignored by the pipeline.
+
+---
+
 ## [1.0.6] - 2026-08-22
 
 ### 🔄 Changed & Improved
