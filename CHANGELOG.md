@@ -17,7 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🧪 Testing & Quality Assurance
 - **Full Test Suite & Analyzer Validation**: 291 automated unit and widget tests passing with 100% success rate and 0 lint issues across the codebase.
-- **Updated Dev Runners**: Updated `scripts/run_all_tests.ps1` and `scripts/test_runner.ps1` for rapid quality verification and local execution.
+- **Interactive CLI Dev Runner**: Added `scripts/test_runner.ps1` — interactive menu-driven CLI for running the full test suite or launching the desktop app (`flutter run -d windows`) locally.
+- **Batch QA Runner**: Updated `scripts/run_all_tests.ps1` to run only DeskYPT Desktop tests and analysis after Companion module removal.
 
 ---
 
