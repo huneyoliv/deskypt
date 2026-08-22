@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/constants.dart';
+import 'screens/login_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,18 +24,7 @@ class DeskYptCompanionApp extends StatelessWidget {
           surface: CompanionConstants.cardDark,
         ),
       ),
-      home: const Scaffold(
-        body: Center(
-          child: Text(
-            CompanionConstants.appName,
-            style: TextStyle(
-              color: CompanionConstants.primaryOrange,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
+      home: const LoginScreen(),
     );
   }
 }
