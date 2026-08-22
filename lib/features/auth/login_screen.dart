@@ -9,7 +9,6 @@ import '../settings/settings_notifier.dart';
 import '../settings/widgets/select_language_dialog.dart';
 import 'auth_notifier.dart';
 import 'signup_screen.dart';
-import 'widgets/qr_auth_dialog.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -568,12 +567,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ],
                               ),
                               const SizedBox(height: 16),
-
-                              // Google Login Button
-                              _buildGoogleButton(context, t, authState),
-                              const SizedBox(height: 10),
-
-                              // Kakao, Naver, Apple Buttons
+                                                  // Kakao, Naver, Apple Buttons
                               Row(
                                 children: [
                                   Expanded(
@@ -653,49 +647,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildGoogleButton(
-    BuildContext context,
-    AppTranslation t,
-    AuthState authState,
-  ) {
-    return SizedBox(
-      height: 46,
-      child: OutlinedButton(
-        onPressed: authState.isLoading
-            ? null
-            : () => QrAuthDialog.show(context, providerName: 'Google'),
-        style: OutlinedButton.styleFrom(
-          backgroundColor: AppColors.surface,
-          side: const BorderSide(color: AppColors.border),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/icons/google_icon.png',
-              height: 20,
-              width: 20,
-              errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, color: Colors.white, size: 24),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              t.tr('sign_in_with_google', fallback: 'Entrar com Google'),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

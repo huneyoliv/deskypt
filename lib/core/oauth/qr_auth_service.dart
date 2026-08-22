@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'companion_listener.dart';
 import 'oauth_exception.dart';
 import 'oauth_pkce.dart';
 
@@ -25,7 +24,6 @@ class QrAuthSession {
   final int port;
   final List<LanInterfaceInfo> availableIps;
   final Future<String> tokenFuture;
-  final Stream<CompanionAuthEvent>? companionStream;
 
   const QrAuthSession({
     required this.sessionId,
@@ -34,7 +32,6 @@ class QrAuthSession {
     required this.port,
     required this.availableIps,
     required this.tokenFuture,
-    this.companionStream,
   });
 
   QrAuthSession copyWithIp(String newIp) {
@@ -45,7 +42,6 @@ class QrAuthSession {
       port: port,
       availableIps: availableIps,
       tokenFuture: tokenFuture,
-      companionStream: companionStream,
     );
   }
 }
@@ -54,8 +50,6 @@ class QrAuthService {
   HttpServer? _server;
   Completer<String>? _completer;
   String? _activeSessionId;
-  CompanionListener? _companionListener;
-  StreamSubscription<CompanionAuthEvent>? _companionSubscription;
 
   Future<List<LanInterfaceInfo>> getAvailableIpAddresses() async {
     final physical = <LanInterfaceInfo>[];
@@ -129,16 +123,6 @@ class QrAuthService {
     final localIp = preferredIp ?? availableIps.first.ip;
     final port = server.port;
     final pairingUrl = 'http://$localIp:$port/pair?session=$sessionId';
-
-    final listener = CompanionListener();
-    _companionListener = listener;
-    await listener.startListening();
-
-    _companionSubscription = listener.events.listen((event) {
-      if (!completer.isCompleted && event.jwt.isNotEmpty) {
-        completer.complete(event.jwt);
-      }
-    });
 
     server.listen(
       (HttpRequest request) async {
@@ -237,7 +221,6 @@ class QrAuthService {
       port: port,
       availableIps: availableIps,
       tokenFuture: tokenFuture,
-      companionStream: listener.events,
     );
   }
 
@@ -246,15 +229,6 @@ class QrAuthService {
       _completer!.completeError(
         const OAuthException('Pareamento QR Code cancelado.', isCancelled: true),
       );
-    }
-    if (_companionSubscription != null) {
-      await _companionSubscription!.cancel();
-      _companionSubscription = null;
-    }
-    if (_companionListener != null) {
-      await _companionListener!.stopListening();
-      _companionListener?.dispose();
-      _companionListener = null;
     }
     if (_server != null) {
       try {

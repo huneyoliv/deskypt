@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import '../../../core/oauth/companion_listener.dart';
 import '../../../core/oauth/qr_auth_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../auth_notifier.dart';
@@ -14,10 +13,10 @@ class QrAuthDialog extends ConsumerStatefulWidget {
 
   const QrAuthDialog({
     super.key,
-    this.providerName = 'Google',
+    this.providerName = 'Web',
   });
 
-  static Future<bool?> show(BuildContext context, {String providerName = 'Google'}) {
+  static Future<bool?> show(BuildContext context, {String providerName = 'Web'}) {
     return showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -39,8 +38,6 @@ class _QrAuthDialogState extends ConsumerState<QrAuthDialog> {
   bool _showManualInput = false;
   final TextEditingController _tokenController = TextEditingController();
   bool _isSubmittingManual = false;
-  String? _companionDetectedUser;
-  StreamSubscription<CompanionAuthEvent>? _companionSub;
 
   @override
   void initState() {
@@ -51,7 +48,6 @@ class _QrAuthDialogState extends ConsumerState<QrAuthDialog> {
 
   @override
   void dispose() {
-    _companionSub?.cancel();
     _tokenController.dispose();
     if (_session != null) {
       _qrAuthService.cancel();
@@ -63,7 +59,6 @@ class _QrAuthDialogState extends ConsumerState<QrAuthDialog> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
-      _companionDetectedUser = null;
     });
 
     try {
@@ -75,15 +70,6 @@ class _QrAuthDialogState extends ConsumerState<QrAuthDialog> {
       setState(() {
         _session = session;
         _isLoading = false;
-      });
-
-      _companionSub?.cancel();
-      _companionSub = session.companionStream?.listen((event) {
-        if (mounted) {
-          setState(() {
-            _companionDetectedUser = event.name.isNotEmpty ? event.name : event.email;
-          });
-        }
       });
 
       _awaitSession(session);
@@ -452,8 +438,6 @@ class _QrAuthDialogState extends ConsumerState<QrAuthDialog> {
           ),
         ],
         const SizedBox(height: 20),
-        _buildCompanionStatusCard(),
-        const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -480,73 +464,6 @@ class _QrAuthDialogState extends ConsumerState<QrAuthDialog> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildCompanionStatusCard() {
-    final isDetected = _companionDetectedUser != null;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: isDetected
-            ? const Color(0xFF4CAF50).withOpacity(0.12)
-            : AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDetected
-              ? const Color(0xFF4CAF50).withOpacity(0.4)
-              : Colors.white.withOpacity(0.08),
-          width: 1.2,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: isDetected
-                  ? const Color(0xFF4CAF50).withOpacity(0.2)
-                  : AppColors.primary.withOpacity(0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              isDetected ? LucideIcons.checkCircle : LucideIcons.smartphone,
-              color: isDetected ? const Color(0xFF4CAF50) : AppColors.primary,
-              size: 18,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isDetected
-                      ? 'Companion Detectado ($_companionDetectedUser)'
-                      : 'DeskYPT Companion APK',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: isDetected ? const Color(0xFF4CAF50) : Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  isDetected
-                      ? 'Sincronizando sessão e efetuando login...'
-                      : 'Faça login pelo app Companion para sincronizar automaticamente.',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: Colors.white.withOpacity(0.65),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 

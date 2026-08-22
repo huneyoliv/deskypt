@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deskypt/core/oauth/oauth_exception.dart';
 import 'package:deskypt/core/oauth/oauth_user_info.dart';
-import 'package:deskypt/core/oauth/providers/google_oauth_service.dart';
 import 'package:deskypt/core/oauth/providers/kakao_oauth_service.dart';
 import 'package:deskypt/core/oauth/providers/naver_oauth_service.dart';
 import 'package:deskypt/data/models/user_model.dart';
@@ -37,30 +36,6 @@ class MockAuthRepository extends AuthRepository {
       jwtToken: 'jwt_mock_token_123',
     );
   }
-}
-
-class MockGoogleOAuthService extends GoogleOAuthService {
-  bool shouldCancel = false;
-  bool shouldThrow = false;
-
-  @override
-  Future<OAuthUserInfo> authenticate({Duration timeout = const Duration(minutes: 3)}) async {
-    if (shouldCancel) {
-      throw const OAuthException('User cancelled', isCancelled: true);
-    }
-    if (shouldThrow) {
-      throw const OAuthException('Google network error');
-    }
-    return const OAuthUserInfo(
-      provider: 'Google',
-      socialId: 'google_id_999',
-      email: 'user@gmail.com',
-      name: 'Google User',
-    );
-  }
-
-  @override
-  Future<void> cancel() async {}
 }
 
 class MockKakaoOAuthService extends KakaoOAuthService {
@@ -106,51 +81,19 @@ class MockNaverOAuthService extends NaverOAuthService {
 void main() {
   group('AuthNotifier Social Login Tests', () {
     late MockAuthRepository mockRepo;
-    late MockGoogleOAuthService mockGoogle;
     late MockKakaoOAuthService mockKakao;
     late MockNaverOAuthService mockNaver;
     late AuthNotifier notifier;
 
     setUp(() {
       mockRepo = MockAuthRepository();
-      mockGoogle = MockGoogleOAuthService();
       mockKakao = MockKakaoOAuthService();
       mockNaver = MockNaverOAuthService();
       notifier = AuthNotifier(
         mockRepo,
-        googleOAuthService: mockGoogle,
         kakaoOAuthService: mockKakao,
         naverOAuthService: mockNaver,
       );
-    });
-
-    test('signInWithGoogle authenticates user and updates state', () async {
-      await notifier.signInWithGoogle();
-
-      expect(notifier.state.isAuthenticated, isTrue);
-      expect(notifier.state.user?.email, equals('user@gmail.com'));
-      expect(notifier.state.user?.jwtToken, equals('jwt_mock_token_123'));
-      expect(notifier.state.isLoading, isFalse);
-      expect(notifier.state.errorMessage, isNull);
-      expect(mockRepo.lastSocialLogin?.provider, equals('Google'));
-    });
-
-    test('signInWithGoogle handles user cancellation silently', () async {
-      mockGoogle.shouldCancel = true;
-      await notifier.signInWithGoogle();
-
-      expect(notifier.state.isAuthenticated, isFalse);
-      expect(notifier.state.isLoading, isFalse);
-      expect(notifier.state.errorMessage, isNull);
-    });
-
-    test('signInWithGoogle handles errors gracefully', () async {
-      mockGoogle.shouldThrow = true;
-      await notifier.signInWithGoogle();
-
-      expect(notifier.state.isAuthenticated, isFalse);
-      expect(notifier.state.isLoading, isFalse);
-      expect(notifier.state.errorMessage, equals('Google network error'));
     });
 
     test('signInWithKakao authenticates user and updates state', () async {
@@ -158,7 +101,9 @@ void main() {
 
       expect(notifier.state.isAuthenticated, isTrue);
       expect(notifier.state.user?.email, equals('user@kakao.com'));
+      expect(notifier.state.user?.jwtToken, equals('jwt_mock_token_123'));
       expect(notifier.state.isLoading, isFalse);
+      expect(notifier.state.errorMessage, isNull);
       expect(mockRepo.lastSocialLogin?.provider, equals('Kakao'));
     });
 
@@ -167,20 +112,16 @@ void main() {
 
       expect(notifier.state.isAuthenticated, isTrue);
       expect(notifier.state.user?.email, equals('user@naver.com'));
+      expect(notifier.state.user?.jwtToken, equals('jwt_mock_token_123'));
       expect(notifier.state.isLoading, isFalse);
+      expect(notifier.state.errorMessage, isNull);
       expect(mockRepo.lastSocialLogin?.provider, equals('Naver'));
     });
 
-    test('signInWithApple sets informational error message', () async {
-      await notifier.signInWithApple();
-
-      expect(notifier.state.isAuthenticated, isFalse);
-      expect(notifier.state.isLoading, isFalse);
-      expect(notifier.state.errorMessage, equals('alert_user_sign_in_apple_msg'));
-    });
-
-    test('cancelOAuth stops ongoing authentication and resets loading', () async {
+    test('cancelOAuth cancels active oauth services and resets loading', () async {
+      notifier.state = notifier.state.copyWith(isLoading: true);
       await notifier.cancelOAuth();
+
       expect(notifier.state.isLoading, isFalse);
     });
   });

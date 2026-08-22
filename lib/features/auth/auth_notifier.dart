@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/oauth/oauth_exception.dart';
-import '../../core/oauth/providers/google_oauth_service.dart';
 import '../../core/oauth/providers/kakao_oauth_service.dart';
 import '../../core/oauth/providers/naver_oauth_service.dart';
 import '../../data/models/user_model.dart';
@@ -9,10 +8,6 @@ import '../../data/repositories/auth_repository.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository();
-});
-
-final googleOAuthServiceProvider = Provider<GoogleOAuthService>((ref) {
-  return GoogleOAuthService();
 });
 
 final kakaoOAuthServiceProvider = Provider<KakaoOAuthService>((ref) {
@@ -51,17 +46,14 @@ class AuthState {
 
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository _repository;
-  final GoogleOAuthService _googleOAuthService;
   final KakaoOAuthService _kakaoOAuthService;
   final NaverOAuthService _naverOAuthService;
 
   AuthNotifier(
     this._repository, {
-    GoogleOAuthService? googleOAuthService,
     KakaoOAuthService? kakaoOAuthService,
     NaverOAuthService? naverOAuthService,
-  })  : _googleOAuthService = googleOAuthService ?? GoogleOAuthService(),
-        _kakaoOAuthService = kakaoOAuthService ?? KakaoOAuthService(),
+  })  : _kakaoOAuthService = kakaoOAuthService ?? KakaoOAuthService(),
         _naverOAuthService = naverOAuthService ?? NaverOAuthService(),
         super(const AuthState());
 
@@ -134,29 +126,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<void> signInWithGoogle() async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-    try {
-      final userInfo = await _googleOAuthService.authenticate();
-      final user = await _repository.signInWithSocial(
-        provider: userInfo.provider,
-        socialId: userInfo.socialId,
-        email: userInfo.email,
-        name: userInfo.name,
-      );
-      state = AuthState(user: user, isLoading: false);
-    } catch (e) {
-      if (e is OAuthException && e.isCancelled) {
-        state = state.copyWith(isLoading: false);
-        return;
-      }
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: _formatError(e),
-      );
-    }
-  }
-
   Future<void> signInWithKakao() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
@@ -211,7 +180,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> cancelOAuth() async {
-    await _googleOAuthService.cancel();
     await _kakaoOAuthService.cancel();
     await _naverOAuthService.cancel();
     state = state.copyWith(isLoading: false);
@@ -330,12 +298,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
 final authStateProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final repository = ref.watch(authRepositoryProvider);
-  final googleOAuth = ref.watch(googleOAuthServiceProvider);
   final kakaoOAuth = ref.watch(kakaoOAuthServiceProvider);
   final naverOAuth = ref.watch(naverOAuthServiceProvider);
   return AuthNotifier(
     repository,
-    googleOAuthService: googleOAuth,
     kakaoOAuthService: kakaoOAuth,
     naverOAuthService: naverOAuth,
   );
