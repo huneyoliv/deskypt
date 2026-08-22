@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2026-08-22
+
+### ✨ Added
+- **DeskYPT Companion Android App (`com.deskypt.companion`)**: Dedicated standalone Android companion app utilizing Yeolpumta's official OAuth Web Client ID (`817104413429-3m0gmfk1vedr2prb0rktubcujia098lc.apps.googleusercontent.com`) to authenticate via Google Sign-In and retrieve official YPT session JWTs directly.
+- **Zero-Touch Local Network Auto-Discovery (UDP Broadcast & Handshake)**: Instant automatic peer-to-peer login sync between phone and desktop over local Wi-Fi. The companion broadcasts encrypted auth payloads with anti-replay timestamp protection on port `47221`, and DeskYPT Desktop automatically captures the session, responds with an ACK datagram, and authenticates the user instantly.
+- **Companion Status Indicator & Real-Time Sync in QrAuthDialog**: Enhanced desktop QR code modal with live Companion detection indicators, real-time user stream tracking, and automatic progression without manual refresh.
+- **Multiple Session Transfer Modes**: Added full fallback mechanisms in the Companion app including high-contrast dynamic QR Code generation, native Android Share Sheet, and direct clipboard copying.
+- **Comprehensive Quality Assurance Suite**: Complete automated testing suite across both desktop and mobile apps (323+ tests passing, 0 lint/analyzer issues), along with diagnostic and automation PowerShell scripts (`run_all_tests.ps1`, `test_companion_udp.ps1`, `build_companion_apk.ps1`).
+
+---
+
 ## [1.0.5] - 2026-08-21
 
 ### ✨ Added
